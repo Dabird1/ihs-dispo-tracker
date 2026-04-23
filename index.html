@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root {
+  :root, [data-theme="dark"] {
     --bg:#0b1220; --panel:#111a2e; --panel-2:#0f1829; --border:#1e2a44; --border-soft:#172137;
     --text:#e6ecf5; --text-dim:#8a97b2; --text-mute:#5f6e8a;
     --primary:#2CB2DF; --primary-dim:#1A89AE;
@@ -24,8 +24,20 @@
     --warn:#d9a441; --warn-text:#f0c076; --warn-soft:rgba(217,164,65,.15);
     --callback-text:#9fd3ff; --callback-soft:rgba(44,178,223,.15);
     --chip:#17233c;
+    --sidebar:#0a1120; --row-hover:#0f1a30; --row-sel:#102644;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  [data-theme="light"] {
+    --bg:#f5f7fb; --panel:#ffffff; --panel-2:#f0f3f8; --border:#d6dde8; --border-soft:#e4e9f0;
+    --text:#1a2238; --text-dim:#55637d; --text-mute:#8995ac;
+    --primary:#1A89AE; --primary-dim:#2CB2DF;
+    --good:#4d8636; --good-text:#3b7226; --good-soft:rgba(103,166,75,.18);
+    --bad:#A02121;  --bad-text:#8b1818;  --bad-soft:rgba(160,33,33,.10);
+    --warn:#a87220; --warn-text:#7d5210; --warn-soft:rgba(217,164,65,.18);
+    --callback-text:#1a89ae; --callback-soft:rgba(44,178,223,.14);
+    --chip:#e4e9f0;
+    --sidebar:#ffffff; --row-hover:#f0f3f8; --row-sel:#e1eef5;
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { margin:0; padding:0; background:var(--bg); color:var(--text);
@@ -39,7 +51,7 @@
 
   /* Sidebar */
   .sidebar {
-    background:#0a1120; border-right:1px solid var(--border-soft);
+    background:var(--sidebar); border-right:1px solid var(--border-soft);
     padding:18px 14px calc(18px + var(--safe-bot)); display:flex; flex-direction:column; gap:4px;
   }
   .logo { display:flex; align-items:center; gap:10px; padding:6px 8px 18px; border-bottom:1px solid var(--border-soft); margin-bottom:12px; }
@@ -49,13 +61,13 @@
   .logo .sub { font-size:10px; letter-spacing:2px; color:var(--primary); font-weight:700; text-transform:uppercase; margin-top:2px; }
   .navlabel { font-size:11px; color:var(--text-mute); padding:10px 8px 4px; letter-spacing:1px; text-transform:uppercase; }
   .navitem { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:7px; cursor:pointer; color:var(--text-dim); font-size:13px; }
-  .navitem:hover { background:#0f1a30; color:var(--text); }
-  .navitem.active { background:#0f1a30; color:var(--primary); border:1px solid #17305a; }
+  .navitem:hover { background:var(--row-hover); color:var(--text); }
+  .navitem.active { background:var(--row-hover); color:var(--primary); border:1px solid var(--border); }
   .navitem.locked { opacity:.45; cursor:not-allowed; }
   .navitem .ico { width:16px; text-align:center; opacity:.85; }
   .nav-foot { margin-top:auto; display:flex; flex-direction:column; gap:2px; }
   .user { display:flex; align-items:center; gap:10px; padding:10px 8px; border-top:1px solid var(--border-soft); margin-top:10px; }
-  .avatar { width:32px; height:32px; border-radius:50%; background:#233553; color:var(--text); display:grid; place-items:center; font-weight:600; font-size:12px; flex:0 0 32px; }
+  .avatar { width:32px; height:32px; border-radius:50%; background:var(--chip); color:var(--text); display:grid; place-items:center; font-weight:600; font-size:12px; flex:0 0 32px; }
   .user .meta .n { font-weight:600; font-size:13px; }
   .user .meta .e { color:var(--text-mute); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
   .role-badge { display:inline-block; padding:2px 7px; background:var(--callback-soft); color:var(--callback-text); border-radius:4px; font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin-top:2px; }
@@ -149,8 +161,8 @@
   table th { text-align:left; color:var(--text-mute); font-weight:700; padding:9px 10px; border-bottom:1px solid var(--border); font-size:10.5px; letter-spacing:.8px; text-transform:uppercase; white-space:nowrap; }
   table td { padding:11px 10px; border-bottom:1px solid var(--border-soft); vertical-align:middle; }
   table.hover tr { cursor:pointer; }
-  table.hover tr:hover { background:#0f1a30; }
-  table tr.selected { background:#102644; outline:1px solid #17305a; }
+  table.hover tr:hover { background:var(--row-hover); }
+  table tr.selected { background:var(--row-sel); outline:1px solid var(--border); }
   table.num td.num, table.num th.num { text-align:right; font-variant-numeric:tabular-nums; }
 
   /* Chips */
@@ -239,6 +251,65 @@
   .page { display:none; }
   .page.active { display:block; }
 
+  /* Stuck banner */
+  .stuck-banner { display:none; align-items:center; gap:12px; padding:12px 16px; margin-bottom:12px;
+    background:var(--bad-soft); border:1px solid var(--bad); border-radius:9px;
+    color:var(--bad-text); font-size:13px; font-weight:600; cursor:pointer; }
+  .stuck-banner.show { display:flex; }
+  .stuck-banner .icon { font-size:18px; }
+  .stuck-banner .lead { flex:1; }
+  .stuck-banner .sub { color:var(--text-dim); font-weight:400; font-size:12px; margin-top:2px; }
+  .stuck-banner .cta { font-size:12px; color:var(--bad-text); text-decoration:underline; }
+
+  /* GM waterfall strip (Enterprise) */
+  .waterfall { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:12px;
+    background:var(--panel-2); border:1px dashed var(--border); border-radius:9px; margin-bottom:12px; }
+  .waterfall .step { padding:8px 10px; border-radius:7px; background:var(--panel); border:1px solid var(--border); }
+  .waterfall .step.active { border-color:var(--primary); box-shadow:0 0 0 1px var(--primary) inset; }
+  .waterfall .step .k { font-size:10px; letter-spacing:1px; color:var(--text-mute); text-transform:uppercase; }
+  .waterfall .step .v { font-size:14px; font-weight:600; margin-top:2px; color:var(--text); }
+  .waterfall .step.pending .v { color:var(--text-mute); font-style:italic; font-weight:500; }
+  .waterfall .step .n { font-size:11px; color:var(--text-dim); margin-top:2px; }
+
+  /* Preliminary caveat */
+  .prelim-caveat { font-size:11px; color:var(--text-mute); font-style:italic; margin-top:6px; }
+
+  /* Commit animation — row fade, KPI pulse */
+  @keyframes rowFade { 0%{opacity:1;transform:translateX(0)} 100%{opacity:0;transform:translateX(24px)} }
+  tr.row-submitting { animation: rowFade .45s ease forwards; }
+  @keyframes kpiPulse { 0%{color:var(--primary);transform:scale(1.08)} 100%{transform:scale(1)} }
+  .tile.kpi-pulse .num { animation: kpiPulse .8s ease; }
+
+  /* Production handoff chip animation */
+  @keyframes chipFlip { 0%{background:var(--warn-soft);color:var(--warn-text)} 100%{background:var(--good-soft);color:var(--good-text)} }
+  .crm-chip.flipping { animation: chipFlip 1.2s ease; }
+
+  /* Theme toggle button */
+  .theme-toggle { display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:7px;
+    color:var(--text-dim); font-size:12px; cursor:pointer; }
+  .theme-toggle:hover { color:var(--primary); border-color:var(--primary); }
+  .theme-toggle .ico { font-size:14px; }
+
+  /* Mobile appt cards (≤700px replaces table) */
+  .appt-cards { display:none; flex-direction:column; gap:10px; }
+  .appt-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px 14px;
+    display:grid; grid-template-columns:1fr auto; gap:6px 12px; align-items:start; position:relative; }
+  .appt-card.stuck { border-left:3px solid var(--bad); }
+  .appt-card .c-time { font-size:12px; color:var(--text-dim); font-variant-numeric:tabular-nums; }
+  .appt-card .c-cust { font-size:15px; font-weight:600; color:var(--text); line-height:1.25; margin-top:2px; }
+  .appt-card .c-meta { font-size:11px; color:var(--text-mute); margin-top:4px; }
+  .appt-card .c-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+  .appt-card .c-action { grid-column:1 / -1; margin-top:8px; }
+  .appt-card .c-action .btn { width:100%; justify-content:center; padding:12px; font-size:14px; min-height:44px; }
+
+  /* Data contract panel on Enterprise */
+  .data-contract { background:var(--panel-2); border:1px solid var(--border); border-radius:9px; padding:12px 14px; margin-top:12px; }
+  .data-contract-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .data-contract-head h4 { margin:0; font-family:'DM Serif Display',serif; font-weight:400; font-size:15px; }
+  .data-contract pre { background:var(--bg); border:1px solid var(--border-soft); padding:10px 12px; border-radius:6px;
+    font-size:11px; color:var(--text-dim); overflow:auto; max-height:240px; margin:0; }
+
   ::-webkit-scrollbar { width:10px; height:10px; }
   ::-webkit-scrollbar-track { background:transparent; }
   ::-webkit-scrollbar-thumb { background:#1d2a48; border-radius:6px; }
@@ -266,6 +337,13 @@
     .modal-actions .btn { flex:1; justify-content:center; }
     .hero-score { padding:14px; }
     .hero-score .score { font-size:34px; }
+    .waterfall { grid-template-columns:1fr; }
+  }
+  @media (max-width:700px) {
+    .queue-table-wrap { display:none; }
+    .appt-cards { display:flex; }
+    .pagehead-actions .btn { padding:10px 14px; min-height:44px; }
+    .pill { padding:9px 14px; min-height:36px; font-size:13px; }
   }
 
   /* Tab bar (mobile) */
@@ -290,6 +368,9 @@
     </div>
   </div>
   <div class="spacer"></div>
+  <button class="theme-toggle" id="themeToggleMobile" aria-label="Toggle theme">
+    <span class="ico" id="themeIcoMobile">☾</span>
+  </button>
   <select id="personaMobile" class="persona-pick"></select>
 </div>
 
@@ -318,6 +399,10 @@
       <div style="padding:8px;">
         <div class="persona-label">Persona (demo)</div>
         <select id="personaDesktop" class="persona-pick" style="width:100%;"></select>
+        <button class="theme-toggle" id="themeToggleDesktop" style="margin-top:8px;width:100%;justify-content:center;">
+          <span class="ico" id="themeIcoDesktop">☾</span>
+          <span id="themeLblDesktop">Dark</span>
+        </button>
       </div>
       <div class="user">
         <div class="avatar" id="userAvatar">JT</div>
@@ -380,6 +465,16 @@
         </div>
       </div>
 
+      <!-- Stuck banner -->
+      <div class="stuck-banner" id="stuckBanner" onclick="filterStuck()">
+        <span class="icon">⚠</span>
+        <div class="lead">
+          <span id="stuckBannerLead">0 appts stuck · production handoff delayed</span>
+          <div class="sub" id="stuckBannerSub">Open &gt;2 hrs past appointment time. Production is waiting for a clean handoff.</div>
+        </div>
+        <span class="cta">Filter stuck →</span>
+      </div>
+
       <!-- Hero score for scope -->
       <div class="hero-score" id="heroScore"></div>
 
@@ -400,7 +495,7 @@
             <button class="btn ghost" data-filter="all">All</button>
           </div>
         </div>
-        <div class="tablewrap">
+        <div class="tablewrap queue-table-wrap">
           <table class="hover">
             <thead>
               <tr>
@@ -416,6 +511,7 @@
             <tbody id="apptBody"></tbody>
           </table>
         </div>
+        <div class="appt-cards" id="apptCards"></div>
       </div>
     </section>
 
@@ -428,17 +524,17 @@
       <div class="kpis" id="mydayKpis"></div>
       <div class="card" style="margin-top:14px;">
         <h3>My Submissions</h3>
-        <div class="cardsub">Most recent first. <span style="color:var(--text-mute)">CRM column shows write-back to the job movement tool (Margin IQ).</span></div>
+        <div class="cardsub">Most recent first. <span style="color:var(--text-mute)">Production column = handoff to job movement (Margin IQ). Sold GM is rep-reported and preliminary.</span></div>
         <div class="tablewrap">
           <table class="num">
             <thead>
-              <tr><th>Time</th><th>Customer</th><th>Brand</th><th>Dispo</th><th class="num">Sold $</th><th class="num">GM %</th><th>CRM</th></tr>
+              <tr><th>Time</th><th>Customer</th><th>Brand</th><th>Dispo</th><th class="num">Sold $</th><th class="num">GM %</th><th>Production</th></tr>
             </thead>
             <tbody id="mydayBody"></tbody>
           </table>
         </div>
         <details class="payload-peek" id="payloadPeek" style="margin-top:12px;">
-          <summary>Dev · View last write-back payload (JSON contract)</summary>
+          <summary>Dev · View last production handoff payload (JSON contract)</summary>
           <pre id="payloadJson"></pre>
         </details>
       </div>
@@ -453,6 +549,24 @@
         </div>
       </div>
       <div class="hero-score" id="entHero"></div>
+      <!-- GM Waterfall -->
+      <div class="waterfall">
+        <div class="step active">
+          <div class="k">① Sold GM</div>
+          <div class="v" id="wfSold">$0 · 0.0%</div>
+          <div class="n">Rep-reported · today</div>
+        </div>
+        <div class="step pending">
+          <div class="k">② Reviewed GM</div>
+          <div class="v">Production · T+3-5d</div>
+          <div class="n">Scrubbed in Margin IQ</div>
+        </div>
+        <div class="step pending">
+          <div class="k">③ Installed GM</div>
+          <div class="v">GAAP · post-install</div>
+          <div class="n">Actual cost landed</div>
+        </div>
+      </div>
       <div class="section-title">Enterprise · Today</div>
       <div class="kpis" id="entKpis"></div>
       <div class="section-title">Breakdowns</div>
@@ -485,6 +599,18 @@
             <thead><tr><th style="width:22px">#</th><th>Rep</th><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
             <tbody></tbody>
           </table>
+        </div>
+      </div>
+
+      <div class="section-title">Production Handoff · Data Contract</div>
+      <div class="card">
+        <div class="cardsub">Every disposition posts this JSON to job movement (Margin IQ). This is the canonical contract for the 6 CRM webhooks (Acculynx, DataForma, Gorilla Desk, Leap, Salesforce, Zoho/DF) and the manual streams (Sumo, custom quote, paper). Shown: last submission.</div>
+        <div class="data-contract">
+          <div class="data-contract-head">
+            <h4>Last handoff payload</h4>
+            <span class="crm-chip submitted" id="entContractStatus">● Posted to Production</span>
+          </div>
+          <pre id="entContractJson">(no submissions yet)</pre>
         </div>
       </div>
     </section>
@@ -664,6 +790,22 @@ const SERVICES = ["Roofing","Siding","Windows & Doors","Gutters","Solar","Repair
 const CUSTOMER_TYPES = ["Residential","Commercial","Managed Residential","Managed Commercial","Other"];
 const REPS = ["Doug M.","Karen P.","Miguel R.","Sarah L.","Tyrone W.","Aaron K.","Priya S.","Jamal B.","Rebecca H.","Luis G."];
 
+/* Market → region map (for RVP scope) */
+const MARKET_REGION_MAP = {
+  "Alabama":"Southeast","Ancaster, ON":"Canada","Cadillac, MI":"Midwest","Carpenters Roofing & Sheet Metal":"Southeast",
+  "Columbus":"Midwest","Cranston, RI":"Northeast","Croton-on-Hudson":"Northeast","Dayton":"Midwest",
+  "Eagle River":"Midwest","Euclid, OH":"Midwest","Fox Valley":"Midwest","Gibsonia, PA":"Mid-Atlantic",
+  "Grand Haven, MI":"Midwest","Grand Rapids, MI":"Midwest","Indianapolis, IN":"Midwest","Jackson, MS":"Southeast",
+  "Kalamazoo, MI":"Midwest","Kenosha, WI":"Midwest","Leland, NC":"Southeast","Louisiana":"Southeast",
+  "Madison":"Midwest","Maryland":"Mid-Atlantic","Medford":"Northeast","Murrysville":"Mid-Atlantic",
+  "Needham":"Northeast","New Bedford":"Northeast","New Berlin":"Midwest","Newport":"Northeast",
+  "Niagra":"Northeast","Northern Illinois":"Midwest","Pilesgrove":"Mid-Atlantic","Portland":"Northwest",
+  "Port Washington, WI":"Midwest","Regina, SK":"Canada","Rockford":"Midwest","Seattle":"Northwest",
+  "Spokane, WA":"Northwest","Springfield, MA":"Northeast","Stevens Point":"Midwest","Stokesdale, NC":"Southeast",
+  "Suamico, WI":"Midwest","Tewksbury, MA":"Northeast","Virginia":"Mid-Atlantic","Westerly":"Northeast",
+  "West Palm Beach, FL":"Southeast"
+};
+
 /* Brand → primary market (for mock scoping). In prod, this comes from your dim tables. */
 const BRAND_MARKET_MAP = {
   "Infinity Exteriors":"Kenosha, WI", "Premier Roofing":"Columbus", "D'Angelo and Sons":"Ancaster, ON",
@@ -711,7 +853,7 @@ function makeAppts() {
     ['5:30p',"Henderson Roofing","O'Brien, M.","Portland","Aaron K."],
     ['6:00p',"Exterior Medics","Singh, R.","Maryland","Priya S."],
   ];
-  return seed.map((s, i) => ({ id:'A-204'+(i+30), time:s[0], brand:s[1], customer:s[2], market:s[3], rep:s[4], status:'open' }));
+  return seed.map((s, i) => ({ id:'A-204'+(i+30), time:s[0], brand:s[1], customer:s[2], market:s[3], rep:s[4], status:'open', region: MARKET_REGION_MAP[s[3]] || '—' }));
 }
 const APPTS = makeAppts();
 
@@ -770,6 +912,10 @@ let chosenDispo = null;
    INIT
    ============================================================ */
 function init() {
+  // Seed demo data on first load, then replay persisted submissions
+  seedDemoSubs();
+  replayStatus();
+
   // Persona selectors
   const desktop = document.getElementById('personaDesktop');
   const mobile = document.getElementById('personaMobile');
@@ -833,6 +979,28 @@ function init() {
   renderAll();
   registerSW();
   updateConn();
+  initTheme();
+}
+
+const LS_THEME = 'ihs_dispo_theme_v1';
+function initTheme() {
+  const saved = localStorage.getItem(LS_THEME);
+  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  const theme = saved || (prefersLight ? 'light' : 'dark');
+  applyTheme(theme);
+  [document.getElementById('themeToggleDesktop'), document.getElementById('themeToggleMobile')]
+    .filter(Boolean).forEach(btn => btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(cur === 'dark' ? 'light' : 'dark');
+    }));
+}
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(LS_THEME, theme);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', theme === 'light' ? '#f5f7fb' : '#0b1220');
+  ['themeIcoDesktop','themeIcoMobile'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = theme === 'dark' ? '☾' : '☀'; });
+  ['themeLblDesktop'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = theme === 'dark' ? 'Dark' : 'Light'; });
 }
 
 function setPersona(key) {
@@ -898,6 +1066,7 @@ function scopedAppts() {
   return APPTS.filter(a => {
     if (persona.scope.brand && !canSeeAllBrands() && a.brand !== persona.scope.brand) return false;
     if (persona.scope.market && a.market !== persona.scope.market) return false;
+    if (persona.scope.region && a.region !== persona.scope.region) return false;
     if (persona.role === 'Rep' && a.rep !== persona.name) return false;
     // Active filter selects
     const bf = document.getElementById('f-brand').value;
@@ -913,6 +1082,7 @@ function scopedSubs() {
   return submissions.filter(s => {
     if (persona.scope.brand && !canSeeAllBrands() && s.brand !== persona.scope.brand) return false;
     if (persona.scope.market && s.market !== persona.scope.market) return false;
+    if (persona.scope.region && s.region !== persona.scope.region) return false;
     if (persona.role === 'Rep' && s.rep !== persona.name) return false;
     return true;
   });
@@ -988,14 +1158,63 @@ function renderQueue() {
       <td><span class="rep-chip">${escapeHtml(a.rep)}</span></td>
       <td><span class="status-chip ${isStuck(a) ? 'stuck' : a.status}">${isStuck(a) ? 'Stuck' : labelStatus(a.status)}</span></td>
       <td style="text-align:right;">
-        <button class="btn ${a.status==='open'?'primary':'ghost'}" data-id="${a.id}">
-          ${a.status==='open' ? 'Disposition' : 'Edit'}
-        </button>
+        ${a.status==='open'
+          ? `<button class="btn primary" data-id="${a.id}">Disposition</button>`
+          : `<span class="status-chip ${a.status}" style="opacity:.8">${labelStatus(a.status)} ✓</span>`}
       </td>
     </tr>
   `).join('');
+
+  // Mobile cards — parallel render
+  const cards = document.getElementById('apptCards');
+  if (cards) {
+    cards.innerHTML = list.map(a => {
+      const stuck = isStuck(a);
+      return `
+        <div class="appt-card${stuck ? ' stuck' : ''}" data-id="${a.id}">
+          <div>
+            <div class="c-time">${a.time}</div>
+            <div class="c-cust">${escapeHtml(a.customer)}</div>
+            <div class="c-meta">${escapeHtml(a.brand)} · ${escapeHtml(a.market)} · ${escapeHtml(a.rep)}</div>
+          </div>
+          <div class="c-right">
+            <span class="status-chip ${stuck ? 'stuck' : a.status}">${stuck ? 'Stuck' : labelStatus(a.status)}</span>
+          </div>
+          <div class="c-action">
+            ${a.status==='open'
+              ? `<button class="btn primary" data-id="${a.id}">Disposition →</button>`
+              : `<button class="btn ghost" disabled>${labelStatus(a.status)} ✓</button>`}
+          </div>
+        </div>`;
+    }).join('');
+    [...cards.querySelectorAll('button[data-id]')].forEach(b =>
+      b.addEventListener('click', e => { e.stopPropagation(); openDispo(APPTS.find(a => a.id === b.dataset.id)); }));
+  }
+
   [...tbody.querySelectorAll('button[data-id]')].forEach(b =>
     b.addEventListener('click', e => { e.stopPropagation(); openDispo(APPTS.find(a => a.id === b.dataset.id)); }));
+
+  // Stuck banner
+  const banner = document.getElementById('stuckBanner');
+  if (banner) {
+    if (stuckTotal > 0) {
+      const stuckAppts = appts.filter(isStuck);
+      const names = stuckAppts.slice(0, 3).map(a => a.customer.split(',')[0]).join(', ');
+      banner.classList.add('show');
+      document.getElementById('stuckBannerLead').textContent =
+        `${stuckTotal} appt${stuckTotal===1?'':'s'} stuck · production handoff delayed`;
+      document.getElementById('stuckBannerSub').textContent =
+        `${names}${stuckAppts.length > 3 ? ' and others' : ''} — open >2 hrs past appointment time. Production is waiting for a clean handoff.`;
+    } else {
+      banner.classList.remove('show');
+    }
+  }
+}
+function filterStuck() {
+  queueFilter = 'stuck';
+  [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === 'stuck'));
+  renderQueue();
+  document.querySelector('.card')?.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 function renderMyDay() {
@@ -1020,7 +1239,7 @@ function renderMyDay() {
           <td><span class="status-chip ${s.outcome}">${labelStatus(s.outcome)}</span></td>
           <td class="num">${s.outcome==='sold' ? fmt(s.net) : '—'}</td>
           <td class="num" style="color:${s.outcome==='sold'?gmColor(s.gmPct):'var(--text-mute)'}">${s.outcome==='sold' ? s.gmPct.toFixed(1)+'%' : '—'}</td>
-          <td><span class="crm-chip ${s.crmWriteback||'queued'}">${s.crmWriteback === 'submitted' ? '● CRM' : '○ queued'}</span></td>
+          <td><span class="crm-chip ${s.crmWriteback||'queued'}">${s.crmWriteback === 'submitted' ? '● Posted' : '○ queued'}</span></td>
         </tr>`).join('');
   const latest = subs[0];
   const peek = document.getElementById('payloadJson');
@@ -1031,6 +1250,15 @@ function renderEnterprise() {
   // Enterprise always rolled up across everything (ignores most filters; respects nothing but reality)
   const appts = APPTS; // full dataset
   const m = rollup(appts, submissions);
+
+  // Waterfall
+  const wf = document.getElementById('wfSold');
+  if (wf) wf.textContent = `${fmt(m.sold$)} · ${m.gmPct.toFixed(1)}%`;
+
+  // Data contract panel (last submission)
+  const latest = submissions.slice(-1)[0];
+  const entJson = document.getElementById('entContractJson');
+  if (entJson) entJson.textContent = latest ? JSON.stringify(latest, null, 2) : '(no submissions yet)';
   document.getElementById('entHero').innerHTML = `
     <div>
       <div class="lbl">Enterprise · Today</div>
@@ -1058,7 +1286,7 @@ function renderEnterprise() {
   }).sort((a,b) => b.appts - a.appts);
   const brandBody = document.querySelector('#tblByBrand tbody');
   brandBody.innerHTML = byBrand.slice(0, 10).map((r, i) => `
-    <tr>
+    <tr data-drill-brand="${escapeHtml(r.brand)}" style="cursor:pointer">
       <td class="rank">${i+1}</td>
       <td><span class="brand-chip">${escapeHtml(r.brand)}</span></td>
       <td class="num">${r.appts}</td>
@@ -1067,14 +1295,17 @@ function renderEnterprise() {
       <td class="num">${fmt(r.sold$)}</td>
       <td class="num" style="color:${gmColor(r.gmPct)}">${r.gmPct.toFixed(1)}%</td>
     </tr>`).join('');
+  [...brandBody.querySelectorAll('tr[data-drill-brand]')].forEach(tr =>
+    tr.addEventListener('click', () => drillTo({ brand: tr.dataset.drillBrand })));
 
   // By Market (top 10)
   const byMarket = groupBy(appts, 'market').map(([market, arr]) => {
     const rm = rollup(arr, submissions.filter(s => s.market === market));
     return { market, ...rm };
   }).sort((a,b) => b.appts - a.appts);
-  document.querySelector('#tblByMarket tbody').innerHTML = byMarket.slice(0, 10).map((r, i) => `
-    <tr>
+  const mktBody = document.querySelector('#tblByMarket tbody');
+  mktBody.innerHTML = byMarket.slice(0, 10).map((r, i) => `
+    <tr data-drill-market="${escapeHtml(r.market)}" style="cursor:pointer">
       <td class="rank">${i+1}</td>
       <td>${escapeHtml(r.market)}</td>
       <td class="num">${r.appts}</td>
@@ -1083,6 +1314,8 @@ function renderEnterprise() {
       <td class="num">${fmt(r.sold$)}</td>
       <td class="num" style="color:${gmColor(r.gmPct)}">${r.gmPct.toFixed(1)}%</td>
     </tr>`).join('');
+  [...mktBody.querySelectorAll('tr[data-drill-market]')].forEach(tr =>
+    tr.addEventListener('click', () => drillTo({ market: tr.dataset.drillMarket })));
 
   // By Rep
   const byRep = groupBy(appts, 'rep').map(([rep, arr]) => {
@@ -1195,7 +1428,59 @@ function recalcSold() {
   const c = gmPct>=42?'good':gmPct>=35?'warn':'bad';
   gmDollarEl.className = 'v '+c;
   gmPctEl.className = 'v '+c;
+  // Progressive disclosure — only show readout when both price AND cogs entered
+  const readout = document.querySelector('#soldForm .gm-readout');
+  if (readout) readout.style.display = (price > 0 && cogs > 0) ? 'grid' : 'none';
   return { price, cogs, disc, fin, net, feeCost, gm$, gmPct };
+}
+
+function replayStatus() {
+  const byAppt = new Map();
+  submissions.forEach(s => { if (s.apptId) byAppt.set(s.apptId, s.outcome); });
+  APPTS.forEach(a => { if (byAppt.has(a.id)) a.status = byAppt.get(a.id); });
+}
+
+function seedDemoSubs() {
+  if (submissions.length > 0) return; // don't overwrite real captures
+  const now = Date.now();
+  const seed = [
+    // [apptIdx, outcome, extra]
+    [0,  'sold',     { price:28400, cogs:15200, disc:500, fin:'fin12', net:27900, feeCost:837, gm$:11863, gmPct:42.52, service:'Roofing', ctype:'Residential' }],
+    [1,  'sold',     { price:41200, cogs:24900, disc:1200, fin:'cash',  net:40000, feeCost:0,   gm$:15100, gmPct:37.75, service:'Roofing', ctype:'Residential' }],
+    [2,  'nosale',   { reason:'Price / Budget', competitor:'Local competitor', compPrice:22000, revisit:'Maybe' }],
+    [3,  'sold',     { price:18600, cogs:9800,  disc:0,    fin:'fin0',  net:18600, feeCost:1488,gm$:7312,  gmPct:39.31, service:'Windows & Doors', ctype:'Residential' }],
+    [4,  'sold',     { price:52000, cogs:32000, disc:2000, fin:'finLT', net:50000, feeCost:3500,gm$:14500, gmPct:29.00, service:'Roofing', ctype:'Residential' }],
+    [5,  'callback', { reason:'Other Decision Maker Required' }],
+    [6,  'sold',     { price:14800, cogs:7600,  disc:0,    fin:'cash',  net:14800, feeCost:0,   gm$:7200,  gmPct:48.65, service:'Gutters', ctype:'Residential' }],
+    [7,  'nosale',   { reason:'Timing / Not Ready', revisit:'Yes — warm' }],
+    [8,  'sold',     { price:36500, cogs:19200, disc:500,  fin:'ccard', net:36000, feeCost:900, gm$:15900, gmPct:44.17, service:'Roofing', ctype:'Residential' }],
+    [9,  'callback', { reason:'Comparing Quotes' }],
+    [10, 'sold',     { price:23400, cogs:13800, disc:0,    fin:'fin12', net:23400, feeCost:702, gm$:8898,  gmPct:38.03, service:'Siding', ctype:'Residential' }],
+    [11, 'nosale',   { reason:'Competitor Quote', competitor:'Big-box install', compPrice:19500 }],
+  ];
+  seed.forEach(([i, outcome, extra], k) => {
+    const a = APPTS[i]; if (!a) return;
+    const baseTs = now - (seed.length - k) * 12 * 60 * 1000; // staggered
+    const rec = {
+      submissionId: 'RTAT-SEED-' + k,
+      ts: baseTs,
+      outcome,
+      crmWriteback: 'submitted',
+      apptId: a.id, customer: a.customer, brand: a.brand, market: a.market, region: a.region, rep: a.rep,
+      synced: true,
+    };
+    if (outcome === 'sold') {
+      Object.assign(rec, { price:extra.price, cogs:extra.cogs, disc:extra.disc, net:extra.net, feeCost:extra.feeCost,
+        gm$:extra.gm$, gmPct:extra.gmPct, financing:extra.fin, service:extra.service, customerType:extra.ctype });
+    } else if (outcome === 'nosale') {
+      Object.assign(rec, { reason:extra.reason, competitor:extra.competitor||'', competitorPrice:extra.compPrice||null, revisit:extra.revisit||'' });
+    } else if (outcome === 'callback') {
+      Object.assign(rec, { reason:extra.reason, callbackDate:'', callbackTime:'' });
+    }
+    submissions.push(rec);
+    a.status = outcome;
+  });
+  saveSubs();
 }
 
 function commonRec(outcome, extra) {
@@ -1207,6 +1492,7 @@ function commonRec(outcome, extra) {
     customer: selectedAppt?.customer || 'Walk-in / Manual',
     brand: selectedAppt?.brand || (document.getElementById('f-brand').value || persona.scope.brand || 'Unassigned'),
     market: selectedAppt?.market || (document.getElementById('f-market').value || persona.scope.market || '—'),
+    region: selectedAppt?.region || MARKET_REGION_MAP[selectedAppt?.market] || MARKET_REGION_MAP[document.getElementById('f-market').value] || persona.scope.region || '—',
     rep: selectedAppt?.rep || (document.getElementById('f-rep').value || (persona.role === 'Rep' ? persona.name : 'Unassigned')),
     synced: navigator.onLine,
     ...extra,
@@ -1240,15 +1526,38 @@ function submitSold(e) {
   if (!price || !cogs) { alert('Enter Sold Price and Sold COGS.'); return false; }
   const services = [...multiBuffer, buildSoldPayload()];
   const groupId = 'GRP-' + Date.now().toString(36).toUpperCase();
-  services.forEach((svc, idx) => {
-    const rec = commonRec('sold', { ...svc, soldGroup: groupId, serviceIndex: idx + 1, servicesTotal: services.length });
+  const firstRec = commonRec('sold', { ...services[0], soldGroup: groupId, serviceIndex: 1, servicesTotal: services.length });
+  submissions.push(firstRec);
+  services.slice(1).forEach((svc, idx) => {
+    const rec = commonRec('sold', { ...svc, soldGroup: groupId, serviceIndex: idx + 2, servicesTotal: services.length });
     submissions.push(rec);
   });
   saveSubs();
   if (selectedAppt) selectedAppt.status = 'sold';
+
+  const apptId = selectedAppt?.id;
+  const row = apptId ? document.querySelector(`#apptBody tr button[data-id="${apptId}"]`)?.closest('tr') : null;
+  const card = apptId ? document.querySelector(`#apptCards .appt-card[data-id="${apptId}"]`) : null;
+
   closeDispo();
-  renderAll();
-  toast(services.length > 1 ? `Sale submitted — ${services.length} linked jobs.` : 'Sale submitted.');
+
+  const finish = () => {
+    renderAll();
+    const firstTile = document.querySelector('#kpiGrid .tile');
+    if (firstTile) { firstTile.classList.add('kpi-pulse'); setTimeout(() => firstTile.classList.remove('kpi-pulse'), 900); }
+    toast(services.length > 1
+      ? `Sold · ${services.length} linked jobs · Posting to Production…`
+      : `Sold · ${fmt(firstRec.net)} · ${firstRec.gmPct.toFixed(1)}% GM · Posting to Production…`);
+    setTimeout(() => {
+      toast(services.length > 1
+        ? `✓ Posted to Production · ${services.length} jobs queued`
+        : `✓ Posted to Production · job queued for scheduling`);
+    }, 1300);
+  };
+
+  if (row) { row.classList.add('row-submitting'); setTimeout(finish, 420); }
+  else if (card) { card.classList.add('row-submitting'); setTimeout(finish, 420); }
+  else { finish(); }
   return false;
 }
 function submitNoSale(e) {
@@ -1287,16 +1596,51 @@ function submitNoShow(e) {
   return false;
 }
 
+function drillTo({ brand, market }) {
+  if (brand) {
+    const bf = document.getElementById('f-brand');
+    if (bf && !bf.disabled) bf.value = brand;
+  }
+  if (market) {
+    const mf = document.getElementById('f-market');
+    if (mf && !mf.disabled) mf.value = market;
+  }
+  goPage('queue');
+  toast(`Filtered: ${brand || market}`);
+}
+
 function commit(rec, status) {
   submissions.push(rec);
   saveSubs();
   if (selectedAppt) selectedAppt.status = status;
+
+  // Commit animation: fade the row before re-rendering
+  const apptId = selectedAppt?.id;
+  const row = apptId ? document.querySelector(`#apptBody tr button[data-id="${apptId}"]`)?.closest('tr') : null;
+  const card = apptId ? document.querySelector(`#apptCards .appt-card[data-id="${apptId}"]`) : null;
+
   closeDispo();
-  renderAll();
-  const msg = status === 'sold'
-    ? `Sold · ${rec.rep} · ${fmt(rec.net)} · ${rec.gmPct.toFixed(1)}% GM`
-    : `${labelStatus(status)} · ${rec.customer}`;
-  toast(msg);
+
+  const finish = () => {
+    renderAll();
+    // Pulse first KPI tile
+    const firstTile = document.querySelector('#kpiGrid .tile');
+    if (firstTile) { firstTile.classList.add('kpi-pulse'); setTimeout(() => firstTile.classList.remove('kpi-pulse'), 900); }
+    const msg = status === 'sold'
+      ? `Sold · ${fmt(rec.net)} · ${rec.gmPct.toFixed(1)}% GM · Posting to Production…`
+      : `${labelStatus(status)} · ${rec.customer} · Posting to Production…`;
+    toast(msg);
+    // Handoff chip moment — 1.2s later, flip to "Posted"
+    setTimeout(() => {
+      toast(status === 'sold'
+        ? `✓ Posted to Production · job queued for scheduling`
+        : `✓ Posted to Production · ${labelStatus(status)}`);
+    }, 1300);
+  };
+
+  if (row) { row.classList.add('row-submitting'); setTimeout(finish, 420); }
+  else if (card) { card.classList.add('row-submitting'); setTimeout(finish, 420); }
+  else { finish(); }
 }
 
 /* ============================================================
