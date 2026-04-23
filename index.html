@@ -10,16 +10,15 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="icon-192.png" />
-<title>Real Time Appointment Tracker (RTAT) — Infinity Home Services</title>
+<title>RTAT — Real Time Appointment Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg:#0b1220; --panel:#111a2e; --panel-2:#0f1829; --panel-3:#162039;
-    --border:#1e2a44; --border-soft:#172137;
+    --bg:#0b1220; --panel:#111a2e; --panel-2:#0f1829; --border:#1e2a44; --border-soft:#172137;
     --text:#e6ecf5; --text-dim:#8a97b2; --text-mute:#5f6e8a;
-    --primary:#2CB2DF; --primary-dim:#1A89AE; --primary-soft:rgba(44,178,223,.12);
+    --primary:#2CB2DF; --primary-dim:#1A89AE;
     --good:#67A64B; --good-text:#8bd169; --good-soft:rgba(103,166,75,.15);
     --bad:#A02121;  --bad-text:#e47a7a;  --bad-soft:rgba(160,33,33,.18);
     --warn:#d9a441; --warn-text:#f0c076; --warn-soft:rgba(217,164,65,.15);
@@ -27,549 +26,650 @@
     --chip:#17233c;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bot: env(safe-area-inset-bottom, 0px);
-    --hit: 48px;
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { margin:0; padding:0; background:var(--bg); color:var(--text);
-    font-family:'Inter','Aptos Narrow',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    font-size:15px; line-height:1.4; min-height:100vh; -webkit-font-smoothing:antialiased; }
-  a { color: var(--primary); text-decoration: none; }
-  button, input, select, textarea { font-family: inherit; font-size: inherit; }
-  h1,h2,h3,h4 { margin:0; }
+    font-family:'Inter','Aptos Narrow',system-ui,-apple-system,sans-serif; font-size:14px; min-height:100vh; }
+  a { color:var(--primary); text-decoration:none; }
+  button { font-family:inherit; }
+  input, select, textarea { font-family:inherit; }
 
-  /* ==================== MOBILE-FIRST LAYOUT (default) ==================== */
-  .app { display:flex; flex-direction:column; min-height:100vh; }
-  .sidebar { display: none; }
+  .app { display:grid; grid-template-columns:240px 1fr; min-height:100vh; }
+  .main { padding:calc(20px + var(--safe-top)) 26px calc(60px + var(--safe-bot)); max-width:1400px; }
 
+  /* Sidebar */
+  .sidebar {
+    background:#0a1120; border-right:1px solid var(--border-soft);
+    padding:18px 14px calc(18px + var(--safe-bot)); display:flex; flex-direction:column; gap:4px;
+  }
+  .logo { display:flex; align-items:center; gap:10px; padding:6px 8px 18px; border-bottom:1px solid var(--border-soft); margin-bottom:12px; }
+  .logo .mark { width:32px; height:32px; border-radius:7px; background:linear-gradient(135deg,var(--primary),var(--primary-dim)); display:grid; place-items:center; color:#001018; font-weight:800; font-size:12px; flex:0 0 32px; }
+  .logo .namewrap { display:flex; flex-direction:column; line-height:1.05; min-width:0; }
+  .logo .name { font-family:'DM Serif Display',serif; font-size:15px; letter-spacing:.2px; white-space:normal; }
+  .logo .sub { font-size:10px; letter-spacing:2px; color:var(--primary); font-weight:700; text-transform:uppercase; margin-top:2px; }
+  .navlabel { font-size:11px; color:var(--text-mute); padding:10px 8px 4px; letter-spacing:1px; text-transform:uppercase; }
+  .navitem { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:7px; cursor:pointer; color:var(--text-dim); font-size:13px; }
+  .navitem:hover { background:#0f1a30; color:var(--text); }
+  .navitem.active { background:#0f1a30; color:var(--primary); border:1px solid #17305a; }
+  .navitem.locked { opacity:.45; cursor:not-allowed; }
+  .navitem .ico { width:16px; text-align:center; opacity:.85; }
+  .nav-foot { margin-top:auto; display:flex; flex-direction:column; gap:2px; }
+  .user { display:flex; align-items:center; gap:10px; padding:10px 8px; border-top:1px solid var(--border-soft); margin-top:10px; }
+  .avatar { width:32px; height:32px; border-radius:50%; background:#233553; color:var(--text); display:grid; place-items:center; font-weight:600; font-size:12px; flex:0 0 32px; }
+  .user .meta .n { font-weight:600; font-size:13px; }
+  .user .meta .e { color:var(--text-mute); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+  .role-badge { display:inline-block; padding:2px 7px; background:var(--callback-soft); color:var(--callback-text); border-radius:4px; font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin-top:2px; }
+
+  /* Mobile topbar */
   .topbar {
-    position: sticky; top: 0; z-index: 40;
-    padding: calc(10px + var(--safe-top)) 14px 10px;
-    background: rgba(11,18,32,.92); backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-soft);
-    display: flex; align-items: center; gap: 10px;
+    display:none; position:sticky; top:0; z-index:5;
+    background:rgba(11,18,32,.92); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border-soft);
+    padding:calc(10px + var(--safe-top)) 14px 10px; align-items:center; gap:10px;
   }
-  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-  .brand .mark {
-    width: 34px; height: 34px; border-radius: 8px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dim));
-    display: grid; place-items: center; color: #001018; font-weight: 800;
-    font-size: 11px; letter-spacing: .5px; flex-shrink: 0;
-  }
-  .brand .namewrap { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
-  .brand .name {
-    font-family: 'DM Serif Display', Georgia, serif; font-size: 16px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .brand .sub {
-    font-size: 10px; letter-spacing: 2px; color: var(--text-mute);
-    text-transform: uppercase; font-weight: 700;
-  }
-  .persona-chip {
-    height: var(--hit); min-width: var(--hit); padding: 0 12px;
-    border-radius: 999px; background: var(--panel-3); border: 1px solid var(--border);
-    color: var(--text); display: flex; align-items: center; gap: 8px;
-    cursor: pointer;
-  }
-  .persona-chip .initials {
-    width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #001018;
-    font-weight: 800; font-size: 11px; display: grid; place-items: center;
-  }
-  .persona-chip .role { font-size: 11px; color: var(--text-dim); }
-  .persona-chip select {
-    position: absolute; opacity: 0; inset: 0; cursor: pointer;
-  }
-  .persona-wrap { position: relative; }
+  .topbar .logo { padding:0; border:none; margin:0; min-width:0; flex:1; }
+  .topbar .logo .name { font-size:14px; line-height:1.05; }
+  .topbar .logo .sub { font-size:9px; letter-spacing:1.8px; }
+  .topbar .spacer { flex:1; }
 
-  .scope-banner {
-    padding: 10px 14px; background: var(--primary-soft);
-    border-bottom: 1px solid var(--border-soft);
-    font-size: 12px; color: var(--text-dim);
-  }
-  .scope-banner b { color: var(--text); }
+  /* Page head */
+  .pagehead { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+  .pagetitle { font-family:'DM Serif Display',serif; font-size:28px; margin:0; line-height:1.15; }
+  .pagetitle .accent { color:var(--primary); }
+  .pagesub { color:var(--text-dim); font-size:12px; margin-top:4px; }
+  .status { display:inline-flex; align-items:center; gap:6px; color:var(--text-dim); font-size:12px; margin-top:2px; }
+  .status .dot { width:8px; height:8px; background:var(--good); border-radius:50%; display:inline-block; box-shadow:0 0 8px rgba(103,166,75,.8); }
+  .status .dot.off { background:var(--warn); box-shadow:0 0 8px rgba(217,164,65,.7); }
+  .pagehead-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 
-  .main {
-    flex: 1; padding: 16px 14px calc(88px + var(--safe-bot));
-    max-width: 1400px; width: 100%; margin: 0 auto;
-  }
+  .btn { background:#10223e; border:1px solid #1d3562; color:var(--text); border-radius:7px; padding:8px 12px; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+  .btn:hover { border-color:var(--primary); color:var(--primary); }
+  .btn.primary { background:var(--primary); border-color:var(--primary); color:#001018; font-weight:700; }
+  .btn.primary:hover { background:#3cc4ef; color:#001018; }
+  .btn.ghost { background:transparent; }
+  .btn.ghost.ghost-active { background:#10223e; color:var(--primary); border-color:#17305a; }
+  .btn.good { background:var(--good); border-color:var(--good); color:#001018; font-weight:700; }
+  .btn.bad  { background:#401515; border-color:#5a2a2a; color:var(--bad-text); }
+  .btn.warn { background:#3a2e15; border-color:#5a4522; color:var(--warn-text); }
 
-  .bottomnav {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-    display: flex; justify-content: space-around; padding-bottom: var(--safe-bot);
-    background: rgba(11,18,32,.97); backdrop-filter: blur(10px);
-    border-top: 1px solid var(--border-soft);
+  .persona-pick {
+    background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    border-radius:7px; padding:7px 10px; font-size:12px;
   }
-  .bottomnav button {
-    flex: 1; min-height: 62px; background: none; border: 0; color: var(--text-dim);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 3px; font-size: 11px; cursor: pointer; padding: 8px 4px;
-  }
-  .bottomnav button .ico { font-size: 20px; line-height: 1; }
-  .bottomnav button.active { color: var(--primary); }
-  .bottomnav button.active .ico { transform: scale(1.05); }
+  .persona-label { font-size:10px; letter-spacing:1px; color:var(--text-mute); text-transform:uppercase; margin-right:6px; }
 
-  /* Page titles */
-  .pagehead { margin-bottom: 16px; }
-  .pagetitle { font-family: 'DM Serif Display', Georgia, serif; font-size: 26px; line-height: 1.1; }
-  .pagetitle .accent { color: var(--primary); }
-  .pagesub { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+  /* Filter bar */
+  .filterbar { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .fblabel { font-size:11px; color:var(--text-mute); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .pills { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .pill { background:transparent; border:1px solid transparent; color:var(--text-dim); border-radius:6px; padding:6px 14px; font-size:12px; cursor:pointer; }
+  .pill:hover { color:var(--text); }
+  .pill.active { background:var(--primary); color:#001018; font-weight:700; }
+  .filtergrid { display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:12px; }
+  .field label { display:block; font-size:12px; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .field select, .field input, .field textarea {
+    width:100%; background:var(--panel-2); border:1px solid var(--border);
+    color:var(--text); padding:10px 10px; border-radius:7px; font-size:14px; appearance:none;
+  }
+  .field select { background-image:linear-gradient(45deg,transparent 50%,var(--text-dim) 50%),linear-gradient(135deg,var(--text-dim) 50%,transparent 50%); background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%; background-size:5px 5px; background-repeat:no-repeat; padding-right:28px; }
+  .field select:focus, .field input:focus, .field textarea:focus { outline:none; border-color:var(--primary); }
+  .field select[disabled] { opacity:.55; cursor:not-allowed; }
 
-  /* View switcher (saved views on Today page) */
-  .viewswitch {
-    display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px;
-    margin-bottom: 12px; -webkit-overflow-scrolling: touch;
-  }
-  .viewswitch::-webkit-scrollbar { display: none; }
-  .viewswitch button {
-    min-height: 40px; padding: 0 14px; border-radius: 999px;
-    background: var(--panel-2); border: 1px solid var(--border);
-    color: var(--text-dim); font-weight: 600; cursor: pointer; white-space: nowrap;
-  }
-  .viewswitch button.active {
-    background: var(--primary); color: #001018; border-color: var(--primary);
-  }
+  .section-title { font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--text-dim); margin:20px 0 10px; font-weight:700; }
 
-  /* KPI tiles */
-  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .kpi {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px;
+  /* Hero score */
+  .hero-score {
+    background:linear-gradient(135deg, rgba(44,178,223,.12), rgba(26,137,174,.05));
+    border:1px solid #17305a; border-radius:12px; padding:20px 22px; margin-bottom:14px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
   }
-  .kpi .k { color: var(--text-mute); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-  .kpi .v { font-size: 26px; font-weight: 800; margin-top: 4px; }
-  .kpi .sub { color: var(--text-dim); font-size: 11px; margin-top: 2px; }
-  .kpi.good .v { color: var(--good-text); }
-  .kpi.bad .v { color: var(--bad-text); }
-  .kpi.warn .v { color: var(--warn-text); }
+  .hero-score .lbl { color:var(--text-mute); font-size:11px; letter-spacing:1.4px; text-transform:uppercase; }
+  .hero-score .score { font-family:'DM Serif Display',serif; font-size:44px; line-height:1; margin-top:4px; }
+  .hero-score .score .slash { color:var(--text-mute); margin:0 6px; }
+  .hero-score .score .sold { color:var(--primary); }
+  .hero-score .rate { font-size:18px; color:var(--text-dim); margin-top:6px; }
+  .hero-score .rate strong { color:var(--good-text); }
+  .hero-score .scope { text-align:right; color:var(--text-dim); font-size:12px; }
 
-  /* Hero GM tile */
-  .herogm {
-    grid-column: 1 / -1;
-    background: linear-gradient(135deg, var(--panel), var(--panel-3));
-    border: 1px solid var(--border);
-    border-radius: 14px; padding: 18px;
-  }
-  .herogm .k { color: var(--text-mute); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; }
-  .herogm .v {
-    font-family: 'DM Serif Display', Georgia, serif;
-    font-size: 52px; line-height: 1; margin-top: 8px; font-weight: 400;
-  }
-  .herogm .sub { color: var(--text-dim); font-size: 12px; margin-top: 8px; }
-  .herogm.good .v { color: var(--good-text); }
-  .herogm.warn .v { color: var(--warn-text); }
-  .herogm.bad  .v { color: var(--bad-text); }
+  /* KPIs */
+  .kpis { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:10px; }
+  .tile { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:13px; min-height:106px; }
+  .tile .lbl { font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); }
+  .tile .num { font-size:24px; font-weight:600; margin-top:6px; }
+  .tile .sub { font-size:11px; color:var(--text-mute); margin-top:2px; }
 
-  /* Appt card */
-  .appt {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px; margin-bottom: 10px;
-    display: grid; grid-template-columns: 1fr auto; gap: 8px 12px;
-    align-items: start;
-  }
-  .appt .time { font-weight: 700; font-size: 13px; color: var(--primary); }
-  .appt .cust { font-weight: 700; font-size: 16px; margin-top: 2px; }
-  .appt .meta { color: var(--text-dim); font-size: 12px; margin-top: 3px; }
-  .appt .meta .dot { color: var(--text-mute); }
-  .appt .status { font-size: 11px; padding: 3px 8px; border-radius: 4px; white-space: nowrap; height: fit-content; }
-  .status.open { background: var(--chip); color: var(--text-dim); }
-  .status.sold { background: var(--good-soft); color: var(--good-text); }
-  .status.nosale { background: var(--bad-soft); color: var(--bad-text); }
-  .status.callback { background: var(--callback-soft); color: var(--callback-text); }
-  .status.noshow { background: var(--warn-soft); color: var(--warn-text); }
-  .appt .cta {
-    grid-column: 1 / -1; min-height: var(--hit);
-    background: var(--primary); color: #001018; border: 0; border-radius: 10px;
-    font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 6px;
-  }
-  .appt .cta.secondary { background: var(--panel-3); color: var(--text); border: 1px solid var(--border); }
+  /* Cards / tables */
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .card h3 { margin:0 0 4px; font-family:'DM Serif Display',serif; font-size:18px; font-weight:400; }
+  .card .cardsub { color:var(--text-dim); font-size:12px; margin-bottom:12px; }
+  .card-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
 
-  /* Manual-entry button */
-  .manual-cta {
-    width: 100%; min-height: var(--hit); border-radius: 10px;
-    background: var(--panel-3); border: 1px dashed var(--border);
-    color: var(--text); font-weight: 600; cursor: pointer; margin-bottom: 14px;
-  }
+  .tablewrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  table th { text-align:left; color:var(--text-mute); font-weight:700; padding:9px 10px; border-bottom:1px solid var(--border); font-size:10.5px; letter-spacing:.8px; text-transform:uppercase; white-space:nowrap; }
+  table td { padding:11px 10px; border-bottom:1px solid var(--border-soft); vertical-align:middle; }
+  table.hover tr { cursor:pointer; }
+  table.hover tr:hover { background:#0f1a30; }
+  table tr.selected { background:#102644; outline:1px solid #17305a; }
+  table.num td.num, table.num th.num { text-align:right; font-variant-numeric:tabular-nums; }
 
-  /* Section title */
-  .section-title {
-    font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
-    color: var(--text-mute); margin: 20px 0 10px;
-  }
+  /* Chips */
+  .brand-chip { padding:3px 8px; border-radius:10px; font-size:11px; font-weight:700; background:rgba(44,178,223,.15); color:var(--primary); white-space:nowrap; display:inline-block; }
+  .rep-chip { background:var(--chip); color:var(--text); padding:2px 8px; border-radius:10px; font-size:11px; white-space:nowrap; }
+  .status-chip { padding:3px 9px; border-radius:10px; font-size:11px; font-weight:700; white-space:nowrap; display:inline-block; }
+  .status-chip.open { background:#1a2640; color:var(--text-dim); }
+  .status-chip.sold { background:var(--good-soft); color:var(--good-text); }
+  .status-chip.nosale { background:var(--bad-soft); color:var(--bad-text); }
+  .status-chip.callback { background:var(--callback-soft); color:var(--callback-text); }
+  .status-chip.noshow { background:var(--warn-soft); color:var(--warn-text); }
+  .status-chip.stuck { background:var(--bad-soft); color:var(--bad-text); }
+  tr.row-stuck td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
+  .stuck-count { display:none; margin-left:6px; padding:1px 6px; border-radius:8px; background:var(--bad); color:#fff; font-size:10px; font-weight:700; }
+  .stuck-count.has { display:inline-block; }
+  .crm-chip { padding:3px 9px; border-radius:10px; font-size:11px; font-weight:700; white-space:nowrap; display:inline-block; }
+  .crm-chip.submitted { background:var(--good-soft); color:var(--good-text); }
+  .crm-chip.queued { background:#1a2640; color:var(--text-dim); }
+  .payload-peek summary { cursor:pointer; color:var(--text-dim); font-size:12px; padding:6px 8px; border-radius:6px; background:var(--panel-2); border:1px dashed var(--border); }
+  .payload-peek summary:hover { color:var(--primary); }
+  .payload-peek pre { background:#06101f; border:1px solid var(--border-soft); padding:12px; border-radius:6px; font-size:11px; color:var(--text-dim); overflow:auto; max-height:320px; margin-top:8px; }
+  .multi-strip { margin-top:12px; padding:10px 12px; background:var(--panel-2); border:1px solid var(--border-soft); border-radius:8px; }
+  .multi-strip .k { font-size:10px; letter-spacing:1px; color:var(--text-mute); text-transform:uppercase; margin-bottom:6px; }
+  .multi-strip .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .multi-strip .svc-chip { background:var(--good-soft); color:var(--good-text); padding:4px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+
+  .mini-bar { height:6px; border-radius:3px; background:#172137; overflow:hidden; width:100%; min-width:80px; }
+  .mini-bar > span { display:block; height:100%; background:var(--primary); }
+
+  /* Modal */
+  .scrim { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(6px); z-index:20; }
+  .scrim.show { display:grid; place-items:end center; }
+  @media (min-width:700px) { .scrim.show { place-items:center; } }
+  .modal { width:100%; max-width:560px; background:var(--panel); border:1px solid var(--border); border-radius:14px 14px 0 0; max-height:92vh; overflow-y:auto; }
+  @media (min-width:700px) { .modal { border-radius:14px; } }
+  .modal-head { position:sticky; top:0; background:var(--panel); border-bottom:1px solid var(--border-soft); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; }
+  .modal-head h3 { margin:0; font-family:'DM Serif Display',serif; font-weight:400; font-size:18px; }
+  .modal-body { padding:16px 18px 20px; }
+  .close-x { background:transparent; border:none; color:var(--text-dim); font-size:20px; cursor:pointer; }
+  .close-x:hover { color:var(--text); }
+
+  .dispo-picker { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:16px; }
+  .dispo-opt { padding:14px 10px; border:1px solid var(--border); border-radius:9px; background:var(--panel-2); cursor:pointer; text-align:center; color:var(--text-dim); font-weight:600; font-size:13px; }
+  .dispo-opt .emoji { font-size:20px; display:block; margin-bottom:4px; }
+  .dispo-opt:hover { border-color:var(--primary); color:var(--text); }
+  .dispo-opt.sel.sold { background:var(--good-soft); color:var(--good-text); border-color:var(--good); }
+  .dispo-opt.sel.nosale { background:var(--bad-soft); color:var(--bad-text); border-color:var(--bad); }
+  .dispo-opt.sel.callback { background:var(--callback-soft); color:var(--callback-text); border-color:var(--primary); }
+  .dispo-opt.sel.noshow { background:var(--warn-soft); color:var(--warn-text); border-color:var(--warn); }
+
+  .entry-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .entry-grid .full { grid-column:1 / -1; }
+  .field.req label::after { content:' *'; color:var(--primary); }
+  .field .hint { font-size:11px; color:var(--text-mute); margin-top:4px; }
+  .money-input { position:relative; }
+  .money-input::before { content:'$'; position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-mute); pointer-events:none; }
+  .money-input input { padding-left:24px; }
+  .gm-readout { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:14px; background:var(--panel-2); border:1px dashed var(--border); border-radius:8px; margin-top:14px; }
+  .gm-readout .cell .k { font-size:10px; letter-spacing:1px; color:var(--text-mute); text-transform:uppercase; }
+  .gm-readout .cell .v { font-size:22px; font-weight:600; margin-top:4px; }
+  .gm-readout .cell .v.good { color:var(--good-text); } .gm-readout .cell .v.warn { color:var(--warn-text); } .gm-readout .cell .v.bad { color:var(--bad-text); }
+  .modal-actions { display:flex; gap:10px; margin-top:16px; justify-content:flex-end; flex-wrap:wrap; }
+
+  .foot-note { margin-top:24px; font-size:11px; color:var(--text-mute); border-top:1px dashed var(--border-soft); padding-top:12px; line-height:1.55; }
 
   /* Rollup tables */
-  .rollup { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .rollup table { width: 100%; border-collapse: collapse; }
-  .rollup th {
-    text-align: left; padding: 12px; background: var(--panel-2);
-    color: var(--text-mute); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-    border-bottom: 1px solid var(--border);
-  }
-  .rollup td { padding: 14px 12px; border-bottom: 1px solid var(--border-soft); font-size: 14px; }
-  .rollup tr:last-child td { border-bottom: 0; }
-  .rollup td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .rollup .mini-bar { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; margin-top: 4px; }
-  .rollup .mini-bar > span { display: block; height: 100%; background: var(--primary); }
-  .rollup .name { font-weight: 600; }
-  .rollup .pill {
-    display: inline-block; padding: 2px 6px; border-radius: 3px;
-    font-size: 11px; font-weight: 600;
-  }
-  .pill.good { background: var(--good-soft); color: var(--good-text); }
-  .pill.warn { background: var(--warn-soft); color: var(--warn-text); }
-  .pill.bad  { background: var(--bad-soft);  color: var(--bad-text); }
+  .rollup-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .rollup-grid .card { padding:14px; }
+  .rate-cell { display:flex; align-items:center; gap:8px; min-width:110px; }
+  .rate-cell .pct { min-width:44px; text-align:right; font-variant-numeric:tabular-nums; }
+  .rank { width:22px; color:var(--text-mute); font-size:11px; font-variant-numeric:tabular-nums; }
 
-  /* Scroll wrapper for narrow-screen tables */
-  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* Security banner */
+  .scope-banner {
+    display:flex; align-items:center; gap:10px; padding:10px 14px; margin-bottom:14px;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
+    color:var(--text-dim); font-size:12px;
+  }
+  .scope-banner .k { color:var(--text-mute); font-size:10px; letter-spacing:1px; text-transform:uppercase; margin-right:4px; }
 
-  /* Queue sync button */
-  .syncbar {
-    background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .syncbar .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good-text); }
-  .syncbar.queued .dot { background: var(--warn-text); }
-  .syncbar .label { flex: 1; font-size: 13px; }
-  .syncbar button {
-    background: var(--primary); color: #001018; border: 0; border-radius: 6px;
-    padding: 6px 12px; font-weight: 700; cursor: pointer; font-size: 12px;
-  }
+  /* Toast */
+  #toastEl { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#102644; border:1px solid var(--primary); color:var(--text); padding:10px 16px; border-radius:8px; font-size:13px; z-index:30; box-shadow:0 6px 24px rgba(0,0,0,.4); opacity:0; transition:opacity .3s; }
+  #toastEl.show { opacity:1; }
 
-  /* Modal (full-screen on phone; centered on tablet+) */
-  .scrim {
-    position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 200;
-    display: none; align-items: stretch; justify-content: stretch;
+  /* Pages */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:#1d2a48; border-radius:6px; }
+  ::-webkit-scrollbar-thumb:hover { background:#2a3d66; }
+
+  @media (max-width:1200px) {
+    .kpis { grid-template-columns:repeat(3, minmax(0,1fr)); }
+    .filtergrid { grid-template-columns:repeat(3, minmax(0,1fr)); }
+    .rollup-grid { grid-template-columns:1fr; }
   }
-  .scrim.open { display: flex; }
-  .modal {
-    background: var(--panel); color: var(--text);
-    width: 100%; max-width: 100%; height: 100%;
-    display: flex; flex-direction: column; overflow: hidden;
-  }
-  .modal .mhead {
-    padding: calc(14px + var(--safe-top)) 16px 12px;
-    display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid var(--border-soft); background: var(--panel);
-  }
-  .modal .mhead h3 { font-size: 18px; flex: 1; }
-  .modal .close-x {
-    width: 40px; height: 40px; border: 0; background: transparent;
-    color: var(--text); font-size: 24px; cursor: pointer; border-radius: 6px;
-  }
-  .modal .mbody {
-    flex: 1; overflow-y: auto; padding: 16px;
-    padding-bottom: calc(16px + var(--safe-bot));
-  }
-  .modal .mfoot {
-    padding: 12px 16px calc(12px + var(--safe-bot));
-    display: flex; gap: 10px; border-top: 1px solid var(--border-soft);
-    background: var(--panel);
+  @media (max-width:900px) {
+    .app { grid-template-columns:1fr; }
+    .sidebar { display:none; }
+    .topbar { display:flex; }
+    .main { padding:14px 14px calc(60px + var(--safe-bot)); }
+    .pagetitle { font-size:22px; }
+    .filtergrid { grid-template-columns:1fr 1fr; }
+    .entry-grid { grid-template-columns:1fr; }
+    .kpis { grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; }
+    .tile .num { font-size:20px; }
+    .gm-readout { grid-template-columns:1fr; }
+    .gm-readout .cell { display:flex; justify-content:space-between; align-items:baseline; }
+    .gm-readout .cell .v { margin-top:0; font-size:20px; }
+    .dispo-picker { grid-template-columns:1fr 1fr; }
+    .modal-actions .btn { flex:1; justify-content:center; }
+    .hero-score { padding:14px; }
+    .hero-score .score { font-size:34px; }
   }
 
-  /* Forms */
-  .field { margin-bottom: 16px; }
-  .field .lbl { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-  .field .hint { font-size: 11px; color: var(--text-mute); margin-top: 4px; }
-  .input, .select, .textarea {
-    width: 100%; min-height: var(--hit); padding: 10px 12px;
-    background: var(--panel-2); color: var(--text);
-    border: 1px solid var(--border); border-radius: 8px;
+  /* Tab bar (mobile) */
+  .tabs {
+    display:none; position:sticky; top:calc(60px + var(--safe-top)); z-index:4;
+    background:var(--bg); padding:6px 0 10px; gap:6px; border-bottom:1px solid var(--border-soft); margin-bottom:12px; overflow-x:auto;
   }
-  .input:focus, .select:focus, .textarea:focus {
-    outline: 2px solid var(--primary); outline-offset: -1px;
-  }
-  .textarea { min-height: 80px; resize: vertical; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-
-  /* Outcome buttons (modal step 1) */
-  .outcome-primary {
-    width: 100%; min-height: 70px; border: 0; border-radius: 14px;
-    background: linear-gradient(135deg, var(--good), #5a9742);
-    color: #fff; font-size: 22px; font-weight: 800; letter-spacing: 1px;
-    cursor: pointer; box-shadow: 0 4px 12px rgba(103,166,75,.3);
-    margin-bottom: 10px;
-  }
-  .outcome-primary .ico { font-size: 28px; vertical-align: middle; margin-right: 10px; }
-  .outcome-secondary-btn {
-    width: 100%; min-height: 54px; border: 1px solid var(--border); border-radius: 12px;
-    background: var(--panel-2); color: var(--text); font-weight: 600; cursor: pointer;
-  }
-  .outcome-other-tray {
-    display: none; margin-top: 10px; padding: 14px; background: var(--panel-2);
-    border: 1px solid var(--border); border-radius: 12px;
-  }
-  .outcome-other-tray.open { display: block; }
-  .outcome-other-grid {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
-  }
-  .outcome-other-grid button {
-    min-height: 72px; border: 1px solid var(--border); border-radius: 10px;
-    background: var(--panel-3); color: var(--text); cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-weight: 600; font-size: 12px; gap: 4px; padding: 6px;
-  }
-  .outcome-other-grid button .ico { font-size: 20px; }
-  .outcome-other-grid button:hover { border-color: var(--primary); }
-
-  /* GM chip */
-  .gm-chip {
-    display: inline-flex; align-items: center; padding: 6px 12px;
-    border-radius: 999px; font-weight: 800; font-size: 15px;
-    background: var(--chip); color: var(--text-dim);
-  }
-  .gm-chip.good { background: var(--good-soft); color: var(--good-text); }
-  .gm-chip.warn { background: var(--warn-soft); color: var(--warn-text); }
-  .gm-chip.bad  { background: var(--bad-soft);  color: var(--bad-text); }
-
-  .live-stats {
-    background: var(--panel-3); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px; margin-bottom: 16px;
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  }
-  .live-stats .l { font-size: 12px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 1px; }
-  .live-stats .r { text-align: right; }
-  .live-stats .net { font-size: 18px; font-weight: 800; }
-
-  /* Fin radio group */
-  .radio-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .radio-tile {
-    position: relative; min-height: var(--hit);
-    display: flex; align-items: center; justify-content: center; padding: 8px;
-    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
-    cursor: pointer; font-size: 13px; font-weight: 600;
-  }
-  .radio-tile input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
-  .radio-tile.checked { background: var(--primary-soft); border-color: var(--primary); color: var(--text); }
-
-  /* Multi-service cart */
-  .services-list {
-    background: var(--panel-3); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px; margin-bottom: 14px;
-  }
-  .services-list .row {
-    display: flex; justify-content: space-between; gap: 8px; padding: 6px 0;
-    border-bottom: 1px solid var(--border-soft); font-size: 14px;
-  }
-  .services-list .row:last-child { border-bottom: 0; }
-  .services-list .name { font-weight: 600; }
-  .services-list .amt { font-variant-numeric: tabular-nums; }
-  .services-list .total { padding-top: 8px; border-top: 1px solid var(--border); margin-top: 6px; font-weight: 700; }
-
-  /* Confirmation */
-  .confirm {
-    padding: 24px 16px; text-align: center;
-  }
-  .confirm .icn {
-    width: 70px; height: 70px; border-radius: 50%; background: var(--good-soft);
-    color: var(--good-text); display: grid; place-items: center; margin: 0 auto 16px;
-    font-size: 40px; font-weight: 800;
-  }
-  .confirm h2 { font-size: 22px; margin-bottom: 8px; }
-  .confirm p { color: var(--text-dim); font-size: 14px; margin-bottom: 16px; }
-  .crm-stamp {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 12px; border-radius: 999px;
-    background: var(--good-soft); color: var(--good-text);
-    font-size: 12px; font-weight: 600; margin-bottom: 20px;
-  }
-  .payload-peek {
-    background: var(--panel-3); border: 1px solid var(--border); border-radius: 8px;
-    text-align: left; margin-top: 20px;
-  }
-  .payload-peek summary {
-    padding: 10px 14px; cursor: pointer; font-size: 12px; color: var(--text-dim);
-    list-style: none; user-select: none;
-  }
-  .payload-peek summary::-webkit-details-marker { display: none; }
-  .payload-peek pre {
-    margin: 0; padding: 10px 14px; font-size: 11px; color: var(--text-dim);
-    font-family: 'SF Mono', Menlo, Consolas, monospace;
-    border-top: 1px solid var(--border-soft);
-    overflow-x: auto; max-height: 240px;
-  }
-
-  /* Buttons */
-  .btn {
-    min-height: var(--hit); padding: 0 16px; border-radius: 10px;
-    background: var(--primary); color: #001018; font-weight: 700; font-size: 15px;
-    border: 0; cursor: pointer;
-  }
-  .btn[disabled] { opacity: .4; cursor: not-allowed; }
-  .btn.ghost { background: var(--panel-3); color: var(--text); border: 1px solid var(--border); }
-  .btn.full { width: 100%; }
-  .btn-add-service {
-    width: 100%; min-height: var(--hit); border-radius: 10px;
-    background: transparent; border: 2px dashed var(--primary);
-    color: var(--primary); font-weight: 700; cursor: pointer; margin-top: 8px;
-  }
-
-  /* Empty states */
-  .empty {
-    text-align: center; padding: 40px 20px; color: var(--text-mute); font-size: 14px;
-  }
-
-  /* ==================== TABLET (768px+) ==================== */
-  @media (min-width: 768px) {
-    .kpis { grid-template-columns: repeat(4, 1fr); }
-    .herogm { grid-column: 1 / -1; }
-    .herogm .v { font-size: 64px; }
-    .pagetitle { font-size: 30px; }
-    .main { padding: 24px 24px calc(100px + var(--safe-bot)); }
-    .scrim { padding: 5vh 20px; align-items: flex-start; justify-content: center; }
-    .modal {
-      width: 620px; height: auto; max-height: 90vh; border-radius: 16px;
-      border: 1px solid var(--border);
-    }
-    .radio-group { grid-template-columns: repeat(5, 1fr); }
-  }
-
-  /* ==================== DESKTOP (1025px+) ==================== */
-  @media (min-width: 1025px) {
-    .app { flex-direction: row; }
-    .sidebar {
-      display: flex; flex-direction: column; width: 260px;
-      background: #0a1120; border-right: 1px solid var(--border-soft);
-      padding: 18px 14px calc(18px + var(--safe-bot)); gap: 4px;
-      position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0;
-    }
-    .sidebar .brand {
-      padding: 6px 8px 18px; border-bottom: 1px solid var(--border-soft); margin-bottom: 12px;
-    }
-    .sidebar .brand .name { font-size: 19px; }
-    .sidebar .brand .sub { font-size: 10px; }
-    .sidebar .navlabel {
-      font-size: 10px; color: var(--text-mute); padding: 14px 8px 4px;
-      letter-spacing: 1.5px; text-transform: uppercase;
-    }
-    .sidebar .navitem {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 10px; border-radius: 7px; cursor: pointer;
-      color: var(--text-dim); font-size: 14px; border: 0; background: transparent;
-      text-align: left;
-    }
-    .sidebar .navitem:hover { background: #0f1a30; color: var(--text); }
-    .sidebar .navitem.active { background: var(--primary-soft); color: var(--primary); }
-    .sidebar .navitem .ico { width: 22px; text-align: center; font-size: 15px; }
-
-    .topbar { display: flex; padding: 14px 26px; position: relative; }
-    .topbar .brand { display: none; }
-
-    .main { padding: 22px 26px 40px; max-width: 1400px; }
-    .bottomnav { display: none; }
-
-    .kpis { grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .herogm .v { font-size: 72px; }
-    .pagetitle { font-size: 34px; }
-
-    .appt {
-      grid-template-columns: 80px 1fr auto auto; gap: 14px; align-items: center; padding: 16px 18px;
-    }
-    .appt .cta {
-      grid-column: auto; min-height: 40px; padding: 0 18px; font-size: 14px; margin-top: 0;
-    }
-    .appt .status { font-size: 12px; }
-  }
-
-  /* Utility */
-  .muted { color: var(--text-dim); }
-  .hidden { display: none !important; }
+  @media (max-width:900px) { .tabs { display:flex; } }
+  .tab { padding:7px 12px; border-radius:7px; background:var(--panel); border:1px solid var(--border); color:var(--text-dim); font-size:12px; white-space:nowrap; cursor:pointer; }
+  .tab.active { background:#10223e; color:var(--primary); border-color:#17305a; }
 </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- SIDEBAR (desktop only) -->
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
+<!-- Mobile topbar -->
+<div class="topbar">
+  <div class="logo">
+    <div class="mark">IHS</div>
+    <div class="namewrap">
+      <div class="name">Real Time Appointment Tracker</div>
+      <div class="sub">RTAT</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <select id="personaMobile" class="persona-pick"></select>
+</div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
       <div class="mark">IHS</div>
       <div class="namewrap">
         <div class="name">Real Time Appointment Tracker</div>
         <div class="sub">RTAT</div>
       </div>
     </div>
-    <div class="navlabel">Workspace</div>
-    <button class="navitem active" data-page="today"><span class="ico">●</span> Today</button>
-    <button class="navitem" data-page="stuck"><span class="ico">!</span> Stuck</button>
-    <div class="navlabel" data-show-for="manager">Rollups</div>
-    <button class="navitem hidden" data-page="enterprise" data-show-for="manager"><span class="ico">◱</span> Enterprise</button>
-    <button class="navitem hidden" data-page="by-brand" data-show-for="manager"><span class="ico">◆</span> By Brand</button>
-    <button class="navitem hidden" data-page="by-market" data-show-for="manager"><span class="ico">◇</span> By Market</button>
-    <div class="navlabel">Account</div>
-    <button class="navitem" id="demoSwitchDesktop"><span class="ico">◐</span> Switch persona (demo)</button>
+    <div class="navlabel">Today</div>
+    <div class="navitem active" data-page="queue"><span class="ico">●</span> Disposition Queue</div>
+    <div class="navitem" data-page="myday"><span class="ico">◎</span> My Day</div>
+
+    <div class="navlabel">Roll-Up</div>
+    <div class="navitem" data-page="enterprise"><span class="ico">⌘</span> Enterprise</div>
+    <div class="navitem" data-page="bybrand"><span class="ico">≡</span> By Brand</div>
+    <div class="navitem" data-page="bybranch"><span class="ico">▦</span> By Market</div>
+
+    <div class="nav-foot">
+      <div class="navitem"><span class="ico">⚑</span> Roadmap</div>
+      <div class="navitem"><span class="ico">?</span> Help &amp; Support</div>
+      <div style="padding:8px;">
+        <div class="persona-label">Persona (demo)</div>
+        <select id="personaDesktop" class="persona-pick" style="width:100%;"></select>
+      </div>
+      <div class="user">
+        <div class="avatar" id="userAvatar">JT</div>
+        <div class="meta">
+          <div class="n" id="userName">Jay Teresi</div>
+          <div class="e" id="userEmail">jteresi@infinityhomeservices.com</div>
+          <span class="role-badge" id="roleBadge">Enterprise</span>
+        </div>
+      </div>
+    </div>
   </aside>
 
-  <div style="flex: 1; min-width: 0;">
+  <!-- Main -->
+  <main class="main">
+    <!-- Tabs (mobile) -->
+    <div class="tabs" id="mobileTabs">
+      <div class="tab active" data-page="queue">Queue</div>
+      <div class="tab" data-page="myday">My Day</div>
+      <div class="tab" data-page="enterprise">Enterprise</div>
+      <div class="tab" data-page="bybrand">Brand</div>
+      <div class="tab" data-page="bybranch">Market</div>
+    </div>
 
-    <!-- TOP BAR -->
-    <header class="topbar">
-      <div class="brand">
-        <div class="mark">IHS</div>
-        <div class="namewrap">
-          <div class="name">Real Time Appointment Tracker</div>
-          <div class="sub">RTAT</div>
+    <!-- Scope banner (explains what the current persona sees) -->
+    <div class="scope-banner">
+      <span class="k">Scope</span>
+      <span id="scopeText">Loading…</span>
+    </div>
+
+    <!-- =============== PAGE: QUEUE =============== -->
+    <section class="page active" id="page-queue">
+      <div class="pagehead">
+        <div>
+          <h1 class="pagetitle">Disposition <span class="accent">Queue</span></h1>
+          <div class="pagesub">Leaving the home? Disposition the appointment before you drive away.</div>
+          <div class="status"><span class="dot" id="connDot"></span> <span id="connText">Connected · Last sync just now</span></div>
+        </div>
+        <div class="pagehead-actions">
+          <button class="btn primary" id="newManualBtn">+ Manual Entry</button>
         </div>
       </div>
-      <div class="persona-wrap">
-        <div class="persona-chip" id="personaChip">
-          <div class="initials" id="personaInitials">JT</div>
-          <div style="display: flex; flex-direction: column; line-height: 1.15;">
-            <div style="font-weight: 600; font-size: 13px;" id="personaName">Jay Teresi</div>
-            <div class="role" id="personaRole">Enterprise</div>
+
+      <!-- Filter bar -->
+      <div class="filterbar">
+        <div class="fblabel">Time Frame</div>
+        <div class="pills">
+          <button class="pill" data-tf="WTD">WTD</button>
+          <button class="pill" data-tf="LWK">LWK</button>
+          <button class="pill" data-tf="MTD">MTD</button>
+          <button class="pill" data-tf="QTD">QTD</button>
+          <button class="pill active" data-tf="TODAY">Today</button>
+          <button class="pill" data-tf="CUSTOM">Custom</button>
+        </div>
+        <div class="filtergrid">
+          <div class="field"><label>Division</label><select id="f-division"></select></div>
+          <div class="field"><label>Region</label><select id="f-region"></select></div>
+          <div class="field"><label>Brand</label><select id="f-brand"></select></div>
+          <div class="field"><label>Market Location</label><select id="f-market"></select></div>
+          <div class="field"><label>Rep</label><select id="f-rep"></select></div>
+        </div>
+      </div>
+
+      <!-- Hero score for scope -->
+      <div class="hero-score" id="heroScore"></div>
+
+      <!-- KPIs -->
+      <div class="section-title" id="kpiSectionTitle">Today · Disposition Summary</div>
+      <div class="kpis" id="kpiGrid"></div>
+
+      <!-- Queue table -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-row">
+          <div>
+            <h3>Appointments Today</h3>
+            <div class="cardsub" id="apptCountSub">—</div>
           </div>
-          <select id="personaSelect" aria-label="Switch persona (demo)"></select>
+          <div>
+            <button class="btn ghost" data-filter="stuck">Stuck <span id="stuckCount" class="stuck-count"></span></button>
+            <button class="btn ghost" data-filter="open">Open only</button>
+            <button class="btn ghost" data-filter="all">All</button>
+          </div>
+        </div>
+        <div class="tablewrap">
+          <table class="hover">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Brand</th>
+                <th>Customer</th>
+                <th>Market</th>
+                <th>Rep</th>
+                <th>Status</th>
+                <th style="text-align:right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="apptBody"></tbody>
+          </table>
         </div>
       </div>
-    </header>
+    </section>
 
-    <!-- SCOPE BANNER -->
-    <div class="scope-banner" id="scopeBanner">You are viewing: <b id="scopeText">All brands, all markets</b></div>
+    <!-- =============== PAGE: MY DAY =============== -->
+    <section class="page" id="page-myday">
+      <div class="pagehead"><div>
+        <h1 class="pagetitle">My <span class="accent">Day</span></h1>
+        <div class="pagesub">Your appointments, dispositions, and GM — scoped to you.</div>
+      </div></div>
+      <div class="kpis" id="mydayKpis"></div>
+      <div class="card" style="margin-top:14px;">
+        <h3>My Submissions</h3>
+        <div class="cardsub">Most recent first. <span style="color:var(--text-mute)">CRM column shows write-back to the job movement tool (Margin IQ).</span></div>
+        <div class="tablewrap">
+          <table class="num">
+            <thead>
+              <tr><th>Time</th><th>Customer</th><th>Brand</th><th>Dispo</th><th class="num">Sold $</th><th class="num">GM %</th><th>CRM</th></tr>
+            </thead>
+            <tbody id="mydayBody"></tbody>
+          </table>
+        </div>
+        <details class="payload-peek" id="payloadPeek" style="margin-top:12px;">
+          <summary>Dev · View last write-back payload (JSON contract)</summary>
+          <pre id="payloadJson"></pre>
+        </details>
+      </div>
+    </section>
 
-    <!-- MAIN -->
-    <main class="main" id="main">
-      <!-- Pages render here -->
-    </main>
-  </div>
+    <!-- =============== PAGE: ENTERPRISE =============== -->
+    <section class="page" id="page-enterprise">
+      <div class="pagehead">
+        <div>
+          <h1 class="pagetitle">Enterprise <span class="accent">Roll-Up</span></h1>
+          <div class="pagesub">Disposition performance across the entire portfolio. Click a brand or market to drill down.</div>
+        </div>
+      </div>
+      <div class="hero-score" id="entHero"></div>
+      <div class="section-title">Enterprise · Today</div>
+      <div class="kpis" id="entKpis"></div>
+      <div class="section-title">Breakdowns</div>
+      <div class="rollup-grid">
+        <div class="card">
+          <h3>By Brand</h3>
+          <div class="cardsub">Appts run · sold · close rate · sold GM %</div>
+          <div class="tablewrap">
+            <table class="num hover" id="tblByBrand">
+              <thead><tr><th style="width:22px">#</th><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <h3>By Market Location</h3>
+          <div class="cardsub">Top markets by activity today</div>
+          <div class="tablewrap">
+            <table class="num hover" id="tblByMarket">
+              <thead><tr><th style="width:22px">#</th><th>Market</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="section-title">Top &amp; Bottom Reps</div>
+      <div class="card">
+        <div class="tablewrap">
+          <table class="num" id="tblByRep">
+            <thead><tr><th style="width:22px">#</th><th>Rep</th><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: BY BRAND =============== -->
+    <section class="page" id="page-bybrand">
+      <div class="pagehead"><div>
+        <h1 class="pagetitle">By <span class="accent">Brand</span></h1>
+        <div class="pagesub">All brands in scope · sort by close rate or GM %.</div>
+      </div></div>
+      <div class="card">
+        <div class="tablewrap">
+          <table class="num" id="tblBrandFull">
+            <thead><tr><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">No Sale</th><th class="num">Callback</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: BY MARKET =============== -->
+    <section class="page" id="page-bybranch">
+      <div class="pagehead"><div>
+        <h1 class="pagetitle">By <span class="accent">Market Location</span></h1>
+        <div class="pagesub">Activity by market location for the selected scope.</div>
+      </div></div>
+      <div class="card">
+        <div class="tablewrap">
+          <table class="num" id="tblMarketFull">
+            <thead><tr><th>Market</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">No Sale</th><th class="num">Callback</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="foot-note">
+      <strong>Security (production requirement):</strong> Azure AD SSO. Role → visibility: <em>Rep</em> sees their brand &amp; their appointments. <em>Branch / Market Mgr</em> sees their market across brands. <em>Brand Mgr</em> sees all markets within their brand. <em>RVP</em> sees their region across brands. <em>Enterprise</em> sees all. Row-level security enforced in the warehouse, not the client. Persona switcher above is a demo affordance — will be removed.
+      <br><br>
+      <strong>Prototype note:</strong> Brand and market lists pulled live from Reports filters. Appointments shown are illustrative; production wiring requires a CRM webhook per source (Acculynx, DataForma, Gorilla Desk, Leap, Salesforce, Zoho/DF) feeding a normalized Appointments table. Submissions queue locally and replay when network returns.
+    </div>
+  </main>
 </div>
 
-<!-- BOTTOM NAV (mobile/tablet only) -->
-<nav class="bottomnav" id="bottomnav"></nav>
-
-<!-- ENTRY MODAL -->
-<div class="scrim" id="modalScrim">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="mhead">
-      <h3 id="modalTitle">Appointment</h3>
-      <button class="close-x" id="modalClose" aria-label="Close">×</button>
+<!-- =============== DISPOSITION MODAL =============== -->
+<div class="scrim" id="dispoScrim">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="dispoTitle">Disposition Appointment</h3>
+      <button class="close-x" id="closeDispo">×</button>
     </div>
-    <div class="mbody" id="modalBody"></div>
-    <div class="mfoot" id="modalFoot"></div>
+    <div class="modal-body">
+      <div class="cardsub" id="dispoSub">—</div>
+
+      <div class="dispo-picker" id="dispoPicker">
+        <div class="dispo-opt" data-d="sold"><span class="emoji">✓</span>Sold</div>
+        <div class="dispo-opt" data-d="nosale"><span class="emoji">✕</span>Not Sold</div>
+        <div class="dispo-opt" data-d="callback"><span class="emoji">↻</span>Callback</div>
+        <div class="dispo-opt" data-d="noshow"><span class="emoji">∅</span>No Show</div>
+      </div>
+
+      <!-- SOLD branch -->
+      <form id="soldForm" style="display:none;" onsubmit="return submitSold(event)">
+        <div class="entry-grid">
+          <div class="field req"><label>Sold Price</label><div class="money-input"><input id="s-price" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
+          <div class="field req"><label>Sold COGS</label><div class="money-input"><input id="s-cogs" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div><div class="hint">Materials + labor + subs + permits</div></div>
+          <div class="field"><label>Discount $</label><div class="money-input"><input id="s-disc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
+          <div class="field"><label>Financing</label><select id="s-fin" onchange="recalcSold()">
+            <option value="cash">Cash / Check</option><option value="ccard">Credit Card</option>
+            <option value="fin0">Promo 0% (dealer fee)</option><option value="fin12">12 mo SAC</option><option value="finLT">Long-Term Fixed</option>
+          </select></div>
+          <div class="field"><label>Service Offering</label><select id="s-service"></select></div>
+          <div class="field"><label>Customer Type</label><select id="s-ctype"></select></div>
+          <div class="field full"><label>Notes</label><input id="s-notes" type="text" placeholder="optional" /></div>
+        </div>
+        <div class="gm-readout">
+          <div class="cell"><div class="k">Net Sold $</div><div class="v" id="s-net">$0</div></div>
+          <div class="cell"><div class="k">Sold GM $</div><div class="v" id="s-gm$">$0</div></div>
+          <div class="cell"><div class="k">Sold GM %</div><div class="v" id="s-gm%">0.0%</div></div>
+        </div>
+        <div class="multi-strip" id="multiStrip" style="display:none;">
+          <div class="k">Services in this sale</div>
+          <div class="chips" id="multiChips"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
+          <button type="button" class="btn" id="addAnotherServiceBtn" onclick="addAnotherService()">+ Save &amp; add another service</button>
+          <button type="submit" class="btn good">Submit Sale</button>
+        </div>
+        <div class="hint" style="text-align:center;margin-top:6px;">Each service = a separate job in the CRM.</div>
+      </form>
+
+      <!-- NOT SOLD branch -->
+      <form id="nosaleForm" style="display:none;" onsubmit="return submitNoSale(event)">
+        <div class="entry-grid">
+          <div class="field req full"><label>Reason</label>
+            <select id="n-reason">
+              <option value="">Select a reason…</option>
+              <option>Price / Budget</option>
+              <option>Timing / Not Ready</option>
+              <option>Spouse / Decision Maker Not Present</option>
+              <option>Competitor Quote</option>
+              <option>Scope Mismatch</option>
+              <option>Financing Declined</option>
+              <option>Not Qualified (Ownership / Credit)</option>
+              <option>Insurance / Storm Adjuster Pending</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Competitor</label><input id="n-comp" type="text" placeholder="If applicable" /></div>
+          <div class="field"><label>Their Price $</label><div class="money-input"><input id="n-compprice" type="number" inputmode="decimal" placeholder="0.00" /></div></div>
+          <div class="field"><label>Revisit Likely?</label><select id="n-revisit"><option value="">—</option><option>Yes — warm</option><option>Maybe</option><option>No</option></select></div>
+          <div class="field"><label>Follow-up Date</label><input id="n-followup" type="date" /></div>
+          <div class="field full"><label>Notes</label><input id="n-notes" type="text" placeholder="What killed the deal? What would win it?" /></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
+          <button type="submit" class="btn bad">Submit Not Sold</button>
+        </div>
+      </form>
+
+      <!-- CALLBACK branch -->
+      <form id="callbackForm" style="display:none;" onsubmit="return submitCallback(event)">
+        <div class="entry-grid">
+          <div class="field req"><label>Callback Date</label><input id="c-date" type="date" /></div>
+          <div class="field"><label>Time</label><input id="c-time" type="time" /></div>
+          <div class="field full"><label>Why callback?</label>
+            <select id="c-reason">
+              <option>Other Decision Maker Required</option>
+              <option>Need More Info / Measurements</option>
+              <option>Financing Pending</option>
+              <option>Comparing Quotes</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field full"><label>Notes</label><input id="c-notes" type="text" placeholder="What do they need to decide?" /></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
+          <button type="submit" class="btn primary">Schedule Callback</button>
+        </div>
+      </form>
+
+      <!-- NO SHOW branch -->
+      <form id="noshowForm" style="display:none;" onsubmit="return submitNoShow(event)">
+        <div class="entry-grid">
+          <div class="field full req"><label>Reason</label>
+            <select id="ns-reason">
+              <option>No Show — customer not home</option>
+              <option>One-Legger (only one decision maker)</option>
+              <option>Canceled by Customer</option>
+              <option>Canceled by Office</option>
+              <option>Unqualified / Pre-Canceled</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field full"><label>Notes</label><input id="ns-notes" type="text" placeholder="Details" /></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
+          <button type="submit" class="btn warn">Submit No Show</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
 <script>
-/* =====================================================================
-   RTAT — Real Time Appointment Tracker
-   Single-file PWA wireframe. Hack tool, 4-6 quarter life. Feeds Margin IQ.
-   ===================================================================== */
-
-/* ---------- DATA: pulled from reports.infinityhomeservices.com ---------- */
+/* ============================================================
+   DATA (real pulls from reports.infinityhomeservices.com filters)
+   ============================================================ */
 const BRANDS = ["Altec Roofing","American Home Contractors","Carpenter's Roofing & Sheet Metal","Cochran Exteriors","Couto Construction","D'Angelo and Sons","Exterior Heroes","Exterior Medics","Franzoso Contracting","G. Fedale","GF Sprague","Henderson Roofing","High Point Roofing","Infinity Exteriors","Interstate Roofing","Overhead Solutions","Parkhill Roofing","Premier Roofing","Resnick Roofing","Skywalker Roofing","Specialty Home","Valentine Roofing","Watkins Construction","Werner","Wheatland Roofing"];
 const MARKETS = ["Alabama","Ancaster, ON","Cadillac, MI","Carpenters Roofing & Sheet Metal","Columbus","Cranston, RI","Croton-on-Hudson","Dayton","Eagle River","Euclid, OH","Fox Valley","Gibsonia, PA","Grand Haven, MI","Grand Rapids, MI","Indianapolis, IN","Jackson, MS","Kalamazoo, MI","Kenosha, WI","Leland, NC","Louisiana","Madison","Maryland","Medford","Murrysville","Needham","New Bedford","New Berlin","Newport","Niagra","Northern Illinois","Pilesgrove","Portland","Port Washington, WI","Regina, SK","Rockford","Seattle","Spokane, WA","Springfield, MA","Stevens Point","Stokesdale, NC","Suamico, WI","Tewksbury, MA","Virginia","Westerly","West Palm Beach, FL"];
-const SERVICES = ["Roofing","Siding","Windows & Doors","Gutters","Solar","Insulation","Bath / Shower","Repairs","Other"];
-const LEAD_SOURCES = ["Digital","Referral","Canvass","Radio","Event","Repeat Customer","Other"];
+const REGIONS = ["Canada","Mid-Atlantic","Midwest","Northeast","Northwest","Southeast"];
+const DIVISIONS = ["Canada","United States"];
+const SERVICES = ["Roofing","Siding","Windows & Doors","Gutters","Solar","Repairs","Other"];
+const CUSTOMER_TYPES = ["Residential","Commercial","Managed Residential","Managed Commercial","Other"];
+const REPS = ["Doug M.","Karen P.","Miguel R.","Sarah L.","Tyrone W.","Aaron K.","Priya S.","Jamal B.","Rebecca H.","Luis G."];
 
-const FIN_RATES = { cash: 0, ccard: 0.025, fin0: 0.08, fin12: 0.03, finLT: 0.07 };
-const FIN_LABELS = { cash: "Cash / Check", ccard: "Credit Card", fin0: "0% Promo", fin12: "12mo Same-as-Cash", finLT: "Long-Term Finance" };
-
-const GM_GOOD = 42;
-const GM_WARN = 35;
-
-/* Brand → default market (mock scoping; prod will come from your dim tables) */
+/* Brand → primary market (for mock scoping). In prod, this comes from your dim tables. */
 const BRAND_MARKET_MAP = {
-  "Infinity Exteriors":"Kenosha, WI","Premier Roofing":"Columbus","D'Angelo and Sons":"Ancaster, ON",
-  "GF Sprague":"Needham","Skywalker Roofing":"Stokesdale, NC","Exterior Medics":"Maryland",
-  "Couto Construction":"New Bedford","G. Fedale":"Pilesgrove","Watkins Construction":"Jackson, MS",
-  "Specialty Home":"Fox Valley","High Point Roofing":"Virginia","Henderson Roofing":"Portland",
+  "Infinity Exteriors":"Kenosha, WI", "Premier Roofing":"Columbus", "D'Angelo and Sons":"Ancaster, ON",
+  "GF Sprague":"Needham", "Skywalker Roofing":"Stokesdale, NC", "Exterior Medics":"Maryland",
+  "Couto Construction":"New Bedford", "G. Fedale":"Pilesgrove", "Watkins Construction":"Jackson, MS",
+  "Specialty Home":"Fox Valley", "High Point Roofing":"Virginia", "Henderson Roofing":"Portland",
   "Carpenter's Roofing & Sheet Metal":"Carpenters Roofing & Sheet Metal","Altec Roofing":"Louisiana",
   "American Home Contractors":"Maryland","Cochran Exteriors":"Euclid, OH","Exterior Heroes":"Niagra",
   "Franzoso Contracting":"Croton-on-Hudson","Interstate Roofing":"Dayton","Overhead Solutions":"Regina, SK",
@@ -577,955 +677,703 @@ const BRAND_MARKET_MAP = {
   "Werner":"Grand Rapids, MI","Wheatland Roofing":"Westerly"
 };
 
-/* Personas — mock SSO (role → scope). Supports multi-brand reps via brands array. */
+/* PERSONAS — mock SSO (role → scope) */
 const PERSONAS = [
-  { key: 'rep-karen', name: 'Karen P.', email: 'karen.patel@infinityexteriors.com', role: 'Rep',
-    scope: { brands: ['Infinity Exteriors'], market: 'Kenosha, WI' } },
-  { key: 'rep-miguel', name: 'Miguel R.', email: 'miguel.r@specialtyhome.com', role: 'Rep',
-    scope: { brands: ['Specialty Home', 'High Point Roofing'], market: 'Fox Valley' } },
-  { key: 'rep-doug', name: 'Doug M.', email: 'doug.m@premierroofing.com', role: 'Rep',
-    scope: { brands: ['Premier Roofing'], market: 'Columbus' } },
-  { key: 'mgr-kenosha', name: 'Lori J.', email: 'lori.j@infinityexteriors.com', role: 'Market Mgr',
-    scope: { brands: ['Infinity Exteriors'], market: 'Kenosha, WI' } },
-  { key: 'brmgr-ie', name: 'Rex T.', email: 'rex.t@infinityexteriors.com', role: 'Brand Mgr',
-    scope: { brands: ['Infinity Exteriors'] } },
-  { key: 'rvp-mw', name: 'Dana K.', email: 'dana.k@ihs.com', role: 'RVP Midwest', scope: {} },
-  { key: 'enterprise', name: 'Jay Teresi', email: 'jay.teresi@infinityhomeservices.com', role: 'Enterprise', scope: {} }
+  { key:'rep-karen',   name:'Karen P.',   email:'kpatel@infinity.com',  role:'Rep',         scope:{ brand:'Infinity Exteriors' } },
+  { key:'rep-doug',    name:'Doug M.',    email:'dmorgan@premier.com',  role:'Rep',         scope:{ brand:'Premier Roofing' } },
+  { key:'bmgr-ie',     name:'Lori J.',    email:'ljohnson@infinity.com',role:'Market Mgr',  scope:{ brand:'Infinity Exteriors', market:'Kenosha, WI' } },
+  { key:'brmgr-ie',    name:'Rex T.',     email:'rtomas@infinity.com',  role:'Brand Mgr',   scope:{ brand:'Infinity Exteriors' } },
+  { key:'rvp-mw',      name:'Dana K.',    email:'dkline@ihs.com',       role:'RVP Midwest', scope:{ region:'Midwest' } },
+  { key:'enterprise',  name:'Jay Teresi', email:'jteresi@infinityhomeservices.com', role:'Enterprise', scope:{} }
 ];
 
-/* Seed: mock appointments for today */
+/* Mock appointments — scheduled for "today". Status starts open. */
 function makeAppts() {
   const seed = [
-    ['8:30a', "Infinity Exteriors", "Hartman, D.", "Kenosha, WI", "Karen P."],
-    ['9:00a', "Premier Roofing", "Okafor, C.", "Columbus", "Doug M."],
-    ['9:30a', "Infinity Exteriors", "Perez, M.", "Kenosha, WI", "Karen P."],
-    ['10:00a', "D'Angelo and Sons", "Kowalski, T.", "Ancaster, ON", "Sarah L."],
-    ['10:30a', "GF Sprague", "Nguyen, V.", "Needham", "Tyrone W."],
-    ['11:00a', "Skywalker Roofing", "Bellini, J.", "Stokesdale, NC", "Aaron K."],
-    ['11:30a', "Exterior Medics", "Ashford, R.", "Maryland", "Priya S."],
-    ['12:00p', "Couto Construction", "Villa, A.", "New Bedford", "Jamal B."],
-    ['12:30p', "Premier Roofing", "Patel, S.", "Columbus", "Doug M."],
-    ['1:00p', "G. Fedale", "Yamashita, K.", "Pilesgrove", "Rebecca H."],
-    ['1:30p', "Watkins Construction", "Romano, F.", "Jackson, MS", "Luis G."],
-    ['2:00p', "Infinity Exteriors", "Johnson, B.", "Kenosha, WI", "Karen P."],
-    ['2:30p', "High Point Roofing", "Lee, A.", "Virginia", "Miguel R."],
-    ['3:00p', "Specialty Home", "Foster, G.", "Fox Valley", "Miguel R."],
-    ['3:30p', "Premier Roofing", "Thompson, J.", "Columbus", "Doug M."],
-    ['4:00p', "D'Angelo and Sons", "Chen, W.", "Ancaster, ON", "Sarah L."],
-    ['4:30p', "GF Sprague", "Davis, K.", "Needham", "Tyrone W."],
-    ['5:00p', "Infinity Exteriors", "Martinez, L.", "Kenosha, WI", "Karen P."],
-    ['5:30p', "Henderson Roofing", "O'Brien, M.", "Portland", "Aaron K."],
-    ['6:00p', "Exterior Medics", "Singh, R.", "Maryland", "Priya S."],
+    ['8:30a',"Infinity Exteriors","Hartman, D.","Kenosha, WI","Karen P."],
+    ['9:00a',"Premier Roofing","Okafor, C.","Columbus","Doug M."],
+    ['9:30a',"Infinity Exteriors","Perez, M.","Kenosha, WI","Karen P."],
+    ['10:00a',"D'Angelo and Sons","Kowalski, T.","Ancaster, ON","Sarah L."],
+    ['10:30a',"GF Sprague","Nguyen, V.","Needham","Tyrone W."],
+    ['11:00a',"Skywalker Roofing","Bellini, J.","Stokesdale, NC","Aaron K."],
+    ['11:30a',"Exterior Medics","Ashford, R.","Maryland","Priya S."],
+    ['12:00p',"Couto Construction","Villa, A.","New Bedford","Jamal B."],
+    ['12:30p',"Premier Roofing","Patel, S.","Columbus","Doug M."],
+    ['1:00p',"G. Fedale","Yamashita, K.","Pilesgrove","Rebecca H."],
+    ['1:30p',"Watkins Construction","Romano, F.","Jackson, MS","Luis G."],
+    ['2:00p',"Infinity Exteriors","Johnson, B.","Kenosha, WI","Karen P."],
+    ['2:30p',"High Point Roofing","Lee, A.","Virginia","Miguel R."],
+    ['3:00p',"Specialty Home","Foster, G.","Fox Valley","Miguel R."],
+    ['3:30p',"Premier Roofing","Thompson, J.","Columbus","Doug M."],
+    ['4:00p',"D'Angelo and Sons","Chen, W.","Ancaster, ON","Sarah L."],
+    ['4:30p',"GF Sprague","Davis, K.","Needham","Tyrone W."],
+    ['5:00p',"Infinity Exteriors","Martinez, L.","Kenosha, WI","Karen P."],
+    ['5:30p',"Henderson Roofing","O'Brien, M.","Portland","Aaron K."],
+    ['6:00p',"Exterior Medics","Singh, R.","Maryland","Priya S."],
   ];
-  return seed.map((s, i) => ({
-    id: 'A-' + String(20430 + i),
-    time: s[0], brand: s[1], customer: s[2], market: s[3], rep: s[4], status: 'open'
-  }));
+  return seed.map((s, i) => ({ id:'A-204'+(i+30), time:s[0], brand:s[1], customer:s[2], market:s[3], rep:s[4], status:'open' }));
 }
 const APPTS = makeAppts();
 
-/* ---------- STATE ---------- */
-const LS_PERSONA = 'rtat_persona_v2';
-const LS_SUBS = 'rtat_submissions_v2';
+/* Finance fees */
+const FIN_RATES = { cash:0, ccard:.025, fin0:.08, fin12:.03, finLT:.07 };
 
-let persona = (function(){
-  const k = localStorage.getItem(LS_PERSONA) || 'enterprise';
-  return PERSONAS.find(p => p.key === k) || PERSONAS[PERSONAS.length - 1];
-})();
+/* ============================================================
+   STATE
+   ============================================================ */
+const LS_PERSONA = 'ihs_dispo_persona_v1';
+const LS_SUBS = 'ihs_dispo_subs_v1';
+let persona = PERSONAS.find(p => p.key === (localStorage.getItem(LS_PERSONA) || 'enterprise')) || PERSONAS[5];
 let submissions = loadSubs();
-let currentPage = 'today';
-let currentView = 'my';  // 'my' | 'team' | 'stuck' — today page view
+let queueFilter = 'all';
+
+/* Stuck = open appointment whose scheduled time was more than 2 hrs ago.
+   Demo "now" anchored at 3:00p so the wireframe always shows stuck rows. */
+const DEMO_NOW_MIN = 15 * 60; // 3:00p
+function parseApptMin(t) {
+  const m = t.match(/^(\d{1,2}):(\d{2})(a|p)$/); if (!m) return null;
+  let h = parseInt(m[1],10); const mm = parseInt(m[2],10);
+  if (m[3]==='p' && h<12) h+=12; if (m[3]==='a' && h===12) h=0;
+  return h*60 + mm;
+}
+function isStuck(a) {
+  if (a.status !== 'open') return false;
+  const t = parseApptMin(a.time); if (t == null) return false;
+  return (DEMO_NOW_MIN - t) > 120;
+}
+
+/* Multi-service buffer — each service becomes its own submission record on commit */
+let multiBuffer = [];
+function resetMultiBuffer() {
+  multiBuffer = [];
+  const strip = document.getElementById('multiStrip');
+  if (strip) strip.style.display = 'none';
+  const chips = document.getElementById('multiChips');
+  if (chips) chips.innerHTML = '';
+}
+function renderMultiStrip() {
+  const strip = document.getElementById('multiStrip');
+  const chips = document.getElementById('multiChips');
+  if (!multiBuffer.length) { strip.style.display = 'none'; chips.innerHTML = ''; return; }
+  strip.style.display = 'block';
+  chips.innerHTML = multiBuffer.map((b,i) => `<span class="svc-chip">#${i+1} ${escapeHtml(b.service)} · ${fmt(b.net)} · ${b.gmPct.toFixed(1)}%</span>`).join('');
+}
+function resetSoldFields() {
+  ['s-price','s-cogs','s-disc','s-notes'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  recalcSold();
+}
+let currentPage = 'queue';
 let selectedAppt = null;
-let visitServices = []; // multi-service batch for an in-flight visit
-let visitCustomer = null;
+let chosenDispo = null;
 
-function loadSubs(){
-  try { return JSON.parse(localStorage.getItem(LS_SUBS) || '[]'); }
-  catch(e) { return []; }
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  // Persona selectors
+  const desktop = document.getElementById('personaDesktop');
+  const mobile = document.getElementById('personaMobile');
+  PERSONAS.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.key; opt.textContent = `${p.role} — ${p.name}`;
+    desktop.appendChild(opt.cloneNode(true));
+    mobile.appendChild(opt);
+  });
+  desktop.value = persona.key; mobile.value = persona.key;
+  desktop.addEventListener('change', e => setPersona(e.target.value));
+  mobile.addEventListener('change', e => setPersona(e.target.value));
+
+  // Filter selects
+  fillSelect(document.getElementById('f-division'), DIVISIONS, 'All Divisions');
+  fillSelect(document.getElementById('f-region'), REGIONS, 'All Regions');
+  fillSelect(document.getElementById('f-brand'), BRANDS, 'All Brands');
+  fillSelect(document.getElementById('f-market'), MARKETS, 'All Markets');
+  fillSelect(document.getElementById('f-rep'), REPS, 'All Reps');
+  ['f-division','f-region','f-brand','f-market','f-rep'].forEach(id =>
+    document.getElementById(id).addEventListener('change', () => renderAll()));
+
+  // Queue filter buttons
+  [...document.querySelectorAll('[data-filter]')].forEach(b =>
+    b.addEventListener('click', () => {
+      queueFilter = b.dataset.filter;
+      [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === queueFilter));
+      renderQueue();
+    }));
+
+  // Nav
+  [...document.querySelectorAll('.navitem[data-page]')].forEach(el =>
+    el.addEventListener('click', () => goPage(el.dataset.page)));
+  [...document.querySelectorAll('.tab[data-page]')].forEach(el =>
+    el.addEventListener('click', () => goPage(el.dataset.page)));
+
+  // Dispo modal
+  [...document.querySelectorAll('.dispo-opt')].forEach(el =>
+    el.addEventListener('click', () => pickDispo(el.dataset.d)));
+  document.getElementById('closeDispo').addEventListener('click', closeDispo);
+  document.getElementById('dispoScrim').addEventListener('click', e => { if (e.target.id==='dispoScrim') closeDispo(); });
+
+  // Service/customer selects in sold form
+  fillSelect(document.getElementById('s-service'), SERVICES);
+  fillSelect(document.getElementById('s-ctype'), CUSTOMER_TYPES);
+
+  // Manual entry
+  document.getElementById('newManualBtn').addEventListener('click', () => openDispo(null));
+
+  // Pills (time frame)
+  [...document.querySelectorAll('.pill')].forEach(p => p.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+  }));
+
+  // Connectivity
+  window.addEventListener('online', updateConn);
+  window.addEventListener('offline', updateConn);
+
+  applyPersona();
+  renderAll();
+  registerSW();
+  updateConn();
 }
-function saveSubs(){
-  localStorage.setItem(LS_SUBS, JSON.stringify(submissions));
+
+function setPersona(key) {
+  persona = PERSONAS.find(p => p.key === key);
+  localStorage.setItem(LS_PERSONA, key);
+  applyPersona();
+  renderAll();
+  toast(`Viewing as ${persona.role} · ${persona.name}`);
 }
 
-/* ---------- PERSONA / SCOPE ---------- */
-function applyPersona(){
-  // persona chip
-  const initials = persona.name.split(' ').map(s => s[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('personaInitials').textContent = initials;
-  document.getElementById('personaName').textContent = persona.name;
-  document.getElementById('personaRole').textContent = persona.role;
+/* ============================================================
+   PERSONA → SCOPE
+   ============================================================ */
+function canSeeAllBrands() { return ['Enterprise','RVP Midwest','RVP Northeast','RVP South','RVP West'].some(r => persona.role.startsWith('RVP')) || persona.role === 'Enterprise'; }
+function applyPersona() {
+  // User panel
+  document.getElementById('userName').textContent = persona.name;
+  document.getElementById('userEmail').textContent = persona.email;
+  document.getElementById('userAvatar').textContent = persona.name.split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('roleBadge').textContent = persona.role;
 
-  // scope banner
-  const sc = persona.scope || {};
-  let parts = [];
-  if (sc.brands && sc.brands.length) parts.push(sc.brands.join(' + '));
-  else parts.push('All brands');
-  if (sc.market) parts.push(sc.market);
-  else parts.push('All markets');
-  document.getElementById('scopeText').textContent = parts.join(' · ');
+  // Lock brand filter for reps/brand mgr
+  const brandF = document.getElementById('f-brand');
+  const marketF = document.getElementById('f-market');
+  const repF = document.getElementById('f-rep');
+  if (persona.scope.brand && !canSeeAllBrands()) {
+    brandF.value = persona.scope.brand; brandF.disabled = true;
+  } else { brandF.disabled = false; if (!persona.scope.brand) brandF.value = ''; }
+  if (persona.scope.market) { marketF.value = persona.scope.market; marketF.disabled = true; }
+  else { marketF.disabled = false; if (!persona.scope.market) marketF.value = ''; }
+  if (persona.role === 'Rep') { repF.value = persona.name; repF.disabled = true; } else { repF.disabled = false; }
 
-  // show/hide nav based on role
-  const isManager = ['Market Mgr','Brand Mgr','RVP Midwest','Enterprise'].includes(persona.role)
-                 || persona.role.startsWith('RVP');
-  document.querySelectorAll('[data-show-for="manager"]').forEach(el => {
-    el.classList.toggle('hidden', !isManager);
+  // Hide enterprise-only nav for reps
+  const gated = ['enterprise','bybrand','bybranch'];
+  [...document.querySelectorAll('.navitem[data-page], .tab[data-page]')].forEach(el => {
+    if (gated.includes(el.dataset.page)) {
+      const canSee = persona.role === 'Enterprise' || persona.role.startsWith('RVP') || persona.role === 'Brand Mgr';
+      el.classList.toggle('locked', !canSee);
+      el.style.display = canSee ? '' : 'none';
+    }
   });
 
-  // if rep was on a manager-only page, snap back
-  if (!isManager && ['enterprise','by-brand','by-market'].includes(currentPage)) {
-    currentPage = 'today';
+  // Scope text
+  const scope = [];
+  if (persona.scope.brand && !canSeeAllBrands()) scope.push(`Brand: ${persona.scope.brand}`);
+  if (persona.scope.market) scope.push(`Market: ${persona.scope.market}`);
+  if (persona.scope.region) scope.push(`Region: ${persona.scope.region}`);
+  if (persona.role === 'Rep') scope.push(`Rep: ${persona.name}`);
+  document.getElementById('scopeText').textContent =
+    persona.role === 'Enterprise'
+      ? `You are viewing as ${persona.role}. All brands, markets, and reps visible.`
+      : `You are viewing as ${persona.role}. ${scope.join(' · ')}.`;
+
+  // If not allowed to see rollup pages, snap back to queue
+  if (currentPage !== 'queue' && currentPage !== 'myday') {
+    const canSee = persona.role === 'Enterprise' || persona.role.startsWith('RVP') || persona.role === 'Brand Mgr';
+    if (!canSee) goPage('queue');
   }
-
-  // default view by role
-  if (persona.role === 'Rep') currentView = 'my';
-  else currentView = 'team';
-
-  renderBottomNav();
-  render();
 }
 
-function scopedAppts(){
-  const sc = persona.scope || {};
+/* Filter APPTS by persona scope + current filters */
+function scopedAppts() {
   return APPTS.filter(a => {
-    if (sc.brands && sc.brands.length && !sc.brands.includes(a.brand)) return false;
-    if (sc.market && a.market !== sc.market) return false;
+    if (persona.scope.brand && !canSeeAllBrands() && a.brand !== persona.scope.brand) return false;
+    if (persona.scope.market && a.market !== persona.scope.market) return false;
+    if (persona.role === 'Rep' && a.rep !== persona.name) return false;
+    // Active filter selects
+    const bf = document.getElementById('f-brand').value;
+    const mf = document.getElementById('f-market').value;
+    const rf = document.getElementById('f-rep').value;
+    if (bf && a.brand !== bf) return false;
+    if (mf && a.market !== mf) return false;
+    if (rf && a.rep !== rf) return false;
     return true;
   });
 }
-function scopedSubs(){
-  const sc = persona.scope || {};
+function scopedSubs() {
   return submissions.filter(s => {
-    if (sc.brands && sc.brands.length && !sc.brands.includes(s.brand)) return false;
-    if (sc.market && s.market !== sc.market) return false;
+    if (persona.scope.brand && !canSeeAllBrands() && s.brand !== persona.scope.brand) return false;
+    if (persona.scope.market && s.market !== persona.scope.market) return false;
+    if (persona.role === 'Rep' && s.rep !== persona.name) return false;
     return true;
   });
 }
 
-/* ---------- NAV ---------- */
-function renderBottomNav(){
-  const isManager = persona.role !== 'Rep';
-  const items = [
-    { key: 'today', ico: '●', label: 'Today' },
-    { key: 'stuck', ico: '!', label: 'Stuck' }
-  ];
-  if (isManager) items.push({ key: 'enterprise', ico: '◱', label: 'Rollup' });
-  const nav = document.getElementById('bottomnav');
-  nav.innerHTML = items.map(i => `
-    <button class="${currentPage === i.key ? 'active' : ''}" data-page="${i.key}">
-      <div class="ico">${i.ico}</div>
-      <div>${i.label}</div>
-    </button>
+/* ============================================================
+   PAGE ROUTING
+   ============================================================ */
+function goPage(key) {
+  currentPage = key;
+  [...document.querySelectorAll('.page')].forEach(p => p.classList.toggle('active', p.id === 'page-'+key));
+  [...document.querySelectorAll('.navitem[data-page]')].forEach(el => el.classList.toggle('active', el.dataset.page === key));
+  [...document.querySelectorAll('.tab[data-page]')].forEach(el => el.classList.toggle('active', el.dataset.page === key));
+  window.scrollTo({ top:0, behavior:'smooth' });
+  renderAll();
+}
+
+/* ============================================================
+   RENDERERS
+   ============================================================ */
+function renderAll() {
+  renderQueue();
+  renderMyDay();
+  renderEnterprise();
+  renderByBrand();
+  renderByMarket();
+}
+
+function renderQueue() {
+  const appts = scopedAppts();
+  const m = rollup(appts, scopedSubs());
+  // Hero
+  document.getElementById('heroScore').innerHTML = `
+    <div>
+      <div class="lbl">${persona.role === 'Enterprise' ? 'Enterprise · Today' : persona.role + ' · Today'}</div>
+      <div class="score"><span class="sold">${m.sold}</span><span class="slash">for</span>${m.appts}</div>
+      <div class="rate">Close rate <strong>${m.closePct.toFixed(1)}%</strong> · ${m.open} open · ${m.nosale} not sold · ${m.callback} callbacks</div>
+    </div>
+    <div class="scope">
+      <div class="lbl">Sold GM %</div>
+      <div style="font-size:30px;font-weight:700;color:${gmColor(m.gmPct)}">${m.gmPct.toFixed(1)}%</div>
+      <div>${fmt(m.sold$)} sold · ${fmt(m.gm$)} GM</div>
+    </div>
+  `;
+  // KPIs
+  document.getElementById('kpiGrid').innerHTML = [
+    tile('Appts Run', String(m.appts-m.open), `${m.open} still open`),
+    tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`),
+    tile('Not Sold', String(m.nosale), m.appts ? (m.nosale/m.appts*100).toFixed(1)+'%' : '—'),
+    tile('Callback', String(m.callback), m.appts ? (m.callback/m.appts*100).toFixed(1)+'%' : '—'),
+    tile('Sold $', fmt(m.sold$), m.sold ? 'Avg '+fmt(m.sold$/m.sold) : ''),
+    tile('Sold GM %', m.gmPct.toFixed(1)+'%', 'Target 42.5%', gmColor(m.gmPct)),
+  ].join('');
+  document.getElementById('kpiSectionTitle').textContent = `${persona.role} · Today`;
+
+  // Queue table
+  const tbody = document.getElementById('apptBody');
+  let list;
+  if (queueFilter === 'open') list = appts.filter(a => a.status === 'open');
+  else if (queueFilter === 'stuck') list = appts.filter(isStuck);
+  else list = appts;
+  const stuckTotal = appts.filter(isStuck).length;
+  const stuckEl = document.getElementById('stuckCount');
+  if (stuckEl) { stuckEl.textContent = stuckTotal ? stuckTotal : ''; stuckEl.className = 'stuck-count' + (stuckTotal ? ' has' : ''); }
+  const hint = queueFilter === 'stuck' ? 'stuck = open >2 hrs past appt time' : 'click "Disposition" to log outcome';
+  document.getElementById('apptCountSub').textContent = `${list.length} appt${list.length===1?'':'s'} · ${hint}`;
+  tbody.innerHTML = list.map(a => `
+    <tr${isStuck(a) ? ' class="row-stuck"' : ''}>
+      <td>${a.time}</td>
+      <td><span class="brand-chip">${escapeHtml(a.brand)}</span></td>
+      <td>${escapeHtml(a.customer)}</td>
+      <td>${escapeHtml(a.market)}</td>
+      <td><span class="rep-chip">${escapeHtml(a.rep)}</span></td>
+      <td><span class="status-chip ${isStuck(a) ? 'stuck' : a.status}">${isStuck(a) ? 'Stuck' : labelStatus(a.status)}</span></td>
+      <td style="text-align:right;">
+        <button class="btn ${a.status==='open'?'primary':'ghost'}" data-id="${a.id}">
+          ${a.status==='open' ? 'Disposition' : 'Edit'}
+        </button>
+      </td>
+    </tr>
   `).join('');
-  nav.querySelectorAll('button').forEach(b => {
-    b.addEventListener('click', () => { goto(b.dataset.page); });
-  });
-
-  // desktop sidebar active state
-  document.querySelectorAll('.sidebar .navitem[data-page]').forEach(b => {
-    b.classList.toggle('active', b.dataset.page === currentPage);
-  });
+  [...tbody.querySelectorAll('button[data-id]')].forEach(b =>
+    b.addEventListener('click', e => { e.stopPropagation(); openDispo(APPTS.find(a => a.id === b.dataset.id)); }));
 }
 
-function goto(page){
-  currentPage = page;
-  if (page === 'today') currentView = persona.role === 'Rep' ? 'my' : 'team';
-  renderBottomNav();
-  render();
-  window.scrollTo(0, 0);
+function renderMyDay() {
+  const subs = scopedSubs().filter(s => persona.role !== 'Rep' || s.rep === persona.name).slice().reverse();
+  const appts = scopedAppts().filter(a => persona.role !== 'Rep' || a.rep === persona.name);
+  const m = rollup(appts, submissions.filter(s => persona.role !== 'Rep' || s.rep === persona.name));
+  document.getElementById('mydayKpis').innerHTML = [
+    tile('My Appts', String(appts.length), ''),
+    tile('Dispositioned', String(appts.length - appts.filter(a=>a.status==='open').length), ''),
+    tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`),
+    tile('Sold $', fmt(m.sold$), ''),
+    tile('GM %', m.gmPct.toFixed(1)+'%', '', gmColor(m.gmPct)),
+    tile('Open', String(m.open), ''),
+  ].join('');
+  document.getElementById('mydayBody').innerHTML = subs.length === 0
+    ? `<tr><td colspan="7" style="text-align:center;color:var(--text-mute);padding:24px">No submissions yet.</td></tr>`
+    : subs.map(s => `
+        <tr>
+          <td>${timeAgo(s.ts)}</td>
+          <td>${escapeHtml(s.customer)}${s.servicesTotal > 1 ? ` <span class="brand-chip" style="background:#10223e;color:var(--primary);">#${s.serviceIndex}/${s.servicesTotal}</span>` : ''}</td>
+          <td><span class="brand-chip">${escapeHtml(s.brand)}</span></td>
+          <td><span class="status-chip ${s.outcome}">${labelStatus(s.outcome)}</span></td>
+          <td class="num">${s.outcome==='sold' ? fmt(s.net) : '—'}</td>
+          <td class="num" style="color:${s.outcome==='sold'?gmColor(s.gmPct):'var(--text-mute)'}">${s.outcome==='sold' ? s.gmPct.toFixed(1)+'%' : '—'}</td>
+          <td><span class="crm-chip ${s.crmWriteback||'queued'}">${s.crmWriteback === 'submitted' ? '● CRM' : '○ queued'}</span></td>
+        </tr>`).join('');
+  const latest = subs[0];
+  const peek = document.getElementById('payloadJson');
+  if (peek) peek.textContent = latest ? JSON.stringify(latest, null, 2) : '(no submissions yet)';
 }
 
-/* ---------- RENDER ---------- */
-function render(){
-  const m = document.getElementById('main');
-  if (currentPage === 'today') m.innerHTML = viewToday();
-  else if (currentPage === 'stuck') m.innerHTML = viewStuck();
-  else if (currentPage === 'enterprise') m.innerHTML = viewEnterprise();
-  else if (currentPage === 'by-brand') m.innerHTML = viewByBrand();
-  else if (currentPage === 'by-market') m.innerHTML = viewByMarket();
-  else m.innerHTML = '';
-
-  // Wire up any buttons within the rendered page
-  m.querySelectorAll('[data-dispo]').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const appt = APPTS.find(a => a.id === btn.dataset.dispo);
-      openEntry(appt || null);
-    });
-  });
-  m.querySelectorAll('[data-goto]').forEach(btn => {
-    btn.addEventListener('click', () => goto(btn.dataset.goto));
-  });
-  const newBtn = m.querySelector('#newManualBtn');
-  if (newBtn) newBtn.addEventListener('click', () => openEntry(null));
-  m.querySelectorAll('[data-view]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentView = btn.dataset.view;
-      render();
-    });
-  });
-  const syncBtn = m.querySelector('#syncFlushBtn');
-  if (syncBtn) syncBtn.addEventListener('click', syncFlush);
-}
-
-/* ---------- TODAY PAGE ---------- */
-function viewToday(){
-  const isRep = persona.role === 'Rep';
-  let apptsList, subsList;
-
-  if (currentView === 'my' && isRep) {
-    apptsList = scopedAppts().filter(a => a.rep === persona.name || a.rep.startsWith(persona.name.split(' ')[0]));
-    subsList = scopedSubs().filter(s => s.rep_name === persona.name);
-  } else if (currentView === 'stuck') {
-    apptsList = scopedAppts().filter(a => a.status === 'open' && isStuck(a));
-    subsList = [];
-  } else {
-    // team/all (manager+)
-    apptsList = scopedAppts();
-    subsList = scopedSubs();
-  }
-
-  const subsForAppts = subsList;
-  const unique = uniqueApptsWithStatus(apptsList, subsForAppts);
-  const met = metrics(apptsList, subsForAppts);
-
-  const pendingQueue = submissions.filter(s => s.offline_queued).length;
-
-  const myLabel = isRep ? 'My Today' : 'My appts';
-  const teamLabel = isRep ? 'Team' : 'Team Today';
-
-  return `
-    <div class="pagehead">
-      <h1 class="pagetitle">${isRep ? 'Your' : 'Today'} <span class="accent">${currentView === 'stuck' ? 'Stuck' : 'Run'}</span></h1>
-      <div class="pagesub">${currentView === 'stuck'
-        ? 'Open appts past their end time — nudge a disposition.'
-        : 'Tap an appointment when you leave the home to log what happened.'}</div>
+function renderEnterprise() {
+  // Enterprise always rolled up across everything (ignores most filters; respects nothing but reality)
+  const appts = APPTS; // full dataset
+  const m = rollup(appts, submissions);
+  document.getElementById('entHero').innerHTML = `
+    <div>
+      <div class="lbl">Enterprise · Today</div>
+      <div class="score"><span class="sold">${m.sold}</span><span class="slash">for</span>${m.appts}</div>
+      <div class="rate">Close rate <strong>${m.closePct.toFixed(1)}%</strong> · ${m.open} still open · ${m.nosale} not sold · ${m.callback} callback</div>
     </div>
-
-    ${renderSyncBar(pendingQueue)}
-
-    <div class="viewswitch" role="tablist">
-      ${isRep ? `<button class="${currentView==='my'?'active':''}" data-view="my">${myLabel}</button>` : ''}
-      ${!isRep ? `<button class="${currentView==='team'?'active':''}" data-view="team">${teamLabel}</button>` : ''}
-      <button class="${currentView==='stuck'?'active':''}" data-view="stuck">Stuck</button>
-    </div>
-
-    <div class="kpis">
-      <div class="kpi"><div class="k">Appts Today</div><div class="v">${met.appts}</div><div class="sub">${met.open} open</div></div>
-      <div class="kpi good"><div class="k">Sold</div><div class="v">${met.sold}</div><div class="sub">${met.signed_contracts} signed</div></div>
-      <div class="kpi bad"><div class="k">Not Sold</div><div class="v">${met.nosale}</div></div>
-      <div class="kpi warn"><div class="k">Pending</div><div class="v">${met.callback + met.noshow}</div><div class="sub">${met.callback} callback · ${met.noshow} no-show</div></div>
-    </div>
-
-    <button class="manual-cta" id="newManualBtn">＋ Add a walk-in / manual entry</button>
-
-    <div class="section-title">${unique.length} appointment${unique.length===1?'':'s'}</div>
-
-    ${unique.length === 0
-      ? `<div class="empty">No appointments match this view.</div>`
-      : unique.map(renderApptCard).join('')}
-  `;
-}
-function isStuck(a){
-  // Mock rule: appts with hour >= 1:30p are "past end" (demo logic)
-  const t = parseTime(a.time);
-  const now = new Date(); now.setHours(14, 0, 0, 0);
-  return (t * 60 < 14 * 60);
-}
-function parseTime(s){
-  // "2:30p" -> 14.5, "8:30a" -> 8.5
-  const m = s.match(/(\d+)(?::(\d+))?([ap])/);
-  if (!m) return 0;
-  let h = +m[1];
-  const min = +(m[2] || 0);
-  if (m[3] === 'p' && h !== 12) h += 12;
-  if (m[3] === 'a' && h === 12) h = 0;
-  return h + min/60;
-}
-function renderSyncBar(n){
-  if (n === 0) return `
-    <div class="syncbar">
-      <div class="dot"></div>
-      <div class="label">All submissions synced to CRM</div>
+    <div class="scope">
+      <div class="lbl">Sold $ · GM %</div>
+      <div style="font-size:30px;font-weight:700;color:${gmColor(m.gmPct)}">${m.gmPct.toFixed(1)}%</div>
+      <div>${fmt(m.sold$)}</div>
     </div>`;
-  return `
-    <div class="syncbar queued">
-      <div class="dot"></div>
-      <div class="label"><b>${n}</b> submission${n===1?'':'s'} queued offline</div>
-      <button id="syncFlushBtn">Sync now</button>
-    </div>`;
-}
-function syncFlush(){
-  // stub: flip queued to synced
-  submissions.forEach(s => s.offline_queued = false);
-  saveSubs();
-  render();
+  document.getElementById('entKpis').innerHTML = [
+    tile('Appts Run', String(m.appts - m.open), `${m.open} open`),
+    tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`),
+    tile('Not Sold', String(m.nosale), ''),
+    tile('Callback', String(m.callback), ''),
+    tile('Sold $', fmt(m.sold$), m.sold?'Avg '+fmt(m.sold$/m.sold):''),
+    tile('Sold GM %', m.gmPct.toFixed(1)+'%', 'Target 42.5%', gmColor(m.gmPct)),
+  ].join('');
+
+  // By Brand (top 10)
+  const byBrand = groupBy(appts, 'brand').map(([brand, arr]) => {
+    const rm = rollup(arr, submissions.filter(s => s.brand === brand));
+    return { brand, ...rm };
+  }).sort((a,b) => b.appts - a.appts);
+  const brandBody = document.querySelector('#tblByBrand tbody');
+  brandBody.innerHTML = byBrand.slice(0, 10).map((r, i) => `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td><span class="brand-chip">${escapeHtml(r.brand)}</span></td>
+      <td class="num">${r.appts}</td>
+      <td class="num">${r.sold}</td>
+      <td class="num"><div class="rate-cell"><div class="mini-bar"><span style="width:${Math.min(100,r.closePct)}%"></span></div><div class="pct">${r.closePct.toFixed(0)}%</div></div></td>
+      <td class="num">${fmt(r.sold$)}</td>
+      <td class="num" style="color:${gmColor(r.gmPct)}">${r.gmPct.toFixed(1)}%</td>
+    </tr>`).join('');
+
+  // By Market (top 10)
+  const byMarket = groupBy(appts, 'market').map(([market, arr]) => {
+    const rm = rollup(arr, submissions.filter(s => s.market === market));
+    return { market, ...rm };
+  }).sort((a,b) => b.appts - a.appts);
+  document.querySelector('#tblByMarket tbody').innerHTML = byMarket.slice(0, 10).map((r, i) => `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td>${escapeHtml(r.market)}</td>
+      <td class="num">${r.appts}</td>
+      <td class="num">${r.sold}</td>
+      <td class="num"><div class="rate-cell"><div class="mini-bar"><span style="width:${Math.min(100,r.closePct)}%"></span></div><div class="pct">${r.closePct.toFixed(0)}%</div></div></td>
+      <td class="num">${fmt(r.sold$)}</td>
+      <td class="num" style="color:${gmColor(r.gmPct)}">${r.gmPct.toFixed(1)}%</td>
+    </tr>`).join('');
+
+  // By Rep
+  const byRep = groupBy(appts, 'rep').map(([rep, arr]) => {
+    const rm = rollup(arr, submissions.filter(s => s.rep === rep));
+    return { rep, brand: arr[0]?.brand || '—', ...rm };
+  }).sort((a,b) => b.sold - a.sold);
+  document.querySelector('#tblByRep tbody').innerHTML = byRep.slice(0, 10).map((r, i) => `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td><span class="rep-chip">${escapeHtml(r.rep)}</span></td>
+      <td><span class="brand-chip">${escapeHtml(r.brand)}</span></td>
+      <td class="num">${r.appts}</td>
+      <td class="num">${r.sold}</td>
+      <td class="num">${r.closePct.toFixed(1)}%</td>
+      <td class="num">${fmt(r.sold$)}</td>
+      <td class="num" style="color:${gmColor(r.gmPct)}">${r.sold?r.gmPct.toFixed(1)+'%':'—'}</td>
+    </tr>`).join('');
 }
 
-function uniqueApptsWithStatus(list, subs){
-  return list.map(a => {
-    const subsForAppt = subs.filter(s => s.appointment_id === a.id);
-    let status = 'open';
-    if (subsForAppt.some(s => s.outcome === 'sold')) status = 'sold';
-    else if (subsForAppt.some(s => s.outcome === 'nosale')) status = 'nosale';
-    else if (subsForAppt.some(s => s.outcome === 'callback')) status = 'callback';
-    else if (subsForAppt.some(s => s.outcome === 'noshow')) status = 'noshow';
-    return { ...a, status, subsForAppt };
+function renderByBrand() {
+  const appts = scopedAppts();
+  const rows = BRANDS.map(brand => {
+    const arr = appts.filter(a => a.brand === brand);
+    const rm = rollup(arr, submissions.filter(s => s.brand === brand));
+    return { brand, ...rm };
+  }).filter(r => r.appts > 0).sort((a,b) => b.closePct - a.closePct);
+  document.querySelector('#tblBrandFull tbody').innerHTML = rows.length === 0
+    ? `<tr><td colspan="8" style="text-align:center;color:var(--text-mute);padding:24px">No appointments in current scope.</td></tr>`
+    : rows.map(r => `
+        <tr>
+          <td><span class="brand-chip">${escapeHtml(r.brand)}</span></td>
+          <td class="num">${r.appts}</td>
+          <td class="num">${r.sold}</td>
+          <td class="num">${r.nosale}</td>
+          <td class="num">${r.callback}</td>
+          <td class="num">${r.closePct.toFixed(1)}%</td>
+          <td class="num">${fmt(r.sold$)}</td>
+          <td class="num" style="color:${gmColor(r.gmPct)}">${r.sold?r.gmPct.toFixed(1)+'%':'—'}</td>
+        </tr>`).join('');
+}
+
+function renderByMarket() {
+  const appts = scopedAppts();
+  const rows = MARKETS.map(market => {
+    const arr = appts.filter(a => a.market === market);
+    const rm = rollup(arr, submissions.filter(s => s.market === market));
+    return { market, ...rm };
+  }).filter(r => r.appts > 0).sort((a,b) => b.appts - a.appts);
+  document.querySelector('#tblMarketFull tbody').innerHTML = rows.length === 0
+    ? `<tr><td colspan="8" style="text-align:center;color:var(--text-mute);padding:24px">No appointments in current scope.</td></tr>`
+    : rows.map(r => `
+        <tr>
+          <td>${escapeHtml(r.market)}</td>
+          <td class="num">${r.appts}</td>
+          <td class="num">${r.sold}</td>
+          <td class="num">${r.nosale}</td>
+          <td class="num">${r.callback}</td>
+          <td class="num">${r.closePct.toFixed(1)}%</td>
+          <td class="num">${fmt(r.sold$)}</td>
+          <td class="num" style="color:${gmColor(r.gmPct)}">${r.sold?r.gmPct.toFixed(1)+'%':'—'}</td>
+        </tr>`).join('');
+}
+
+/* ============================================================
+   DISPOSITION MODAL FLOW
+   ============================================================ */
+function openDispo(appt) {
+  selectedAppt = appt;
+  chosenDispo = null;
+  resetMultiBuffer();
+  document.getElementById('dispoScrim').classList.add('show');
+  document.getElementById('dispoTitle').textContent = appt ? 'Disposition Appointment' : 'Manual Entry';
+  document.getElementById('dispoSub').innerHTML = appt
+    ? `<strong>${escapeHtml(appt.customer)}</strong> · ${escapeHtml(appt.brand)} · ${escapeHtml(appt.market)} · ${escapeHtml(appt.rep)} · ${appt.time} · <span style="color:var(--text-mute)">Appt ${appt.id}</span>`
+    : 'No CRM appointment linked — walk-in or offline capture.';
+  [...document.querySelectorAll('.dispo-opt')].forEach(el => el.classList.remove('sel','sold','nosale','callback','noshow'));
+  ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
+  ['s-price','s-cogs','s-disc','s-notes','n-comp','n-compprice','n-notes','n-followup','c-notes','ns-notes'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  recalcSold();
+}
+function closeDispo() {
+  document.getElementById('dispoScrim').classList.remove('show');
+  selectedAppt = null; chosenDispo = null;
+  resetMultiBuffer();
+}
+function pickDispo(d) {
+  chosenDispo = d;
+  [...document.querySelectorAll('.dispo-opt')].forEach(el => {
+    el.classList.toggle('sel', el.dataset.d === d);
+    el.classList.toggle(d, el.dataset.d === d);
   });
+  ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
+  const showId = { sold:'soldForm', nosale:'nosaleForm', callback:'callbackForm', noshow:'noshowForm' }[d];
+  document.getElementById(showId).style.display = 'block';
 }
-function renderApptCard(a){
-  const isOpen = a.status === 'open';
-  const statusLabel = {open:'Open',sold:'Sold',nosale:'Not Sold',callback:'Callback',noshow:'No Show'}[a.status];
-  const soldDollars = a.subsForAppt
-    ? a.subsForAppt.reduce((sum, s) => sum + (s.services || []).reduce((ss, x) => ss + x.sold_amount, 0), 0)
-    : 0;
-  const gmPct = a.subsForAppt && a.subsForAppt.length && a.status === 'sold'
-    ? blendedGM(a.subsForAppt) : null;
-  return `
-    <div class="appt">
-      <div>
-        <div class="time">${a.time}</div>
-        <div class="cust">${a.customer}</div>
-        <div class="meta"><span>${a.brand}</span> <span class="dot">·</span> <span>${a.market}</span> <span class="dot">·</span> <span>${a.rep}</span></div>
-        ${a.status === 'sold' ? `<div class="meta" style="margin-top:6px;">Sold $${fmt(soldDollars)} ${gmPct !== null ? `<span class="pill ${gmClass(gmPct)}">${gmPct.toFixed(1)}% GM</span>` : ''}</div>` : ''}
-      </div>
-      <span class="status ${a.status}">${statusLabel}</span>
-      <button class="cta ${isOpen ? '' : 'secondary'}" data-dispo="${a.id}">${isOpen ? 'What happened?' : 'View / edit'}</button>
-    </div>
-  `;
-}
-
-/* ---------- STUCK PAGE ---------- */
-function viewStuck(){
-  const list = scopedAppts().filter(a => {
-    const subsForAppt = scopedSubs().filter(s => s.appointment_id === a.id);
-    return isStuck(a) && subsForAppt.length === 0;
-  });
-  return `
-    <div class="pagehead">
-      <h1 class="pagetitle"><span class="accent">Stuck</span> Appointments</h1>
-      <div class="pagesub">Past their end time with no disposition logged. Nudge the rep or enter on their behalf.</div>
-    </div>
-    <div class="kpis">
-      <div class="kpi ${list.length ? 'warn' : 'good'}"><div class="k">Stuck</div><div class="v">${list.length}</div></div>
-      <div class="kpi"><div class="k">% of today</div><div class="v">${scopedAppts().length ? Math.round(list.length / scopedAppts().length * 100) : 0}%</div></div>
-    </div>
-    ${list.length === 0 ? `<div class="empty">Nothing stuck. Nice.</div>` : list.map(a => ({...a,status:'open',subsForAppt:[]})).map(renderApptCard).join('')}
-  `;
+function recalcSold() {
+  const price = +document.getElementById('s-price').value || 0;
+  const cogs = +document.getElementById('s-cogs').value || 0;
+  const disc = +document.getElementById('s-disc').value || 0;
+  const fin = document.getElementById('s-fin').value;
+  const net = Math.max(0, price - disc);
+  const feeCost = (FIN_RATES[fin] || 0) * net;
+  const gm$ = net - cogs - feeCost;
+  const gmPct = net > 0 ? gm$/net*100 : 0;
+  document.getElementById('s-net').textContent = fmt(net);
+  const gmDollarEl = document.getElementById('s-gm$');
+  const gmPctEl = document.getElementById('s-gm%');
+  gmDollarEl.textContent = fmt(gm$);
+  gmPctEl.textContent = gmPct.toFixed(1)+'%';
+  const c = gmPct>=42?'good':gmPct>=35?'warn':'bad';
+  gmDollarEl.className = 'v '+c;
+  gmPctEl.className = 'v '+c;
+  return { price, cogs, disc, fin, net, feeCost, gm$, gmPct };
 }
 
-/* ---------- ENTERPRISE PAGE ---------- */
-function viewEnterprise(){
-  const appts = scopedAppts();
-  const subs = scopedSubs();
-  const met = metrics(appts, subs);
-  const gmKlass = gmClass(met.gmPct || 0);
-  const cls = met.closePct < 30 ? 'bad' : met.closePct < 50 ? 'warn' : 'good';
-
-  return `
-    <div class="pagehead">
-      <h1 class="pagetitle"><span class="accent">Enterprise</span> Today</h1>
-      <div class="pagesub">${met.appts} appts ran. ${met.sold} sold. Live.</div>
-    </div>
-
-    <div class="kpis">
-      <div class="kpi herogm ${gmKlass}">
-        <div class="k">Blended Gross Margin %</div>
-        <div class="v">${met.gmPct ? met.gmPct.toFixed(1) + '%' : '—'}</div>
-        <div class="sub">${met.gmPct ? `$${fmt(met.gm$)} GM on $${fmt(met.sold$)} sold` : 'No sales logged yet today'}</div>
-      </div>
-      <div class="kpi ${cls}"><div class="k">Sold for Ran</div><div class="v">${met.sold} / ${met.apptsRan}</div><div class="sub">${met.closePct.toFixed(0)}% close</div></div>
-      <div class="kpi"><div class="k">$ Sold</div><div class="v">$${fmt(met.sold$)}</div><div class="sub">${met.avg$ ? 'Avg $' + fmt(met.avg$) : '—'}</div></div>
-      <div class="kpi ${cls}"><div class="k">Close %</div><div class="v">${met.closePct.toFixed(1)}%</div></div>
-      <div class="kpi"><div class="k">Callbacks</div><div class="v">${met.callback}</div></div>
-    </div>
-
-    <div class="section-title">By Brand</div>
-    ${renderRollup(rollupBy(appts, subs, 'brand'), 'brand')}
-
-    <div class="section-title">By Market</div>
-    ${renderRollup(rollupBy(appts, subs, 'market'), 'market')}
-  `;
-}
-function viewByBrand(){
-  const appts = scopedAppts();
-  const subs = scopedSubs();
-  return `
-    <div class="pagehead">
-      <h1 class="pagetitle">By <span class="accent">Brand</span></h1>
-      <div class="pagesub">Today's run by brand. Click to open in Reports for drilldown.</div>
-    </div>
-    ${renderRollup(rollupBy(appts, subs, 'brand'), 'brand')}
-  `;
-}
-function viewByMarket(){
-  const appts = scopedAppts();
-  const subs = scopedSubs();
-  return `
-    <div class="pagehead">
-      <h1 class="pagetitle">By <span class="accent">Market</span></h1>
-      <div class="pagesub">Today's run by market. Click to open in Reports for drilldown.</div>
-    </div>
-    ${renderRollup(rollupBy(appts, subs, 'market'), 'market')}
-  `;
-}
-
-/* ---------- METRICS ---------- */
-function metrics(apptsList, subsList){
-  const solds = subsList.filter(s => s.outcome === 'sold');
-  const sold$ = solds.reduce((a, s) => a + (s.services || []).reduce((ss,x) => ss + x.sold_amount, 0), 0);
-  const cogs$ = solds.reduce((a, s) => a + (s.services || []).reduce((ss,x) => ss + x.cogs + x.finance_fee, 0), 0);
-  const gm$ = sold$ - cogs$;
-  const gmPct = sold$ > 0 ? gm$ / sold$ * 100 : 0;
-
-  const apptsWithSub = subsList.map(s => s.appointment_id).filter(id => !id.startsWith('MANUAL'));
-  const apptsDispositioned = new Set(apptsWithSub);
-  const apptsRan = apptsList.length;  // for enterprise we count scheduled as ran for demo
-  const soldCt = new Set(solds.map(s => s.appointment_id)).size;
-  const nosaleCt = subsList.filter(s => s.outcome === 'nosale').length;
-  const cbCt = subsList.filter(s => s.outcome === 'callback').length;
-  const noshowCt = subsList.filter(s => s.outcome === 'noshow').length;
-  const open = apptsList.length - apptsDispositioned.size;
-
-  const signed = solds.filter(s => s.signed === true).length;
-
+function commonRec(outcome, extra) {
   return {
-    appts: apptsList.length,
-    apptsRan,
-    sold: soldCt, signed_contracts: signed,
-    nosale: nosaleCt, callback: cbCt, noshow: noshowCt, open,
-    sold$, gm$, gmPct,
-    avg$: soldCt ? sold$ / soldCt : 0,
-    closePct: (apptsRan > 0) ? (soldCt / apptsRan * 100) : 0
+    submissionId: 'RTAT-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random()*1000),
+    ts: Date.now(), outcome,
+    crmWriteback: navigator.onLine ? 'submitted' : 'queued',
+    apptId: selectedAppt?.id || 'MANUAL-'+Date.now().toString(36).toUpperCase(),
+    customer: selectedAppt?.customer || 'Walk-in / Manual',
+    brand: selectedAppt?.brand || (document.getElementById('f-brand').value || persona.scope.brand || 'Unassigned'),
+    market: selectedAppt?.market || (document.getElementById('f-market').value || persona.scope.market || '—'),
+    rep: selectedAppt?.rep || (document.getElementById('f-rep').value || (persona.role === 'Rep' ? persona.name : 'Unassigned')),
+    synced: navigator.onLine,
+    ...extra,
   };
 }
-function rollupBy(apptsList, subsList, field){
-  const keys = [...new Set(apptsList.map(a => a[field]))].sort();
-  return keys.map(key => {
-    const apptsK = apptsList.filter(a => a[field] === key);
-    const subsK = subsList.filter(s => s[field] === key);
-    return { key, ...metrics(apptsK, subsK) };
-  }).sort((a,b) => b.sold$ - a.sold$);
+
+function buildSoldPayload() {
+  const c = recalcSold();
+  return {
+    price: c.price, cogs: c.cogs, disc: c.disc,
+    net: c.net, feeCost: c.feeCost, gm$: c.gm$, gmPct: +c.gmPct.toFixed(2),
+    financing: c.fin,
+    service: document.getElementById('s-service').value,
+    customerType: document.getElementById('s-ctype').value,
+    notes: document.getElementById('s-notes').value,
+  };
 }
-function renderRollup(rows, field){
-  if (rows.length === 0) return `<div class="empty">No data for this scope.</div>`;
-  const max$ = Math.max(...rows.map(r => r.sold$), 1);
-  return `
-    <div class="rollup">
-      <div class="table-scroll">
-        <table>
-          <thead><tr>
-            <th>${field === 'brand' ? 'Brand' : 'Market'}</th>
-            <th class="num">Ran</th>
-            <th class="num">Sold</th>
-            <th class="num">Close %</th>
-            <th class="num">$ Sold</th>
-            <th class="num">GM %</th>
-          </tr></thead>
-          <tbody>
-            ${rows.map(r => `
-              <tr>
-                <td class="name">${r.key}</td>
-                <td class="num">${r.apptsRan}</td>
-                <td class="num">${r.sold}</td>
-                <td class="num">${r.closePct.toFixed(0)}%</td>
-                <td class="num">
-                  $${fmt(r.sold$)}
-                  <div class="mini-bar"><span style="width:${(r.sold$/max$*100).toFixed(1)}%"></span></div>
-                </td>
-                <td class="num"><span class="pill ${gmClass(r.gmPct)}">${r.gmPct ? r.gmPct.toFixed(1)+'%' : '—'}</span></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-/* ---------- ENTRY MODAL (the money screen) ---------- */
-function openEntry(appt){
-  selectedAppt = appt;
-  visitServices = [];
-  visitCustomer = appt ? {
-    first_name: (appt.customer.split(',')[1]||'').trim(),
-    last_name: (appt.customer.split(',')[0]||'').trim(),
-    phone: '',
-    zip: '',
-    brand: appt.brand,
-    market: appt.market,
-    rep: appt.rep
-  } : null;
-
-  document.getElementById('modalTitle').textContent = appt ? appt.customer : 'New Walk-in Entry';
-  document.getElementById('modalScrim').classList.add('open');
-  document.body.style.overflow = 'hidden';
-
-  renderEntryStep1();
-}
-function closeEntry(){
-  document.getElementById('modalScrim').classList.remove('open');
-  document.body.style.overflow = '';
-  selectedAppt = null; visitServices = []; visitCustomer = null;
-  render();
-}
-
-/* Step 1: ask for outcome (if linked appt) OR customer info (if manual) */
-function renderEntryStep1(){
-  const body = document.getElementById('modalBody');
-  const foot = document.getElementById('modalFoot');
-
-  if (!selectedAppt) {
-    // Manual: gather minimum customer info first
-    const sc = persona.scope || {};
-    const brandsAvailable = (sc.brands && sc.brands.length) ? sc.brands : BRANDS;
-    const lockedBrand = brandsAvailable.length === 1 ? brandsAvailable[0] : '';
-
-    body.innerHTML = `
-      <div class="field">
-        <label class="lbl">Who did you meet with?</label>
-        <div class="two-col">
-          <input class="input" id="m-first" placeholder="First name" autocomplete="given-name" />
-          <input class="input" id="m-last" placeholder="Last name" autocomplete="family-name" />
-        </div>
-        <div class="hint">Required — used to match to your CRM record later.</div>
-      </div>
-      <div class="field">
-        <label class="lbl">Phone</label>
-        <input class="input" id="m-phone" placeholder="(555) 555-1234" type="tel" autocomplete="tel" />
-      </div>
-      <div class="field">
-        <label class="lbl">ZIP</label>
-        <input class="input" id="m-zip" placeholder="53140" inputmode="numeric" pattern="[0-9]*" maxlength="5" autocomplete="postal-code" />
-      </div>
-      <div class="field">
-        <label class="lbl">Brand</label>
-        ${lockedBrand
-          ? `<input class="input" value="${lockedBrand}" readonly />`
-          : `<select class="select" id="m-brand"><option value="">Pick a brand…</option>${brandsAvailable.map(b => `<option>${b}</option>`).join('')}</select>`
-        }
-      </div>
-      <div class="field">
-        <label class="lbl">Lead source</label>
-        <select class="select" id="m-leadsrc">
-          ${LEAD_SOURCES.map(s => `<option>${s}</option>`).join('')}
-        </select>
-      </div>
-    `;
-    foot.innerHTML = `
-      <button class="btn ghost" onclick="closeEntry()">Cancel</button>
-      <button class="btn full" id="manualNextBtn">Next →</button>
-    `;
-    document.getElementById('manualNextBtn').addEventListener('click', () => {
-      const first = document.getElementById('m-first').value.trim();
-      const last = document.getElementById('m-last').value.trim();
-      if (!first || !last) { alert('First and last name are required.'); return; }
-      const brand = lockedBrand || (document.getElementById('m-brand') || {}).value;
-      if (!brand) { alert('Pick a brand.'); return; }
-      visitCustomer = {
-        first_name: first, last_name: last,
-        phone: document.getElementById('m-phone').value.trim(),
-        zip: document.getElementById('m-zip').value.trim(),
-        brand,
-        market: BRAND_MARKET_MAP[brand] || (persona.scope && persona.scope.market) || '',
-        rep: persona.name,
-        lead_source: document.getElementById('m-leadsrc').value
-      };
-      renderOutcomePicker();
-    });
-    return;
-  }
-
-  renderOutcomePicker();
-}
-
-/* Outcome picker (Step 2) */
-function renderOutcomePicker(){
-  const body = document.getElementById('modalBody');
-  const foot = document.getElementById('modalFoot');
-  const c = visitCustomer || { first_name: '', last_name: '', brand: '' };
-
-  body.innerHTML = `
-    <div style="margin-bottom: 18px;">
-      <div class="muted" style="font-size:12px; text-transform:uppercase; letter-spacing:1px;">
-        ${c.brand || ''}${selectedAppt ? ' · ' + selectedAppt.time : ''}
-      </div>
-      <div style="font-size:20px; font-weight:700; margin-top:4px;">
-        ${selectedAppt ? selectedAppt.customer : (c.last_name + ', ' + c.first_name)}
-      </div>
-    </div>
-
-    <div class="muted" style="font-size:13px; margin-bottom:10px;">What happened at this appointment?</div>
-
-    <button class="outcome-primary" id="btnSold"><span class="ico">✓</span>Sold</button>
-
-    <button class="outcome-secondary-btn" id="btnOther">Other outcome ▾</button>
-
-    <div class="outcome-other-tray" id="otherTray">
-      <div class="outcome-other-grid">
-        <button data-other="nosale"><div class="ico">✕</div>Not Sold</button>
-        <button data-other="callback"><div class="ico">↻</div>Callback</button>
-        <button data-other="noshow"><div class="ico">∅</div>No Show</button>
-      </div>
-    </div>
-  `;
-  foot.innerHTML = `
-    <button class="btn ghost full" onclick="closeEntry()">Cancel</button>
-  `;
-
-  document.getElementById('btnSold').addEventListener('click', () => renderSoldForm());
-  document.getElementById('btnOther').addEventListener('click', () => {
-    document.getElementById('otherTray').classList.toggle('open');
-  });
-  document.querySelectorAll('[data-other]').forEach(b => {
-    b.addEventListener('click', () => renderOtherForm(b.dataset.other));
-  });
-}
-
-/* Sold form (Step 3) — multi-service aware */
-function renderSoldForm(){
-  const body = document.getElementById('modalBody');
-  const foot = document.getElementById('modalFoot');
-  const svcCount = visitServices.length;
-
-  const sc = persona.scope || {};
-  const brandsAvailable = (sc.brands && sc.brands.length) ? sc.brands : BRANDS;
-  const lockedBrand = visitCustomer && visitCustomer.brand ? visitCustomer.brand : '';
-
-  const cartHTML = svcCount > 0 ? `
-    <div class="services-list">
-      <div class="muted" style="font-size:11px; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Services already entered this visit</div>
-      ${visitServices.map((s,i) => `
-        <div class="row">
-          <div class="name">${s.service}</div>
-          <div class="amt">$${fmt(s.sold_amount)} <span class="muted">· ${s.gm_pct.toFixed(1)}% GM</span></div>
-        </div>
-      `).join('')}
-      <div class="row total">
-        <div class="name">Total</div>
-        <div class="amt">$${fmt(visitServices.reduce((a,s)=>a+s.sold_amount,0))} <span class="muted">· ${blendedGMFromBatch(visitServices).toFixed(1)}% blended</span></div>
-      </div>
-    </div>
-  ` : '';
-
-  body.innerHTML = `
-    ${cartHTML}
-
-    <div class="field">
-      <label class="lbl">Service sold</label>
-      <select class="select" id="s-service">
-        <option value="">Pick a service…</option>
-        ${SERVICES.map(s => `<option>${s}</option>`).join('')}
-      </select>
-      <div class="hint">Each service is logged as its own job. Add more below if they bought multiple.</div>
-    </div>
-
-    <div class="field">
-      <label class="lbl">Sold $ (contract amount)</label>
-      <input class="input" id="s-sold" type="number" inputmode="decimal" placeholder="45000" oninput="recalc()" />
-    </div>
-    <div class="field">
-      <label class="lbl">COGS $ (material + labor cost)</label>
-      <input class="input" id="s-cogs" type="number" inputmode="decimal" placeholder="25000" oninput="recalc()" />
-    </div>
-    <div class="field">
-      <label class="lbl">Finance type</label>
-      <div class="radio-group" id="fin-group">
-        ${Object.entries(FIN_LABELS).map(([k,v]) => `
-          <label class="radio-tile ${k==='cash'?'checked':''}">
-            <input type="radio" name="fin" value="${k}" ${k==='cash'?'checked':''} onchange="recalc()">
-            ${v}
-          </label>
-        `).join('')}
-      </div>
-    </div>
-
-    <div class="live-stats">
-      <div>
-        <div class="l">Net / GM</div>
-        <div class="net"><span id="s-net">$0</span> · <span class="gm-chip" id="s-gmchip">0.0%</span></div>
-      </div>
-    </div>
-
-    <div class="field">
-      <label class="lbl">
-        <input type="checkbox" id="s-signed" checked> Contract signed
-      </label>
-      <div class="hint">Uncheck if verbal yes but no signed paperwork yet.</div>
-    </div>
-
-    <div class="field">
-      <label class="lbl">Notes (optional)</label>
-      <textarea class="textarea" id="s-notes" placeholder="e.g. referred by Okafor; financing approved"></textarea>
-    </div>
-  `;
-
-  foot.innerHTML = `
-    <button class="btn ghost" onclick="renderOutcomePicker()">← Back</button>
-    <button class="btn full" id="submitSoldBtn">Save ${svcCount > 0 ? 'service #' + (svcCount+1) : 'sale'}</button>
-  `;
-
-  // Wire up radio tile UI
-  document.querySelectorAll('#fin-group input[type=radio]').forEach(r => {
-    r.addEventListener('change', () => {
-      document.querySelectorAll('#fin-group .radio-tile').forEach(t => t.classList.remove('checked'));
-      r.closest('.radio-tile').classList.add('checked');
-    });
-  });
-  document.getElementById('submitSoldBtn').addEventListener('click', captureSoldService);
-  recalc();
-}
-function recalc(){
-  const sold = +(document.getElementById('s-sold') || {value:0}).value || 0;
-  const cogs = +(document.getElementById('s-cogs') || {value:0}).value || 0;
-  const finEl = document.querySelector('input[name=fin]:checked');
-  const fin = finEl ? finEl.value : 'cash';
-  const fee = (FIN_RATES[fin] || 0) * sold;
-  const gm = sold - cogs - fee;
-  const pct = sold > 0 ? gm / sold * 100 : 0;
-  const netEl = document.getElementById('s-net');
-  const chip = document.getElementById('s-gmchip');
-  if (netEl) netEl.textContent = '$' + fmt(sold);
-  if (chip) {
-    chip.textContent = pct.toFixed(1) + '%';
-    chip.className = 'gm-chip ' + gmClass(pct);
-  }
-}
-function captureSoldService(){
-  const service = document.getElementById('s-service').value;
-  if (!service) { alert('Pick a service.'); return; }
-  const sold = +document.getElementById('s-sold').value || 0;
-  if (!sold) { alert('Enter the sold amount.'); return; }
+function addAnotherService() {
+  const price = +document.getElementById('s-price').value || 0;
   const cogs = +document.getElementById('s-cogs').value || 0;
-  const finEl = document.querySelector('input[name=fin]:checked');
-  const fin = finEl ? finEl.value : 'cash';
-  const fee = FIN_RATES[fin] * sold;
-  const gm$ = sold - cogs - fee;
-  const gmPct = sold > 0 ? gm$/sold*100 : 0;
-
-  visitServices.push({
-    service,
-    sold_amount: sold, discount: 0, cogs,
-    finance_type: fin, finance_fee: Math.round(fee),
-    net: sold, gm_dollars: Math.round(gm$), gm_pct: +gmPct.toFixed(2),
-    signed: document.getElementById('s-signed').checked,
-    notes: document.getElementById('s-notes').value.trim()
+  if (!price || !cogs) { alert('Enter Sold Price and Sold COGS for this service before adding another.'); return; }
+  multiBuffer.push(buildSoldPayload());
+  renderMultiStrip();
+  resetSoldFields();
+  toast(`Service ${multiBuffer.length} saved. Enter the next service.`);
+}
+function submitSold(e) {
+  e.preventDefault();
+  const price = +document.getElementById('s-price').value || 0;
+  const cogs = +document.getElementById('s-cogs').value || 0;
+  if (!price || !cogs) { alert('Enter Sold Price and Sold COGS.'); return false; }
+  const services = [...multiBuffer, buildSoldPayload()];
+  const groupId = 'GRP-' + Date.now().toString(36).toUpperCase();
+  services.forEach((svc, idx) => {
+    const rec = commonRec('sold', { ...svc, soldGroup: groupId, serviceIndex: idx + 1, servicesTotal: services.length });
+    submissions.push(rec);
   });
-  renderVisitConfirm();
+  saveSubs();
+  if (selectedAppt) selectedAppt.status = 'sold';
+  closeDispo();
+  renderAll();
+  toast(services.length > 1 ? `Sale submitted — ${services.length} linked jobs.` : 'Sale submitted.');
+  return false;
 }
-function renderVisitConfirm(){
-  const body = document.getElementById('modalBody');
-  const foot = document.getElementById('modalFoot');
-  const total = visitServices.reduce((a,s)=>a+s.sold_amount,0);
-  const blended = blendedGMFromBatch(visitServices);
-  body.innerHTML = `
-    <div class="confirm">
-      <div class="icn">✓</div>
-      <h2>${visitServices.length > 1 ? 'All services saved' : 'Service saved'}</h2>
-      <p>${visitServices.length} service${visitServices.length===1?'':'s'} logged on this visit.</p>
-      <div class="crm-stamp">● Submitted to CRM</div>
-      <div class="services-list" style="text-align:left;">
-        ${visitServices.map(s => `
-          <div class="row">
-            <div class="name">${s.service}</div>
-            <div class="amt">$${fmt(s.sold_amount)} <span class="muted">· ${s.gm_pct.toFixed(1)}% GM</span></div>
-          </div>
-        `).join('')}
-        <div class="row total">
-          <div class="name">Visit total</div>
-          <div class="amt">$${fmt(total)} <span class="muted">· ${blended.toFixed(1)}% blended</span></div>
-        </div>
-      </div>
-      <button class="btn-add-service" id="addAnotherBtn">＋ Add another service</button>
-    </div>
-  `;
-  foot.innerHTML = `
-    <button class="btn full" id="finishVisitBtn">Done</button>
-  `;
-  document.getElementById('addAnotherBtn').addEventListener('click', renderSoldForm);
-  document.getElementById('finishVisitBtn').addEventListener('click', finishVisit);
+function submitNoSale(e) {
+  e.preventDefault();
+  const reason = document.getElementById('n-reason').value;
+  if (!reason) { alert('Pick a reason.'); return false; }
+  const rec = commonRec('nosale', {
+    reason, competitor: document.getElementById('n-comp').value,
+    competitorPrice: +document.getElementById('n-compprice').value || null,
+    revisit: document.getElementById('n-revisit').value,
+    followup: document.getElementById('n-followup').value,
+    notes: document.getElementById('n-notes').value,
+  });
+  commit(rec, 'nosale');
+  return false;
 }
-function finishVisit(){
-  const rec = buildSubmission('sold', visitServices);
+function submitCallback(e) {
+  e.preventDefault();
+  const date = document.getElementById('c-date').value;
+  if (!date) { alert('Pick a callback date.'); return false; }
+  const rec = commonRec('callback', {
+    callbackDate: date, callbackTime: document.getElementById('c-time').value,
+    reason: document.getElementById('c-reason').value,
+    notes: document.getElementById('c-notes').value,
+  });
+  commit(rec, 'callback');
+  return false;
+}
+function submitNoShow(e) {
+  e.preventDefault();
+  const rec = commonRec('noshow', {
+    reason: document.getElementById('ns-reason').value,
+    notes: document.getElementById('ns-notes').value,
+  });
+  commit(rec, 'noshow');
+  return false;
+}
+
+function commit(rec, status) {
   submissions.push(rec);
   saveSubs();
-  renderFinalConfirm(rec);
-}
-function renderFinalConfirm(rec){
-  const body = document.getElementById('modalBody');
-  const foot = document.getElementById('modalFoot');
-  const payload = JSON.stringify(rec, null, 2);
-  body.innerHTML = `
-    <div class="confirm">
-      <div class="icn">✓</div>
-      <h2>Saved & on its way</h2>
-      <p>The record has been queued${navigator.onLine ? ' and submitted to CRM' : ' offline — will sync when you reconnect'}.</p>
-      <div class="crm-stamp">${navigator.onLine ? '● Submitted to CRM' : '◷ Queued'}</div>
-      <details class="payload-peek">
-        <summary>▸ View payload (for dev / Margin IQ team)</summary>
-        <pre>${escapeHtml(payload)}</pre>
-      </details>
-    </div>
-  `;
-  foot.innerHTML = `
-    <button class="btn full" onclick="closeEntry()">Done</button>
-  `;
+  if (selectedAppt) selectedAppt.status = status;
+  closeDispo();
+  renderAll();
+  const msg = status === 'sold'
+    ? `Sold · ${rec.rep} · ${fmt(rec.net)} · ${rec.gmPct.toFixed(1)}% GM`
+    : `${labelStatus(status)} · ${rec.customer}`;
+  toast(msg);
 }
 
-/* Other outcome form (Not Sold / Callback / No Show) */
-function renderOtherForm(kind){
-  const body = document.getElementById('modalBody');
-  const foot = document.getElementById('modalFoot');
-  const titles = { nosale:'Not Sold', callback:'Callback', noshow:'No Show' };
-
-  const fields = {
-    nosale: `
-      <div class="field">
-        <label class="lbl">Reason</label>
-        <select class="select" id="o-reason">
-          <option>Price</option><option>Thinking it over</option><option>Spouse not home</option>
-          <option>Competitor</option><option>Going with alternative solution</option><option>Other</option>
-        </select>
-      </div>
-    `,
-    callback: `
-      <div class="two-col">
-        <div class="field"><label class="lbl">Callback date</label><input class="input" type="date" id="o-date"></div>
-        <div class="field"><label class="lbl">Time</label><input class="input" type="time" id="o-time"></div>
-      </div>
-      <div class="field">
-        <label class="lbl">What's the hurdle?</label>
-        <select class="select" id="o-reason">
-          <option>Spouse needs to see</option><option>Price comparison</option><option>Financing decision</option>
-          <option>Timing</option><option>Other</option>
-        </select>
-      </div>
-    `,
-    noshow: `
-      <div class="field">
-        <label class="lbl">Confirmed or ghost?</label>
-        <select class="select" id="o-reason">
-          <option>Confirmed yesterday, no answer at door</option>
-          <option>Never confirmed, no answer</option>
-          <option>Canceled at door</option>
-          <option>Other</option>
-        </select>
-      </div>
-    `
-  };
-
-  body.innerHTML = `
-    <div style="margin-bottom:18px;">
-      <div class="muted" style="font-size:12px; text-transform:uppercase; letter-spacing:1px;">${titles[kind]}</div>
-      <div style="font-size:20px; font-weight:700; margin-top:4px;">
-        ${selectedAppt ? selectedAppt.customer : (visitCustomer.last_name + ', ' + visitCustomer.first_name)}
-      </div>
-    </div>
-    ${fields[kind]}
-    <div class="field">
-      <label class="lbl">Notes</label>
-      <textarea class="textarea" id="o-notes" placeholder="Anything worth remembering"></textarea>
-    </div>
-  `;
-  foot.innerHTML = `
-    <button class="btn ghost" onclick="renderOutcomePicker()">← Back</button>
-    <button class="btn full" id="saveOtherBtn">Save</button>
-  `;
-  document.getElementById('saveOtherBtn').addEventListener('click', () => {
-    const extra = {
-      reason: document.getElementById('o-reason').value,
-      notes: document.getElementById('o-notes').value.trim()
-    };
-    if (kind === 'callback') {
-      extra.callback_date = document.getElementById('o-date').value;
-      extra.callback_time = document.getElementById('o-time').value;
-    }
-    const rec = buildSubmission(kind, [], extra);
-    submissions.push(rec);
-    saveSubs();
-    renderFinalConfirm(rec);
-  });
+/* ============================================================
+   ROLLUP MATH
+   ============================================================ */
+function rollup(appts, subs) {
+  const sold = subs.filter(s => s.outcome === 'sold');
+  const nosale = subs.filter(s => s.outcome === 'nosale').length;
+  const callback = subs.filter(s => s.outcome === 'callback').length;
+  const noshow = subs.filter(s => s.outcome === 'noshow').length;
+  const soldCt = sold.length;
+  const sold$ = sold.reduce((a,s) => a + (s.net||0), 0);
+  const cogs$ = sold.reduce((a,s) => a + (s.cogs||0) + (s.feeCost||0), 0);
+  const gm$ = sold$ - cogs$;
+  const gmPct = sold$ > 0 ? gm$/sold$*100 : 0;
+  const apptsCount = appts.length;
+  const open = appts.filter(a => a.status === 'open').length;
+  const run = apptsCount - open;
+  const closePct = run > 0 ? soldCt/run*100 : 0;
+  return { appts:apptsCount, open, sold:soldCt, nosale, callback, noshow, sold$, gm$, gmPct, closePct };
+}
+function groupBy(arr, key) {
+  const map = new Map();
+  arr.forEach(x => { const k = x[key]; if (!map.has(k)) map.set(k, []); map.get(k).push(x); });
+  return [...map.entries()];
 }
 
-/* Build a clean submission payload (the write-back contract for dev) */
-function buildSubmission(outcome, services, extra){
-  extra = extra || {};
-  const appt = selectedAppt;
-  const cust = visitCustomer || {};
-  const now = new Date();
-  return {
-    rtat_submission_id: 'SUB-' + now.getTime().toString(36).toUpperCase(),
-    timestamp: now.toISOString(),
-    rep_id: persona.email,
-    rep_name: appt ? appt.rep : persona.name,
-    brand: appt ? appt.brand : cust.brand,
-    market: appt ? appt.market : cust.market,
-    appointment_id: appt ? appt.id : 'MANUAL-' + now.getTime().toString(36).toUpperCase(),
-    customer: {
-      first_name: cust.first_name || (appt ? (appt.customer.split(',')[1]||'').trim() : ''),
-      last_name:  cust.last_name  || (appt ? (appt.customer.split(',')[0]||'').trim() : ''),
-      phone: cust.phone || '',
-      zip:   cust.zip   || ''
-    },
-    lead_source: cust.lead_source || null,
-    outcome,
-    services: services,
-    signed: services.length ? services.every(s => s.signed) : null,
-    extra,
-    offline_queued: !navigator.onLine
-  };
-}
-
-/* ---------- HELPERS ---------- */
-function fmt(n){ return (n||0).toLocaleString('en-US',{maximumFractionDigits:0}); }
-function gmClass(p){ return p >= GM_GOOD ? 'good' : p >= GM_WARN ? 'warn' : 'bad'; }
-function blendedGM(subs){
-  const sold = subs.reduce((a, s) => a + (s.services||[]).reduce((ss,x) => ss + x.sold_amount, 0), 0);
-  const cogs = subs.reduce((a, s) => a + (s.services||[]).reduce((ss,x) => ss + x.cogs + x.finance_fee, 0), 0);
-  return sold > 0 ? (sold - cogs) / sold * 100 : 0;
-}
-function blendedGMFromBatch(batch){
-  const sold = batch.reduce((a, s) => a + s.sold_amount, 0);
-  const cogs = batch.reduce((a, s) => a + s.cogs + s.finance_fee, 0);
-  return sold > 0 ? (sold - cogs) / sold * 100 : 0;
-}
-function escapeHtml(s){
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-/* ---------- INIT ---------- */
-function initPersonaPicker(){
-  const sel = document.getElementById('personaSelect');
-  sel.innerHTML = PERSONAS.map(p => `<option value="${p.key}" ${p.key===persona.key?'selected':''}>${p.name} — ${p.role}</option>`).join('');
-  sel.addEventListener('change', () => {
-    persona = PERSONAS.find(p => p.key === sel.value);
-    localStorage.setItem(LS_PERSONA, persona.key);
-    applyPersona();
-  });
-}
-function initSidebarNav(){
-  document.querySelectorAll('.sidebar .navitem[data-page]').forEach(b => {
-    b.addEventListener('click', () => goto(b.dataset.page));
-  });
-}
-function initModalClose(){
-  document.getElementById('modalClose').addEventListener('click', closeEntry);
-  document.getElementById('modalScrim').addEventListener('click', e => {
-    if (e.target.id === 'modalScrim') closeEntry();
-  });
-}
-function registerSW(){
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+/* ============================================================
+   OFFLINE / PWA
+   ============================================================ */
+function updateConn() {
+  const online = navigator.onLine;
+  const dot = document.getElementById('connDot'), txt = document.getElementById('connText');
+  if (dot && txt) {
+    if (online) { dot.classList.remove('off'); txt.textContent = 'Connected · Last sync just now'; }
+    else { dot.classList.add('off'); txt.textContent = 'Offline · Entries queued locally'; }
   }
 }
+function loadSubs() { try { return JSON.parse(localStorage.getItem(LS_SUBS) || '[]'); } catch { return []; } }
+function saveSubs() { localStorage.setItem(LS_SUBS, JSON.stringify(submissions)); }
+function registerSW() { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 
-document.addEventListener('DOMContentLoaded', function(){
-  initPersonaPicker();
-  initSidebarNav();
-  initModalClose();
-  applyPersona();   // triggers render
-  registerSW();
-});
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function fillSelect(el, items, firstLabel = null) {
+  const first = firstLabel ? `<option value="">${firstLabel}</option>` : '';
+  el.innerHTML = first + items.map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join('');
+}
+function tile(lbl, num, sub, color) {
+  return `<div class="tile"><div class="lbl">${lbl}</div><div class="num" ${color?`style="color:${color}"`:''}>${num}</div><div class="sub">${sub||''}</div></div>`;
+}
+function fmt(n) {
+  if (!isFinite(n)) return '$0';
+  const neg = n < 0, abs = Math.abs(n);
+  const s = abs.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  return (neg ? '-$' : '$') + s;
+}
+function timeAgo(ts) {
+  const s = Math.floor((Date.now()-ts)/1000);
+  if (s < 60) return 'just now';
+  const m = Math.floor(s/60); if (m < 60) return m+'m ago';
+  const h = Math.floor(m/60); if (h < 24) return h+'h ago';
+  return Math.floor(h/24)+'d ago';
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function gmColor(pct) { return pct>=42?'var(--good-text)':pct>=35?'var(--warn-text)':'var(--bad-text)'; }
+function labelStatus(s) { return { open:'Open', sold:'Sold', nosale:'Not Sold', callback:'Callback', noshow:'No Show' }[s] || s; }
+function toast(msg) {
+  let el = document.getElementById('toastEl');
+  if (!el) { el = document.createElement('div'); el.id = 'toastEl'; document.body.appendChild(el); }
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+init();
 </script>
 </body>
 </html>
