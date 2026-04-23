@@ -377,6 +377,11 @@
     .main { overflow-y: auto; max-height: 100vh; }
   }
 
+  /* Rep never gets manual filter controls - scope is RLS-locked */
+  body.role-rep #queueFilterBar .filtergrid { display:none; }
+  /* Rep only sees Today/Yesterday pills; hide rollup pills */
+  body.role-rep #tfPills .pill-rollup { display:none; }
+
   /* Clickable KPI tiles */
   .tile.tile-click { cursor: pointer; transition: transform .08s ease, border-color .15s ease, background .15s ease; }
   .tile.tile-click:hover { border-color: var(--accent); background: var(--tile-hover, rgba(44,178,223,.06)); }
@@ -484,13 +489,14 @@
       <!-- Filter bar -->
       <div class="filterbar" id="queueFilterBar">
         <div class="fblabel">Time Frame</div>
-        <div class="pills">
-          <button class="pill" data-tf="WTD">WTD</button>
-          <button class="pill" data-tf="LWK">LWK</button>
-          <button class="pill" data-tf="MTD">MTD</button>
-          <button class="pill" data-tf="QTD">QTD</button>
+        <div class="pills" id="tfPills">
           <button class="pill active" data-tf="TODAY">Today</button>
-          <button class="pill" data-tf="CUSTOM">Custom</button>
+          <button class="pill" data-tf="YESTERDAY">Yesterday</button>
+          <button class="pill pill-rollup" data-tf="WTD">WTD</button>
+          <button class="pill pill-rollup" data-tf="LWK">LWK</button>
+          <button class="pill pill-rollup" data-tf="MTD">MTD</button>
+          <button class="pill pill-rollup" data-tf="QTD">QTD</button>
+          <button class="pill pill-rollup" data-tf="CUSTOM">Custom</button>
         </div>
         <div class="filtergrid">
           <div class="field"><label>Division</label><select id="f-division"></select></div>
@@ -897,10 +903,12 @@ const FIN_RATES = { cash:0, ccard:.025, fin0:.08, fin12:.03, finLT:.07 };
    STATE
    ============================================================ */
 const LS_PERSONA = 'ihs_dispo_persona_v1';
-const LS_SUBS = 'ihs_dispo_subs_v1';
+const LS_SUBS = 'ihs_dispo_subs_v2';
 let persona = PERSONAS.find(p => p.key === (localStorage.getItem(LS_PERSONA) || 'corporate')) || PERSONAS[2];
 let submissions = loadSubs();
 let queueFilter = 'all';
+let timeFrame = 'TODAY';
+let customRange = null; // {start:ts, end:ts}
 
 /* Stuck = open appointment whose scheduled time was more than 2 hrs ago.
    Demo "now" anchored at 3:00p so the wireframe always shows stuck rows. */
@@ -1009,10 +1017,22 @@ function init() {
   // Manual entry
   document.getElementById('newManualBtn').addEventListener('click', () => openDispo(null));
 
-  // Pills (time frame)
+  // Pills (time frame) - actually filter
   [...document.querySelectorAll('.pill')].forEach(p => p.addEventListener('click', () => {
+    const tf = p.dataset.tf;
+    if (tf === 'CUSTOM') {
+      const from = prompt('From date (YYYY-MM-DD):');
+      const to   = prompt('To date (YYYY-MM-DD):');
+      if (!from || !to) return;
+      const s = new Date(from+'T00:00:00').getTime();
+      const e = new Date(to+'T23:59:59').getTime();
+      if (!isFinite(s) || !isFinite(e) || s > e) { toast('Bad date range'); return; }
+      customRange = { start:s, end:e };
+    }
+    timeFrame = tf;
     document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
     p.classList.add('active');
+    renderAll();
   }));
 
   // Connectivity
@@ -1067,6 +1087,13 @@ function applyPersona() {
   // Body class drives role-specific layout (mobile rep-first layout lives in CSS)
   document.body.classList.remove('role-rep','role-lead','role-corp');
   document.body.classList.add(persona.role === 'Rep' ? 'role-rep' : persona.role === 'Brand Leadership' ? 'role-lead' : 'role-corp');
+  timeFrame = 'TODAY';
+  const pills = document.querySelectorAll('#tfPills .pill');
+  if (pills && pills.length) {
+    pills.forEach(x => x.classList.remove('active'));
+    const today = [...pills].find(x => x.dataset.tf === 'TODAY');
+    if (today) today.classList.add('active');
+  }
   [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === queueFilter));
   // User panel
   document.getElementById('userName').textContent = persona.name;
@@ -1131,11 +1158,19 @@ function scopedAppts() {
   });
 }
 function scopedSubs() {
+  const w = tfWindow();
+  const bf = (document.getElementById('f-brand') || {}).value;
+  const mf = (document.getElementById('f-market') || {}).value;
+  const rf = (document.getElementById('f-rep') || {}).value;
   return submissions.filter(s => {
+    if (s.ts < w.start || s.ts > w.end) return false;
     if (persona.scope.brand && !canSeeAllBrands() && s.brand !== persona.scope.brand) return false;
     if (persona.scope.market && s.market !== persona.scope.market) return false;
     if (persona.scope.region && s.region !== persona.scope.region) return false;
     if (persona.role === 'Rep' && s.rep !== persona.name) return false;
+    if (bf && s.brand !== bf) return false;
+    if (mf && s.market !== mf) return false;
+    if (rf && s.rep !== rf) return false;
     return true;
   });
 }
@@ -1167,7 +1202,7 @@ function renderAll() {
 
 function renderQueue() {
   const appts = scopedAppts();
-  const m = rollup(appts, scopedSubs());
+  const m = rollupTF(appts, scopedSubs());
   // Hero
   document.getElementById('heroScore').innerHTML = `
     <div>
@@ -1291,7 +1326,7 @@ function filterStuck() {
 function renderMyDay() {
   const subs = scopedSubs().filter(s => persona.role !== 'Rep' || s.rep === persona.name).slice().reverse();
   const appts = scopedAppts().filter(a => persona.role !== 'Rep' || a.rep === persona.name);
-  const m = rollup(appts, submissions.filter(s => persona.role !== 'Rep' || s.rep === persona.name));
+  const m = rollupTF(appts, subs);
   document.getElementById('mydayKpis').innerHTML = [
     tile('My Appts', String(appts.length), '', null, 'all'),
     tile('Dispositioned', String(appts.length - appts.filter(a=>a.status==='open').length), '', null, 'all'),
@@ -1318,9 +1353,10 @@ function renderMyDay() {
 }
 
 function renderEnterprise() {
-  // Enterprise always rolled up across everything (ignores most filters; respects nothing but reality)
-  const appts = APPTS; // full dataset
-  const m = rollup(appts, submissions);
+  // Enterprise rolled up within persona scope + active time frame
+  const appts = scopedAppts();
+  const subs = scopedSubs();
+  const m = rollupTF(appts, subs);
 
   // Waterfall
   const wf = document.getElementById('wfSold');
@@ -1352,7 +1388,7 @@ function renderEnterprise() {
 
   // By Brand (top 10)
   const byBrand = groupBy(appts, 'brand').map(([brand, arr]) => {
-    const rm = rollup(arr, submissions.filter(s => s.brand === brand));
+    const rm = rollupTF(arr, subs.filter(s => s.brand === brand));
     return { brand, ...rm };
   }).sort((a,b) => b.appts - a.appts);
   const brandBody = document.querySelector('#tblByBrand tbody');
@@ -1371,7 +1407,7 @@ function renderEnterprise() {
 
   // By Market (top 10)
   const byMarket = groupBy(appts, 'market').map(([market, arr]) => {
-    const rm = rollup(arr, submissions.filter(s => s.market === market));
+    const rm = rollupTF(arr, subs.filter(s => s.market === market));
     return { market, ...rm };
   }).sort((a,b) => b.appts - a.appts);
   const mktBody = document.querySelector('#tblByMarket tbody');
@@ -1390,7 +1426,7 @@ function renderEnterprise() {
 
   // By Rep
   const byRep = groupBy(appts, 'rep').map(([rep, arr]) => {
-    const rm = rollup(arr, submissions.filter(s => s.rep === rep));
+    const rm = rollupTF(arr, subs.filter(s => s.rep === rep));
     return { rep, brand: arr[0]?.brand || '—', ...rm };
   }).sort((a,b) => b.sold - a.sold);
   document.querySelector('#tblByRep tbody').innerHTML = byRep.slice(0, 10).map((r, i) => `
@@ -1410,7 +1446,7 @@ function renderByBrand() {
   const appts = scopedAppts();
   const rows = BRANDS.map(brand => {
     const arr = appts.filter(a => a.brand === brand);
-    const rm = rollup(arr, submissions.filter(s => s.brand === brand));
+    const rm = rollupTF(arr, scopedSubs().filter(s => s.brand === brand));
     return { brand, ...rm };
   }).filter(r => r.appts > 0).sort((a,b) => b.closePct - a.closePct);
   document.querySelector('#tblBrandFull tbody').innerHTML = rows.length === 0
@@ -1432,7 +1468,7 @@ function renderByMarket() {
   const appts = scopedAppts();
   const rows = MARKETS.map(market => {
     const arr = appts.filter(a => a.market === market);
-    const rm = rollup(arr, submissions.filter(s => s.market === market));
+    const rm = rollupTF(arr, scopedSubs().filter(s => s.market === market));
     return { market, ...rm };
   }).filter(r => r.appts > 0).sort((a,b) => b.appts - a.appts);
   document.querySelector('#tblMarketFull tbody').innerHTML = rows.length === 0
@@ -1511,6 +1547,186 @@ function replayStatus() {
   APPTS.forEach(a => { if (byAppt.has(a.id)) a.status = byAppt.get(a.id); });
 }
 
+// Deterministic RNG so demo data is reproducible across reloads
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function tfWindow() {
+  const now = new Date();
+  const sod = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const eod = (d) => sod(d) + 86400000 - 1;
+  if (timeFrame === 'TODAY')     return { start: sod(now), end: eod(now), label: 'Today' };
+  if (timeFrame === 'YESTERDAY') { const y = new Date(now); y.setDate(y.getDate()-1); return { start: sod(y), end: eod(y), label: 'Yesterday' }; }
+  if (timeFrame === 'WTD')       { const d = new Date(now); const dow = d.getDay() || 7; d.setDate(d.getDate() - (dow - 1)); return { start: sod(d), end: eod(now), label: 'Week to Date' }; }
+  if (timeFrame === 'LWK')       { const d = new Date(now); const dow = d.getDay() || 7; const mon = new Date(now); mon.setDate(now.getDate() - (dow - 1) - 7); const sun = new Date(mon); sun.setDate(mon.getDate() + 6); return { start: sod(mon), end: eod(sun), label: 'Last Week' }; }
+  if (timeFrame === 'MTD')       { const d = new Date(now.getFullYear(), now.getMonth(), 1); return { start: sod(d), end: eod(now), label: 'Month to Date' }; }
+  if (timeFrame === 'QTD')       { const q = Math.floor(now.getMonth()/3)*3; const d = new Date(now.getFullYear(), q, 1); return { start: sod(d), end: eod(now), label: 'Quarter to Date' }; }
+  if (timeFrame === 'CUSTOM' && customRange) return { start: customRange.start, end: customRange.end, label: 'Custom' };
+  return { start: sod(now), end: eod(now), label: 'Today' };
+}
+
+function virtualApptsFromSubs(subs) {
+  return subs.map(s => ({ id:s.apptId, brand:s.brand, market:s.market, rep:s.rep, region:s.region, status:s.outcome, time:'', customer:s.customer }));
+}
+
+function seedDemoHistory() {
+  const rng = mulberry32(424242);
+  const PROFILE = {
+    'Infinity Exteriors':   { close:0.42, gm:0.425, avg:32000, variance:0.05, vol:2.8 },
+    'Premier Roofing':      { close:0.34, gm:0.375, avg:24000, variance:0.08, vol:3.2 },
+    "D'Angelo and Sons":    { close:0.40, gm:0.430, avg:38000, variance:0.05, vol:1.8 },
+    'GF Sprague':           { close:0.45, gm:0.450, avg:45000, variance:0.04, vol:1.2 },
+    'Skywalker Roofing':    { close:0.30, gm:0.380, avg:19000, variance:0.10, vol:1.6 },
+    'Exterior Medics':      { close:0.39, gm:0.420, avg:28000, variance:0.05, vol:2.0 },
+    'Couto Construction':   { close:0.38, gm:0.400, avg:26000, variance:0.06, vol:1.8 },
+    'Watkins Construction': { close:0.41, gm:0.440, avg:22000, variance:0.05, vol:1.0 },
+    'High Point Roofing':   { close:0.37, gm:0.400, avg:24000, variance:0.06, vol:1.5 },
+    'Specialty Home':       { close:0.33, gm:0.380, avg:21000, variance:0.07, vol:1.2 },
+    'Henderson Roofing':    { close:0.40, gm:0.420, avg:27000, variance:0.05, vol:1.5 },
+    'G. Fedale':            { close:0.39, gm:0.410, avg:29000, variance:0.05, vol:1.5 }
+  };
+  const MARKET_MOD = {
+    'Kenosha, WI': { close:+0.06, gm:+0.025 },
+    'Columbus':    { close:-0.02, gm:-0.015 },
+    'Needham':     { close:+0.03, gm:+0.020 },
+    'Ancaster, ON':{ close:+0.02, gm:+0.010 }
+  };
+  const REP_MOD = {
+    'Karen P.':   { close:+0.05, gm:+0.015 },
+    'Doug M.':    { close:-0.04, gm:-0.020 },
+    'Sarah L.':   { close:+0.03, gm:+0.010 },
+    'Tyrone W.':  { close:+0.02, gm:+0.015 },
+    'Aaron K.':   { close:-0.02, gm: 0.000 },
+    'Priya S.':   { close:+0.01, gm:+0.005 },
+    'Jamal B.':   { close: 0.00, gm: 0.000 },
+    'Rebecca H.': { close: 0.00, gm:-0.005 },
+    'Luis G.':    { close:-0.01, gm:+0.020 },
+    'Miguel R.':  { close:-0.01, gm:-0.005 }
+  };
+  const BRAND_MARKETS = {
+    'Infinity Exteriors':  ['Kenosha, WI','Madison','Port Washington, WI'],
+    'Premier Roofing':     ['Columbus','Dayton'],
+    "D'Angelo and Sons":   ['Ancaster, ON'],
+    'GF Sprague':          ['Needham','Tewksbury, MA'],
+    'Skywalker Roofing':   ['Stokesdale, NC','Leland, NC'],
+    'Exterior Medics':     ['Maryland','Virginia'],
+    'Couto Construction':  ['New Bedford','Cranston, RI'],
+    'Watkins Construction':['Jackson, MS'],
+    'High Point Roofing':  ['Virginia'],
+    'Specialty Home':      ['Fox Valley','Northern Illinois'],
+    'Henderson Roofing':   ['Portland'],
+    'G. Fedale':           ['Pilesgrove']
+  };
+  const BRAND_REPS = {
+    'Infinity Exteriors':  ['Karen P.'],
+    'Premier Roofing':     ['Doug M.'],
+    "D'Angelo and Sons":   ['Sarah L.'],
+    'GF Sprague':          ['Tyrone W.'],
+    'Skywalker Roofing':   ['Aaron K.'],
+    'Exterior Medics':     ['Priya S.'],
+    'Couto Construction':  ['Jamal B.'],
+    'Watkins Construction':['Luis G.'],
+    'High Point Roofing':  ['Miguel R.'],
+    'Specialty Home':      ['Miguel R.'],
+    'Henderson Roofing':   ['Aaron K.'],
+    'G. Fedale':           ['Rebecca H.']
+  };
+  function seasonMult(d) {
+    const m = d.getMonth();
+    if (m === 1) return 0.75;
+    if (m === 2) return 1.15;
+    if (m === 3) { const day = d.getDate(); if (day < 10) return 0.80; if (day < 18) return 1.00; return 1.05; }
+    return 1.0;
+  }
+  function dowMult(d) {
+    const dow = d.getDay();
+    if (dow === 0) return 0;
+    if (dow === 6) return 0.4;
+    if (dow === 5) return 0.8;
+    return 1.0;
+  }
+  const FIN = ['cash','ccard','fin0','fin12','finLT'];
+  const FIN_RATE = { cash:0, ccard:0.025, fin0:0.08, fin12:0.03, finLT:0.07 };
+  const SVC_LIST = ['Roofing','Siding','Windows & Doors','Gutters','Repairs'];
+  const LAST_NAMES = ['Hartman','Perez','Okafor','Kowalski','Nguyen','Bellini','Ashford','Villa','Patel','Yamashita','Romano','Johnson','Lee','Foster','Thompson','Chen','Davis','Martinez',"O'Brien",'Singh','Mueller','Brooks','Carter','Diaz','Evans','Ford','Gupta','Hughes','Ivanov','Jackson','Klein','Lopez','Marino','Nash','Olsen','Park','Quinn','Reed','Santos','Tucker','Vega','Wright','Young','Zhao'];
+  const INITIALS = 'ABCDEFGHIJKLMNOPRSTVW';
+  const start = new Date(2026, 1, 1);
+  const end = new Date(2026, 3, 22);
+  let id = 10000;
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
+    const dm = dowMult(d); if (dm === 0) continue;
+    const sm = seasonMult(d);
+    Object.keys(PROFILE).forEach(brand => {
+      const p = PROFILE[brand];
+      const count = Math.max(0, Math.round(p.vol * dm * sm * (0.7 + rng()*0.6)));
+      const markets = BRAND_MARKETS[brand];
+      const reps = BRAND_REPS[brand];
+      for (let i=0;i<count;i++) {
+        const market = markets[Math.floor(rng()*markets.length)];
+        const repN = reps[Math.floor(rng()*reps.length)];
+        const mmod = MARKET_MOD[market] || { close:0, gm:0 };
+        const rmod = REP_MOD[repN]      || { close:0, gm:0 };
+        const closeProb = Math.min(0.70, Math.max(0.15, p.close + mmod.close + rmod.close + (rng()-0.5)*p.variance*2));
+        const rnd = rng();
+        let outcome;
+        if (rnd < closeProb) outcome = 'sold';
+        else if (rnd < closeProb + 0.22) outcome = 'nosale';
+        else if (rnd < closeProb + 0.32) outcome = 'callback';
+        else if (rnd < closeProb + 0.34) outcome = 'noshow';
+        else outcome = 'nosale';
+        const hh = 8 + Math.floor(rng()*10);
+        const mm = Math.floor(rng()*60);
+        const ts = new Date(d.getFullYear(), d.getMonth(), d.getDate(), hh, mm).getTime();
+        const lastName = LAST_NAMES[Math.floor(rng()*LAST_NAMES.length)];
+        const firstInit = INITIALS[Math.floor(rng()*INITIALS.length)];
+        const rec = {
+          submissionId: 'RTAT-H-' + (id++),
+          ts, outcome, crmWriteback:'submitted',
+          apptId: 'A-H' + id,
+          customer: lastName + ', ' + firstInit + '.',
+          brand, market, rep: repN,
+          region: MARKET_REGION_MAP[market] || '—',
+          synced: true
+        };
+        if (outcome === 'sold') {
+          const price = Math.round(p.avg * (0.75 + rng()*0.55));
+          const disc = Math.round(price * rng() * 0.05);
+          const net = price - disc;
+          const gmPct = Math.min(0.55, Math.max(0.18, p.gm + mmod.gm + rmod.gm + (rng()-0.5)*p.variance*2));
+          const grossGM = Math.round(net * gmPct);
+          const fin = FIN[Math.floor(rng()*FIN.length)];
+          const feeCost = Math.round(net * FIN_RATE[fin]);
+          const netGM = grossGM - feeCost;
+          const cogs = net - grossGM;
+          Object.assign(rec, {
+            price, cogs, disc, net, feeCost,
+            gm$: netGM,
+            gmPct: (netGM/net*100),
+            financing: fin,
+            service: SVC_LIST[Math.floor(rng()*SVC_LIST.length)],
+            customerType: 'Residential'
+          });
+        } else if (outcome === 'nosale') {
+          const reasons = ['Price / Budget','Timing / Not Ready','Competitor Quote','Scope Mismatch','Other Decision Maker Required'];
+          Object.assign(rec, { reason: reasons[Math.floor(rng()*reasons.length)], competitor:'', competitorPrice:null, revisit:'' });
+        } else if (outcome === 'callback') {
+          const reasons = ['Other Decision Maker Required','Comparing Quotes','Financing Review','Material Selection'];
+          Object.assign(rec, { reason: reasons[Math.floor(rng()*reasons.length)], callbackDate:'', callbackTime:'' });
+        } else {
+          Object.assign(rec, { reason: 'No-show' });
+        }
+        submissions.push(rec);
+      }
+    });
+  }
+}
+
 function seedDemoSubs() {
   if (submissions.length > 0) return; // don't overwrite real captures
   const now = Date.now();
@@ -1551,6 +1767,7 @@ function seedDemoSubs() {
     submissions.push(rec);
     a.status = outcome;
   });
+  seedDemoHistory();
   saveSubs();
 }
 
@@ -1717,6 +1934,11 @@ function commit(rec, status) {
 /* ============================================================
    ROLLUP MATH
    ============================================================ */
+function rollupTF(appts, subs) {
+  if (timeFrame !== 'TODAY') return rollup(virtualApptsFromSubs(subs), subs);
+  return rollup(appts, subs);
+}
+
 function rollup(appts, subs) {
   const sold = subs.filter(s => s.outcome === 'sold');
   const nosale = subs.filter(s => s.outcome === 'nosale').length;
