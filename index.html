@@ -337,6 +337,18 @@
     .hero-score .scope { text-align:left; width:100%; }
     .scope-banner { word-wrap:break-word; }
     .topbar .persona-pick { max-width:140px; }
+
+    /* Rep-first mobile layout: primary task (disposition queue) above the fold. */
+    body.role-rep #page-queue { display:flex; flex-direction:column; }
+    body.role-rep #page-queue > .pagehead       { order:1; }
+    body.role-rep #page-queue > .stuck-banner   { order:2; }
+    body.role-rep #page-queue > #queueCard      { order:3; }
+    body.role-rep #page-queue > .hero-score     { order:4; margin-top:14px; }
+    body.role-rep #page-queue > #kpiSectionTitle{ order:5; }
+    body.role-rep #page-queue > #kpiGrid        { order:6; }
+    body.role-rep #page-queue > #queueFilterBar { display:none; } /* rep scope is locked — filters are noise */
+    body.role-rep #page-queue .pagehead .pagesub { font-size:13px; opacity:.85; }
+    body.role-rep #kpiSectionTitle::before { content:'Your numbers · '; opacity:.7; }
     .filtergrid { grid-template-columns:1fr 1fr; }
     .entry-grid { grid-template-columns:1fr; }
     .kpis { grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; }
@@ -470,7 +482,7 @@
       </div>
 
       <!-- Filter bar -->
-      <div class="filterbar">
+      <div class="filterbar" id="queueFilterBar">
         <div class="fblabel">Time Frame</div>
         <div class="pills">
           <button class="pill" data-tf="WTD">WTD</button>
@@ -507,7 +519,7 @@
       <div class="kpis" id="kpiGrid"></div>
 
       <!-- Queue table -->
-      <div class="card" style="margin-top:14px;">
+      <div class="card" id="queueCard" style="margin-top:14px;">
         <div class="card-row">
           <div>
             <h3 id="queueHeading">Jobs needing disposition</h3>
@@ -1052,6 +1064,9 @@ function canSeeRollups() { return persona.role === 'Corporate' || persona.role =
 function applyPersona() {
   // Rep defaults to the action queue; leadership lands on everything so they can scan first.
   queueFilter = persona.role === 'Rep' ? 'open' : 'all';
+  // Body class drives role-specific layout (mobile rep-first layout lives in CSS)
+  document.body.classList.remove('role-rep','role-lead','role-corp');
+  document.body.classList.add(persona.role === 'Rep' ? 'role-rep' : persona.role === 'Brand Leadership' ? 'role-lead' : 'role-corp');
   [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === queueFilter));
   // User panel
   document.getElementById('userName').textContent = persona.name;
