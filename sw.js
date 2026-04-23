@@ -1,6 +1,6 @@
-// IHS Dispo Tracker — minimal service worker
+// RTAT — Real Time Appointment Tracker — minimal service worker
 // Cache-first for shell, network-first for everything else. Bump CACHE_NAME to force refresh.
-const CACHE_NAME = 'ihs-dispo-v1';
+const CACHE_NAME = 'rtat-v2';
 const SHELL = [
   './',
   './index.html',

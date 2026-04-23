@@ -1,6 +1,6 @@
 {
-  "name": "IHS Appointment Disposition Tracker",
-  "short_name": "IHS Dispo",
+  "name": "RTAT — Real Time Appointment Tracker",
+  "short_name": "RTAT",
   "description": "Real-time appointment disposition and sold gross margin capture for Infinity Home Services",
   "start_url": "./",
   "scope": "./",
