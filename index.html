@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="IHS Dispo" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<title>IHS Appointment Disposition Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#0b1220; --panel:#111a2e; --panel-2:#0f1829; --border:#1e2a44; --border-soft:#172137;
+    --text:#e6ecf5; --text-dim:#8a97b2; --text-mute:#5f6e8a;
+    --primary:#2CB2DF; --primary-dim:#1A89AE;
+    --good:#67A64B; --good-text:#8bd169; --good-soft:rgba(103,166,75,.15);
+    --bad:#A02121;  --bad-text:#e47a7a;  --bad-soft:rgba(160,33,33,.18);
+    --warn:#d9a441; --warn-text:#f0c076; --warn-soft:rgba(217,164,65,.15);
+    --callback-text:#9fd3ff; --callback-soft:rgba(44,178,223,.15);
+    --chip:#17233c;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:'Inter','Aptos Narrow',system-ui,-apple-system,sans-serif; font-size:14px; min-height:100vh; }
+  a { color:var(--primary); text-decoration:none; }
+  button { font-family:inherit; }
+  input, select, textarea { font-family:inherit; }
+
+  .app { display:grid; grid-template-columns:240px 1fr; min-height:100vh; }
+  .main { padding:calc(20px + var(--safe-top)) 26px calc(60px + var(--safe-bot)); max-width:1400px; }
+
+  /* Sidebar */
+  .sidebar {
+    background:#0a1120; border-right:1px solid var(--border-soft);
+    padding:18px 14px calc(18px + var(--safe-bot)); display:flex; flex-direction:column; gap:4px;
+  }
+  .logo { display:flex; align-items:center; gap:10px; padding:6px 8px 18px; border-bottom:1px solid var(--border-soft); margin-bottom:12px; }
+  .logo .mark { width:32px; height:32px; border-radius:7px; background:linear-gradient(135deg,var(--primary),var(--primary-dim)); display:grid; place-items:center; color:#001018; font-weight:800; font-size:12px; }
+  .logo .name { font-family:'DM Serif Display',serif; font-size:20px; letter-spacing:.3px; }
+  .navlabel { font-size:11px; color:var(--text-mute); padding:10px 8px 4px; letter-spacing:1px; text-transform:uppercase; }
+  .navitem { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:7px; cursor:pointer; color:var(--text-dim); font-size:13px; }
+  .navitem:hover { background:#0f1a30; color:var(--text); }
+  .navitem.active { background:#0f1a30; color:var(--primary); border:1px solid #17305a; }
+  .navitem.locked { opacity:.45; cursor:not-allowed; }
+  .navitem .ico { width:16px; text-align:center; opacity:.85; }
+  .nav-foot { margin-top:auto; display:flex; flex-direction:column; gap:2px; }
+  .user { display:flex; align-items:center; gap:10px; padding:10px 8px; border-top:1px solid var(--border-soft); margin-top:10px; }
+  .avatar { width:32px; height:32px; border-radius:50%; background:#233553; color:var(--text); display:grid; place-items:center; font-weight:600; font-size:12px; flex:0 0 32px; }
+  .user .meta .n { font-weight:600; font-size:13px; }
+  .user .meta .e { color:var(--text-mute); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+  .role-badge { display:inline-block; padding:2px 7px; background:var(--callback-soft); color:var(--callback-text); border-radius:4px; font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin-top:2px; }
+
+  /* Mobile topbar */
+  .topbar {
+    display:none; position:sticky; top:0; z-index:5;
+    background:rgba(11,18,32,.92); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border-soft);
+    padding:calc(10px + var(--safe-top)) 14px 10px; align-items:center; gap:10px;
+  }
+  .topbar .logo { padding:0; border:none; margin:0; }
+  .topbar .logo .name { font-size:18px; }
+  .topbar .spacer { flex:1; }
+
+  /* Page head */
+  .pagehead { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+  .pagetitle { font-family:'DM Serif Display',serif; font-size:28px; margin:0; line-height:1.15; }
+  .pagetitle .accent { color:var(--primary); }
+  .pagesub { color:var(--text-dim); font-size:12px; margin-top:4px; }
+  .status { display:inline-flex; align-items:center; gap:6px; color:var(--text-dim); font-size:12px; margin-top:2px; }
+  .status .dot { width:8px; height:8px; background:var(--good); border-radius:50%; display:inline-block; box-shadow:0 0 8px rgba(103,166,75,.8); }
+  .status .dot.off { background:var(--warn); box-shadow:0 0 8px rgba(217,164,65,.7); }
+  .pagehead-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+  .btn { background:#10223e; border:1px solid #1d3562; color:var(--text); border-radius:7px; padding:8px 12px; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+  .btn:hover { border-color:var(--primary); color:var(--primary); }
+  .btn.primary { background:var(--primary); border-color:var(--primary); color:#001018; font-weight:700; }
+  .btn.primary:hover { background:#3cc4ef; color:#001018; }
+  .btn.ghost { background:transparent; }
+  .btn.good { background:var(--good); border-color:var(--good); color:#001018; font-weight:700; }
+  .btn.bad  { background:#401515; border-color:#5a2a2a; color:var(--bad-text); }
+  .btn.warn { background:#3a2e15; border-color:#5a4522; color:var(--warn-text); }
+
+  .persona-pick {
+    background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    border-radius:7px; padding:7px 10px; font-size:12px;
+  }
+  .persona-label { font-size:10px; letter-spacing:1px; color:var(--text-mute); text-transform:uppercase; margin-right:6px; }
+
+  /* Filter bar */
+  .filterbar { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .fblabel { font-size:11px; color:var(--text-mute); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .pills { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .pill { background:transparent; border:1px solid transparent; color:var(--text-dim); border-radius:6px; padding:6px 14px; font-size:12px; cursor:pointer; }
+  .pill:hover { color:var(--text); }
+  .pill.active { background:var(--primary); color:#001018; font-weight:700; }
+  .filtergrid { display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:12px; }
+  .field label { display:block; font-size:12px; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .field select, .field input, .field textarea {
+    width:100%; background:var(--panel-2); border:1px solid var(--border);
+    color:var(--text); padding:10px 10px; border-radius:7px; font-size:14px; appearance:none;
+  }
+  .field select { background-image:linear-gradient(45deg,transparent 50%,var(--text-dim) 50%),linear-gradient(135deg,var(--text-dim) 50%,transparent 50%); background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%; background-size:5px 5px; background-repeat:no-repeat; padding-right:28px; }
+  .field select:focus, .field input:focus, .field textarea:focus { outline:none; border-color:var(--primary); }
+  .field select[disabled] { opacity:.55; cursor:not-allowed; }
+
+  .section-title { font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--text-dim); margin:20px 0 10px; font-weight:700; }
+
+  /* Hero score */
+  .hero-score {
+    background:linear-gradient(135deg, rgba(44,178,223,.12), rgba(26,137,174,.05));
+    border:1px solid #17305a; border-radius:12px; padding:20px 22px; margin-bottom:14px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  }
+  .hero-score .lbl { color:var(--text-mute); font-size:11px; letter-spacing:1.4px; text-transform:uppercase; }
+  .hero-score .score { font-family:'DM Serif Display',serif; font-size:44px; line-height:1; margin-top:4px; }
+  .hero-score .score .slash { color:var(--text-mute); margin:0 6px; }
+  .hero-score .score .sold { color:var(--primary); }
+  .hero-score .rate { font-size:18px; color:var(--text-dim); margin-top:6px; }
+  .hero-score .rate strong { color:var(--good-text); }
+  .hero-score .scope { text-align:right; color:var(--text-dim); font-size:12px; }
+
+  /* KPIs */
+  .kpis { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:10px; }
+  .tile { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:13px; min-height:106px; }
+  .tile .lbl { font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); }
+  .tile .num { font-size:24px; font-weight:600; margin-top:6px; }
+  .tile .sub { font-size:11px; color:var(--text-mute); margin-top:2px; }
+
+  /* Cards / tables */
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .card h3 { margin:0 0 4px; font-family:'DM Serif Display',serif; font-size:18px; font-weight:400; }
+  .card .cardsub { color:var(--text-dim); font-size:12px; margin-bottom:12px; }
+  .card-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+
+  .tablewrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  table th { text-align:left; color:var(--text-mute); font-weight:700; padding:9px 10px; border-bottom:1px solid var(--border); font-size:10.5px; letter-spacing:.8px; text-transform:uppercase; white-space:nowrap; }
+  table td { padding:11px 10px; border-bottom:1px solid var(--border-soft); vertical-align:middle; }
+  table.hover tr { cursor:pointer; }
+  table.hover tr:hover { background:#0f1a30; }
+  table tr.selected { background:#102644; outline:1px solid #17305a; }
+  table.num td.num, table.num th.num { text-align:right; font-variant-numeric:tabular-nums; }
+
+  /* Chips */
+  .brand-chip { padding:3px 8px; border-radius:10px; font-size:11px; font-weight:700; background:rgba(44,178,223,.15); color:var(--primary); white-space:nowrap; display:inline-block; }
+  .rep-chip { background:var(--chip); color:var(--text); padding:2px 8px; border-radius:10px; font-size:11px; white-space:nowrap; }
+  .status-chip { padding:3px 9px; border-radius:10px; font-size:11px; font-weight:700; white-space:nowrap; display:inline-block; }
+  .status-chip.open { background:#1a2640; color:var(--text-dim); }
+  .status-chip.sold { background:var(--good-soft); color:var(--good-text); }
+  .status-chip.nosale { background:var(--bad-soft); color:var(--bad-text); }
+  .status-chip.callback { background:var(--callback-soft); color:var(--callback-text); }
+  .status-chip.noshow { background:var(--warn-soft); color:var(--warn-text); }
+
+  .mini-bar { height:6px; border-radius:3px; background:#172137; overflow:hidden; width:100%; min-width:80px; }
+  .mini-bar > span { display:block; height:100%; background:var(--primary); }
+
+  /* Modal */
+  .scrim { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(6px); z-index:20; }
+  .scrim.show { display:grid; place-items:end center; }
+  @media (min-width:700px) { .scrim.show { place-items:center; } }
+  .modal { width:100%; max-width:560px; background:var(--panel); border:1px solid var(--border); border-radius:14px 14px 0 0; max-height:92vh; overflow-y:auto; }
+  @media (min-width:700px) { .modal { border-radius:14px; } }
+  .modal-head { position:sticky; top:0; background:var(--panel); border-bottom:1px solid var(--border-soft); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; }
+  .modal-head h3 { margin:0; font-family:'DM Serif Display',serif; font-weight:400; font-size:18px; }
+  .modal-body { padding:16px 18px 20px; }
+  .close-x { background:transparent; border:none; color:var(--text-dim); font-size:20px; cursor:pointer; }
+  .close-x:hover { color:var(--text); }
+
+  .dispo-picker { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:16px; }
+  .dispo-opt { padding:14px 10px; border:1px solid var(--border); border-radius:9px; background:var(--panel-2); cursor:pointer; text-align:center; color:var(--text-dim); font-weight:600; font-size:13px; }
+  .dispo-opt .emoji { font-size:20px; display:block; margin-bottom:4px; }
+  .dispo-opt:hover { border-color:var(--primary); color:var(--text); }
+  .dispo-opt.sel.sold { background:var(--good-soft); color:var(--good-text); border-color:var(--good); }
+  .dispo-opt.sel.nosale { background:var(--bad-soft); color:var(--bad-text); border-color:var(--bad); }
+  .dispo-opt.sel.callback { background:var(--callback-soft); color:var(--callback-text); border-color:var(--primary); }
+  .dispo-opt.sel.noshow { background:var(--warn-soft); color:var(--warn-text); border-color:var(--warn); }
+
+  .entry-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .entry-grid .full { grid-column:1 / -1; }
+  .field.req label::after { content:' *'; color:var(--primary); }
+  .field .hint { font-size:11px; color:var(--text-mute); margin-top:4px; }
+  .money-input { position:relative; }
+  .money-input::before { content:'$'; position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-mute); pointer-events:none; }
+  .money-input input { padding-left:24px; }
+  .gm-readout { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:14px; background:var(--panel-2); border:1px dashed var(--border); border-radius:8px; margin-top:14px; }
+  .gm-readout .cell .k { font-size:10px; letter-spacing:1px; color:var(--text-mute); text-transform:uppercase; }
+  .gm-readout .cell .v { font-size:22px; font-weight:600; margin-top:4px; }
+  .gm-readout .cell .v.good { color:var(--good-text); } .gm-readout .cell .v.warn { color:var(--warn-text); } .gm-readout .cell .v.bad { color:var(--bad-text); }
+  .modal-actions { display:flex; gap:10px; margin-top:16px; justify-content:flex-end; flex-wrap:wrap; }
+
+  .foot-note { margin-top:24px; font-size:11px; color:var(--text-mute); border-top:1px dashed var(--border-soft); padding-top:12px; line-height:1.55; }
+
+  /* Rollup tables */
+  .rollup-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .rollup-grid .card { padding:14px; }
+  .rate-cell { display:flex; align-items:center; gap:8px; min-width:110px; }
+  .rate-cell .pct { min-width:44px; text-align:right; font-variant-numeric:tabular-nums; }
+  .rank { width:22px; color:var(--text-mute); font-size:11px; font-variant-numeric:tabular-nums; }
+
+  /* Security banner */
+  .scope-banner {
+    display:flex; align-items:center; gap:10px; padding:10px 14px; margin-bottom:14px;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
+    color:var(--text-dim); font-size:12px;
+  }
+  .scope-banner .k { color:var(--text-mute); font-size:10px; letter-spacing:1px; text-transform:uppercase; margin-right:4px; }
+
+  /* Toast */
+  #toastEl { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#102644; border:1px solid var(--primary); color:var(--text); padding:10px 16px; border-radius:8px; font-size:13px; z-index:30; box-shadow:0 6px 24px rgba(0,0,0,.4); opacity:0; transition:opacity .3s; }
+  #toastEl.show { opacity:1; }
+
+  /* Pages */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:#1d2a48; border-radius:6px; }
+  ::-webkit-scrollbar-thumb:hover { background:#2a3d66; }
+
+  @media (max-width:1200px) {
+    .kpis { grid-template-columns:repeat(3, minmax(0,1fr)); }
+    .filtergrid { grid-template-columns:repeat(3, minmax(0,1fr)); }
+    .rollup-grid { grid-template-columns:1fr; }
+  }
+  @media (max-width:900px) {
+    .app { grid-template-columns:1fr; }
+    .sidebar { display:none; }
+    .topbar { display:flex; }
+    .main { padding:14px 14px calc(60px + var(--safe-bot)); }
+    .pagetitle { font-size:22px; }
+    .filtergrid { grid-template-columns:1fr 1fr; }
+    .entry-grid { grid-template-columns:1fr; }
+    .kpis { grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; }
+    .tile .num { font-size:20px; }
+    .gm-readout { grid-template-columns:1fr; }
+    .gm-readout .cell { display:flex; justify-content:space-between; align-items:baseline; }
+    .gm-readout .cell .v { margin-top:0; font-size:20px; }
+    .dispo-picker { grid-template-columns:1fr 1fr; }
+    .modal-actions .btn { flex:1; justify-content:center; }
+    .hero-score { padding:14px; }
+    .hero-score .score { font-size:34px; }
+  }
+
+  /* Tab bar (mobile) */
+  .tabs {
+    display:none; position:sticky; top:calc(60px + var(--safe-top)); z-index:4;
+    background:var(--bg); padding:6px 0 10px; gap:6px; border-bottom:1px solid var(--border-soft); margin-bottom:12px; overflow-x:auto;
+  }
+  @media (max-width:900px) { .tabs { display:flex; } }
+  .tab { padding:7px 12px; border-radius:7px; background:var(--panel); border:1px solid var(--border); color:var(--text-dim); font-size:12px; white-space:nowrap; cursor:pointer; }
+  .tab.active { background:#10223e; color:var(--primary); border-color:#17305a; }
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="topbar">
+  <div class="logo"><div class="mark">IHS</div><div class="name">Dispo</div></div>
+  <div class="spacer"></div>
+  <select id="personaMobile" class="persona-pick"></select>
+</div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo"><div class="mark">IHS</div><div class="name">Dispo</div></div>
+    <div class="navlabel">Today</div>
+    <div class="navitem active" data-page="queue"><span class="ico">●</span> Disposition Queue</div>
+    <div class="navitem" data-page="myday"><span class="ico">◎</span> My Day</div>
+
+    <div class="navlabel">Roll-Up</div>
+    <div class="navitem" data-page="enterprise"><span class="ico">⌘</span> Enterprise</div>
+    <div class="navitem" data-page="bybrand"><span class="ico">≡</span> By Brand</div>
+    <div class="navitem" data-page="bybranch"><span class="ico">▦</span> By Market</div>
+
+    <div class="nav-foot">
+      <div class="navitem"><span class="ico">⚑</span> Roadmap</div>
+      <div class="navitem"><span class="ico">?</span> Help &amp; Support</div>
+      <div style="padding:8px;">
+        <div class="persona-label">Persona (demo)</div>
+        <select id="personaDesktop" class="persona-pick" style="width:100%;"></select>
+      </div>
+      <div class="user">
+        <div class="avatar" id="userAvatar">JT</div>
+        <div class="meta">
+          <div class="n" id="userName">Jay Teresi</div>
+          <div class="e" id="userEmail">jteresi@infinityhomeservices.com</div>
+          <span class="role-badge" id="roleBadge">Enterprise</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Tabs (mobile) -->
+    <div class="tabs" id="mobileTabs">
+      <div class="tab active" data-page="queue">Queue</div>
+      <div class="tab" data-page="myday">My Day</div>
+      <div class="tab" data-page="enterprise">Enterprise</div>
+      <div class="tab" data-page="bybrand">Brand</div>
+      <div class="tab" data-page="bybranch">Market</div>
+    </div>
+
+    <!-- Scope banner (explains what the current persona sees) -->
+    <div class="scope-banner">
+      <span class="k">Scope</span>
+      <span id="scopeText">Loading…</span>
+    </div>
+
+    <!-- =============== PAGE: QUEUE =============== -->
+    <section class="page active" id="page-queue">
+      <div class="pagehead">
+        <div>
+          <h1 class="pagetitle">Disposition <span class="accent">Queue</span></h1>
+          <div class="pagesub">Leaving the home? Disposition the appointment before you drive away.</div>
+          <div class="status"><span class="dot" id="connDot"></span> <span id="connText">Connected · Last sync just now</span></div>
+        </div>
+        <div class="pagehead-actions">
+          <button class="btn primary" id="newManualBtn">+ Manual Entry</button>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filterbar">
+        <div class="fblabel">Time Frame</div>
+        <div class="pills">
+          <button class="pill" data-tf="WTD">WTD</button>
+          <button class="pill" data-tf="LWK">LWK</button>
+          <button class="pill" data-tf="MTD">MTD</button>
+          <button class="pill" data-tf="QTD">QTD</button>
+          <button class="pill active" data-tf="TODAY">Today</button>
+          <button class="pill" data-tf="CUSTOM">Custom</button>
+        </div>
+        <div class="filtergrid">
+          <div class="field"><label>Division</label><select id="f-division"></select></div>
+          <div class="field"><label>Region</label><select id="f-region"></select></div>
+          <div class="field"><label>Brand</label><select id="f-brand"></select></div>
+          <div class="field"><label>Market Location</label><select id="f-market"></select></div>
+          <div class="field"><label>Rep</label><select id="f-rep"></select></div>
+        </div>
+      </div>
+
+      <!-- Hero score for scope -->
+      <div class="hero-score" id="heroScore"></div>
+
+      <!-- KPIs -->
+      <div class="section-title" id="kpiSectionTitle">Today · Disposition Summary</div>
+      <div class="kpis" id="kpiGrid"></div>
+
+      <!-- Queue table -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-row">
+          <div>
+            <h3>Appointments Today</h3>
+            <div class="cardsub" id="apptCountSub">—</div>
+          </div>
+          <div>
+            <button class="btn ghost" data-filter="open">Open only</button>
+            <button class="btn ghost" data-filter="all">All</button>
+          </div>
+        </div>
+        <div class="tablewrap">
+          <table class="hover">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Brand</th>
+                <th>Customer</th>
+                <th>Market</th>
+                <th>Rep</th>
+                <th>Status</th>
+                <th style="text-align:right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="apptBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: MY DAY =============== -->
+    <section class="page" id="page-myday">
+      <div class="pagehead"><div>
+        <h1 class="pagetitle">My <span class="accent">Day</span></h1>
+        <div class="pagesub">Your appointments, dispositions, and GM — scoped to you.</div>
+      </div></div>
+      <div class="kpis" id="mydayKpis"></div>
+      <div class="card" style="margin-top:14px;">
+        <h3>My Submissions</h3>
+        <div class="cardsub">Most recent first.</div>
+        <div class="tablewrap">
+          <table class="num">
+            <thead>
+              <tr><th>Time</th><th>Customer</th><th>Brand</th><th>Dispo</th><th class="num">Sold $</th><th class="num">GM %</th></tr>
+            </thead>
+            <tbody id="mydayBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: ENTERPRISE =============== -->
+    <section class="page" id="page-enterprise">
+      <div class="pagehead">
+        <div>
+          <h1 class="pagetitle">Enterprise <span class="accent">Roll-Up</span></h1>
+          <div class="pagesub">Disposition performance across the entire portfolio. Click a brand or market to drill down.</div>
+        </div>
+      </div>
+      <div class="hero-score" id="entHero"></div>
+      <div class="section-title">Enterprise · Today</div>
+      <div class="kpis" id="entKpis"></div>
+      <div class="section-title">Breakdowns</div>
+      <div class="rollup-grid">
+        <div class="card">
+          <h3>By Brand</h3>
+          <div class="cardsub">Appts run · sold · close rate · sold GM %</div>
+          <div class="tablewrap">
+            <table class="num hover" id="tblByBrand">
+              <thead><tr><th style="width:22px">#</th><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <h3>By Market Location</h3>
+          <div class="cardsub">Top markets by activity today</div>
+          <div class="tablewrap">
+            <table class="num hover" id="tblByMarket">
+              <thead><tr><th style="width:22px">#</th><th>Market</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="section-title">Top &amp; Bottom Reps</div>
+      <div class="card">
+        <div class="tablewrap">
+          <table class="num" id="tblByRep">
+            <thead><tr><th style="width:22px">#</th><th>Rep</th><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: BY BRAND =============== -->
+    <section class="page" id="page-bybrand">
+      <div class="pagehead"><div>
+        <h1 class="pagetitle">By <span class="accent">Brand</span></h1>
+        <div class="pagesub">All brands in scope · sort by close rate or GM %.</div>
+      </div></div>
+      <div class="card">
+        <div class="tablewrap">
+          <table class="num" id="tblBrandFull">
+            <thead><tr><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">No Sale</th><th class="num">Callback</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: BY MARKET =============== -->
+    <section class="page" id="page-bybranch">
+      <div class="pagehead"><div>
+        <h1 class="pagetitle">By <span class="accent">Market Location</span></h1>
+        <div class="pagesub">Activity by market location for the selected scope.</div>
+      </div></div>
+      <div class="card">
+        <div class="tablewrap">
+          <table class="num" id="tblMarketFull">
+            <thead><tr><th>Market</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">No Sale</th><th class="num">Callback</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="foot-note">
+      <strong>Security (production requirement):</strong> Azure AD SSO. Role → visibility: <em>Rep</em> sees their brand &amp; their appointments. <em>Branch / Market Mgr</em> sees their market across brands. <em>Brand Mgr</em> sees all markets within their brand. <em>RVP</em> sees their region across brands. <em>Enterprise</em> sees all. Row-level security enforced in the warehouse, not the client. Persona switcher above is a demo affordance — will be removed.
+      <br><br>
+      <strong>Prototype note:</strong> Brand and market lists pulled live from Reports filters. Appointments shown are illustrative; production wiring requires a CRM webhook per source (Acculynx, DataForma, Gorilla Desk, Leap, Salesforce, Zoho/DF) feeding a normalized Appointments table. Submissions queue locally and replay when network returns.
+    </div>
+  </main>
+</div>
+
+<!-- =============== DISPOSITION MODAL =============== -->
+<div class="scrim" id="dispoScrim">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="dispoTitle">Disposition Appointment</h3>
+      <button class="close-x" id="closeDispo">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="cardsub" id="dispoSub">—</div>
+
+      <div class="dispo-picker" id="dispoPicker">
+        <div class="dispo-opt" data-d="sold"><span class="emoji">✓</span>Sold</div>
+        <div class="dispo-opt" data-d="nosale"><span class="emoji">✕</span>Not Sold</div>
+        <div class="dispo-opt" data-d="callback"><span class="emoji">↻</span>Callback</div>
+        <div class="dispo-opt" data-d="noshow"><span class="emoji">∅</span>No Show</div>
+      </div>
+
+      <!-- SOLD branch -->
+      <form id="soldForm" style="display:none;" onsubmit="return submitSold(event)">
+        <div class="entry-grid">
+          <div class="field req"><label>Sold Price</label><div class="money-input"><input id="s-price" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
+          <div class="field req"><label>Sold COGS</label><div class="money-input"><input id="s-cogs" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div><div class="hint">Materials + labor + subs + permits</div></div>
+          <div class="field"><label>Discount $</label><div class="money-input"><input id="s-disc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
+          <div class="field"><label>Financing</label><select id="s-fin" onchange="recalcSold()">
+            <option value="cash">Cash / Check</option><option value="ccard">Credit Card</option>
+            <option value="fin0">Promo 0% (dealer fee)</option><option value="fin12">12 mo SAC</option><option value="finLT">Long-Term Fixed</option>
+          </select></div>
+          <div class="field"><label>Service Offering</label><select id="s-service"></select></div>
+          <div class="field"><label>Customer Type</label><select id="s-ctype"></select></div>
+          <div class="field full"><label>Notes</label><input id="s-notes" type="text" placeholder="optional" /></div>
+        </div>
+        <div class="gm-readout">
+          <div class="cell"><div class="k">Net Sold $</div><div class="v" id="s-net">$0</div></div>
+          <div class="cell"><div class="k">Sold GM $</div><div class="v" id="s-gm$">$0</div></div>
+          <div class="cell"><div class="k">Sold GM %</div><div class="v" id="s-gm%">0.0%</div></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
+          <button type="submit" class="btn good">Submit Sale</button>
+        </div>
+      </form>
+
+      <!-- NOT SOLD branch -->
+      <form id="nosaleForm" style="display:none;" onsubmit="return submitNoSale(event)">
+        <div class="entry-grid">
+          <div class="field req full"><label>Reason</label>
+            <select id="n-reason">
+              <option value="">Select a reason…</option>
+              <option>Price / Budget</option>
+              <option>Timing / Not Ready</option>
+              <option>Spouse / Decision Maker Not Present</option>
+              <option>Competitor Quote</option>
+              <option>Scope Mismatch</option>
+              <option>Financing Declined</option>
+              <option>Not Qualified (Ownership / Credit)</option>
+              <option>Insurance / Storm Adjuster Pending</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Competitor</label><input id="n-comp" type="text" placeholder="If applicable" /></div>
+          <div class="field"><label>Their Price $</label><div class="money-input"><input id="n-compprice" type="number" inputmode="decimal" placeholder="0.00" /></div></div>
+          <div class="field"><label>Revisit Likely?</label><select id="n-revisit"><option value="">—</option><option>Yes — warm</option><option>Maybe</option><option>No</option></select></div>
+          <div class="field"><label>Follow-up Date</label><input id="n-followup" type="date" /></div>
+          <div class="field full"><label>Notes</label><input id="n-notes" type="text" placeholder="What killed the deal? What would win it?" /></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
+          <button type="submit" class="btn bad">Submit Not Sold</button>
+        </div>
+      </form>
+
+      <!-- CALLBACK branch -->
+      <form id="callbackForm" style="display:none;" onsubmit="return submitCallback(event)">
+        <div class="entry-grid">
+          <div class="field req"><label>Callback Date</label><input id="c-date" type="date" /></div>
+          <div class="field"><label>Time</label><input id="c-time" type="time" /></div>
+          <div class="field full"><label>Why callback?</label>
+            <select id="c-reason">
+              <option>Other Decision Maker Required</option>
+              <option>Need More Info / Measurements</option>
+              <option>Financing Pending</option>
+              <option>Comparing Quotes</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field full"><label>Notes</label><input id="c-notes" type="text" placeholder="What do they need to decide?" /></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
+          <button type="submit" class="btn primary">Schedule Callback</button>
+        </div>
+      </form>
+
+      <!-- NO SHOW branch -->
+      <form id="noshowForm" style="display:none;" onsubmit="return submitNoShow(event)">
+        <div class="entry-grid">
+          <div class="field full req"><label>Reason</label>
+            <select id="ns-reason">
+              <option>No Show — customer not home</option>
+              <option>One-Legger (only one decision maker)</option>
+              <option>Canceled by Customer</option>
+              <option>Canceled by Office</option>
+              <option>Unqualified / Pre-Canceled</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field full"><label>Notes</label><input id="ns-notes" type="text" placeholder="Details" /></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
+          <button type="submit" class="btn warn">Submit No Show</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA (real pulls from reports.infinityhomeservices.com filters)
+   ============================================================ */
+const BRANDS = ["Altec Roofing","American Home Contractors","Carpenter's Roofing & Sheet Metal","Cochran Exteriors","Couto Construction","D'Angelo and Sons","Exterior Heroes","Exterior Medics","Franzoso Contracting","G. Fedale","GF Sprague","Henderson Roofing","High Point Roofing","Infinity Exteriors","Interstate Roofing","Overhead Solutions","Parkhill Roofing","Premier Roofing","Resnick Roofing","Skywalker Roofing","Specialty Home","Valentine Roofing","Watkins Construction","Werner","Wheatland Roofing"];
+const MARKETS = ["Alabama","Ancaster, ON","Cadillac, MI","Carpenters Roofing & Sheet Metal","Columbus","Cranston, RI","Croton-on-Hudson","Dayton","Eagle River","Euclid, OH","Fox Valley","Gibsonia, PA","Grand Haven, MI","Grand Rapids, MI","Indianapolis, IN","Jackson, MS","Kalamazoo, MI","Kenosha, WI","Leland, NC","Louisiana","Madison","Maryland","Medford","Murrysville","Needham","New Bedford","New Berlin","Newport","Niagra","Northern Illinois","Pilesgrove","Portland","Port Washington, WI","Regina, SK","Rockford","Seattle","Spokane, WA","Springfield, MA","Stevens Point","Stokesdale, NC","Suamico, WI","Tewksbury, MA","Virginia","Westerly","West Palm Beach, FL"];
+const REGIONS = ["Canada","Mid-Atlantic","Midwest","Northeast","Northwest","Southeast"];
+const DIVISIONS = ["Canada","United States"];
+const SERVICES = ["Roofing","Siding","Windows & Doors","Gutters","Solar","Repairs","Other"];
+const CUSTOMER_TYPES = ["Residential","Commercial","Managed Residential","Managed Commercial","Other"];
+const REPS = ["Doug M.","Karen P.","Miguel R.","Sarah L.","Tyrone W.","Aaron K.","Priya S.","Jamal B.","Rebecca H.","Luis G."];
+
+/* Brand → primary market (for mock scoping). In prod, this comes from your dim tables. */
+const BRAND_MARKET_MAP = {
+  "Infinity Exteriors":"Kenosha, WI", "Premier Roofing":"Columbus", "D'Angelo and Sons":"Ancaster, ON",
+  "GF Sprague":"Needham", "Skywalker Roofing":"Stokesdale, NC", "Exterior Medics":"Maryland",
+  "Couto Construction":"New Bedford", "G. Fedale":"Pilesgrove", "Watkins Construction":"Jackson, MS",
+  "Specialty Home":"Fox Valley", "High Point Roofing":"Virginia", "Henderson Roofing":"Portland",
+  "Carpenter's Roofing & Sheet Metal":"Carpenters Roofing & Sheet Metal","Altec Roofing":"Louisiana",
+  "American Home Contractors":"Maryland","Cochran Exteriors":"Euclid, OH","Exterior Heroes":"Niagra",
+  "Franzoso Contracting":"Croton-on-Hudson","Interstate Roofing":"Dayton","Overhead Solutions":"Regina, SK",
+  "Parkhill Roofing":"Rockford","Resnick Roofing":"Medford","Valentine Roofing":"Murrysville",
+  "Werner":"Grand Rapids, MI","Wheatland Roofing":"Westerly"
+};
+
+/* PERSONAS — mock SSO (role → scope) */
+const PERSONAS = [
+  { key:'rep-karen',   name:'Karen P.',   email:'kpatel@infinity.com',  role:'Rep',         scope:{ brand:'Infinity Exteriors' } },
+  { key:'rep-doug',    name:'Doug M.',    email:'dmorgan@premier.com',  role:'Rep',         scope:{ brand:'Premier Roofing' } },
+  { key:'bmgr-ie',     name:'Lori J.',    email:'ljohnson@infinity.com',role:'Market Mgr',  scope:{ brand:'Infinity Exteriors', market:'Kenosha, WI' } },
+  { key:'brmgr-ie',    name:'Rex T.',     email:'rtomas@infinity.com',  role:'Brand Mgr',   scope:{ brand:'Infinity Exteriors' } },
+  { key:'rvp-mw',      name:'Dana K.',    email:'dkline@ihs.com',       role:'RVP Midwest', scope:{ region:'Midwest' } },
+  { key:'enterprise',  name:'Jay Teresi', email:'jteresi@infinityhomeservices.com', role:'Enterprise', scope:{} }
+];
+
+/* Mock appointments — scheduled for "today". Status starts open. */
+function makeAppts() {
+  const seed = [
+    ['8:30a',"Infinity Exteriors","Hartman, D.","Kenosha, WI","Karen P."],
+    ['9:00a',"Premier Roofing","Okafor, C.","Columbus","Doug M."],
+    ['9:30a',"Infinity Exteriors","Perez, M.","Kenosha, WI","Karen P."],
+    ['10:00a',"D'Angelo and Sons","Kowalski, T.","Ancaster, ON","Sarah L."],
+    ['10:30a',"GF Sprague","Nguyen, V.","Needham","Tyrone W."],
+    ['11:00a',"Skywalker Roofing","Bellini, J.","Stokesdale, NC","Aaron K."],
+    ['11:30a',"Exterior Medics","Ashford, R.","Maryland","Priya S."],
+    ['12:00p',"Couto Construction","Villa, A.","New Bedford","Jamal B."],
+    ['12:30p',"Premier Roofing","Patel, S.","Columbus","Doug M."],
+    ['1:00p',"G. Fedale","Yamashita, K.","Pilesgrove","Rebecca H."],
+    ['1:30p',"Watkins Construction","Romano, F.","Jackson, MS","Luis G."],
+    ['2:00p',"Infinity Exteriors","Johnson, B.","Kenosha, WI","Karen P."],
+    ['2:30p',"High Point Roofing","Lee, A.","Virginia","Miguel R."],
+    ['3:00p',"Specialty Home","Foster, G.","Fox Valley","Miguel R."],
+    ['3:30p',"Premier Roofing","Thompson, J.","Columbus","Doug M."],
+    ['4:00p',"D'Angelo and Sons","Chen, W.","Ancaster, ON","Sarah L."],
+    ['4:30p',"GF Sprague","Davis, K.","Needham","Tyrone W."],
+    ['5:00p',"Infinity Exteriors","Martinez, L.","Kenosha, WI","Karen P."],
+    ['5:30p',"Henderson Roofing","O'Brien, M.","Portland","Aaron K."],
+    ['6:00p',"Exterior Medics","Singh, R.","Maryland","Priya S."],
+  ];
+  return seed.map((s, i) => ({ id:'A-204'+(i+30), time:s[0], brand:s[1], customer:s[2], market:s[3], rep:s[4], status:'open' }));
+}
+const APPTS = makeAppts();
+
+/* Finance fees */
+const FIN_RATES = { cash:0, ccard:.025, fin0:.08, fin12:.03, finLT:.07 };
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const LS_PERSONA = 'ihs_dispo_persona_v1';
+const LS_SUBS = 'ihs_dispo_subs_v1';
+let persona = PERSONAS.find(p => p.key === (localStorage.getItem(LS_PERSONA) || 'enterprise')) || PERSONAS[5];
+let submissions = loadSubs();
+let queueFilter = 'all';
+let currentPage = 'queue';
+let selectedAppt = null;
+let chosenDispo = null;
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  // Persona selectors
+  const desktop = document.getElementById('personaDesktop');
+  const mobile = document.getElementById('personaMobile');
+  PERSONAS.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.key; opt.textContent = `${p.role} — ${p.name}`;
+    desktop.appendChild(opt.cloneNode(true));
+    mobile.appendChild(opt);
+  });
+  desktop.value = persona.key; mobile.value = persona.key;
+  desktop.addEventListener('change', e => setPersona(e.target.value));
+  mobile.addEventListener('change', e => setPersona(e.target.value));
+
+  // Filter selects
+  fillSelect(document.getElementById('f-division'), DIVISIONS, 'All Divisions');
+  fillSelect(document.getElementById('f-region'), REGIONS, 'All Regions');
+  fillSelect(document.getElementById('f-brand'), BRANDS, 'All Brands');
+  fillSelect(document.getElementById('f-market'), MARKETS, 'All Markets');
+  fillSelect(document.getElementById('f-rep'), REPS, 'All Reps');
+  ['f-division','f-region','f-brand','f-market','f-rep'].forEach(id =>
+    document.getElementById(id).addEventListener('change', () => renderAll()));
+
+  // Queue filter buttons
+  [...document.querySelectorAll('[data-filter]')].forEach(b =>
+    b.addEventListener('click', () => { queueFilter = b.dataset.filter; renderQueue(); }));
+
+  // Nav
+  [...document.querySelectorAll('.navitem[data-page]')].forEach(el =>
+    el.addEventListener('click', () => goPage(el.dataset.page)));
+  [...document.querySelectorAll('.tab[data-page]')].forEach(el =>
+    el.addEventListener('click', () => goPage(el.dataset.page)));
+
+  // Dispo modal
+  [...document.querySelectorAll('.dispo-opt')].forEach(el =>
+    el.addEventListener('click', () => pickDispo(el.dataset.d)));
+  document.getElementById('closeDispo').addEventListener('click', closeDispo);
+  document.getElementById('dispoScrim').addEventListener('click', e => { if (e.target.id==='dispoScrim') closeDispo(); });
+
+  // Service/customer selects in sold form
+  fillSelect(document.getElementById('s-service'), SERVICES);
+  fillSelect(document.getElementById('s-ctype'), CUSTOMER_TYPES);
+
+  // Manual entry
+  document.getElementById('newManualBtn').addEventListener('click', () => openDispo(null));
+
+  // Pills (time frame)
+  [...document.querySelectorAll('.pill')].forEach(p => p.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+  }));
+
+  // Connectivity
+  window.addEventListener('online', updateConn);
+  window.addEventListener('offline', updateConn);
+
+  applyPersona();
+  renderAll();
+  registerSW();
+  updateConn();
+}
+
+function setPersona(key) {
+  persona = PERSONAS.find(p => p.key === key);
+  localStorage.setItem(LS_PERSONA, key);
+  applyPersona();
+  renderAll();
+  toast(`Viewing as ${persona.role} · ${persona.name}`);
+}
+
+/* ============================================================
+   PERSONA → SCOPE
+   ============================================================ */
+function canSeeAllBrands() { return ['Enterprise','RVP Midwest','RVP Northeast','RVP South','RVP West'].some(r => persona.role.startsWith('RVP')) || persona.role === 'Enterprise'; }
+function applyPersona() {
+  // User panel
+  document.getElementById('userName').textContent = persona.name;
+  document.getElementById('userEmail').textContent = persona.email;
+  document.getElementById('userAvatar').textContent = persona.name.split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('roleBadge').textContent = persona.role;
+
+  // Lock brand filter for reps/brand mgr
+  const brandF = document.getElementById('f-brand');
+  const marketF = document.getElementById('f-market');
+  const repF = document.getElementById('f-rep');
+  if (persona.scope.brand && !canSeeAllBrands()) {
+    brandF.value = persona.scope.brand; brandF.disabled = true;
+  } else { brandF.disabled = false; if (!persona.scope.brand) brandF.value = ''; }
+  if (persona.scope.market) { marketF.value = persona.scope.market; marketF.disabled = true; }
+  else { marketF.disabled = false; if (!persona.scope.market) marketF.value = ''; }
+  if (persona.role === 'Rep') { repF.value = persona.name; repF.disabled = true; } else { repF.disabled = false; }
+
+  // Hide enterprise-only nav for reps
+  const gated = ['enterprise','bybrand','bybranch'];
+  [...document.querySelectorAll('.navitem[data-page], .tab[data-page]')].forEach(el => {
+    if (gated.includes(el.dataset.page)) {
+      const canSee = persona.role === 'Enterprise' || persona.role.startsWith('RVP') || persona.role === 'Brand Mgr';
+      el.classList.toggle('locked', !canSee);
+      el.style.display = canSee ? '' : 'none';
+    }
+  });
+
+  // Scope text
+  const scope = [];
+  if (persona.scope.brand && !canSeeAllBrands()) scope.push(`Brand: ${persona.scope.brand}`);
+  if (persona.scope.market) scope.push(`Market: ${persona.scope.market}`);
+  if (persona.scope.region) scope.push(`Region: ${persona.scope.region}`);
+  if (persona.role === 'Rep') scope.push(`Rep: ${persona.name}`);
+  document.getElementById('scopeText').textContent =
+    persona.role === 'Enterprise'
+      ? `You are viewing as ${persona.role}. All brands, markets, and reps visible.`
+      : `You are viewing as ${persona.role}. ${scope.join(' · ')}.`;
+
+  // If not allowed to see rollup pages, snap back to queue
+  if (currentPage !== 'queue' && currentPage !== 'myday') {
+    const canSee = persona.role === 'Enterprise' || persona.role.startsWith('RVP') || persona.role === 'Brand Mgr';
+    if (!canSee) goPage('queue');
+  }
+}
+
+/* Filter APPTS by persona scope + current filters */
+function scopedAppts() {
+  return APPTS.filter(a => {
+    if (persona.scope.brand && !canSeeAllBrands() && a.brand !== persona.scope.brand) return false;
+    if (persona.scope.market && a.market !== persona.scope.market) return false;
+    if (persona.role === 'Rep' && a.rep !== persona.name) return false;
+    // Active filter selects
+    const bf = document.getElementById('f-brand').value;
+    const mf = document.getElementById('f-market').value;
+    const rf = document.getElementById('f-rep').value;
+    if (bf && a.brand !== bf) return false;
+    if (mf && a.market !== mf) return false;
+    if (rf && a.rep !== rf) return false;
+    return true;
+  });
+}
+function scopedSubs() {
+  return submissions.filter(s => {
+    if (persona.scope.brand && !canSeeAllBrands() && s.brand !== persona.scope.brand) return false;
+    if (persona.scope.market && s.market !== persona.scope.market) return false;
+    if (persona.role === 'Rep' && s.rep !== persona.name) return false;
+    return true;
+  });
+}
+
+/* ============================================================
+   PAGE ROUTING
+   ============================================================ */
+function goPage(key) {
+  currentPage = key;
+  [...document.querySelectorAll('.page')].forEach(p => p.classList.toggle('active', p.id === 'page-'+key));
+  [...document.querySelectorAll('.navitem[data-page]')].forEach(el => el.classList.toggle('active', el.dataset.page === key));
+  [...document.querySelectorAll('.tab[data-page]')].forEach(el => el.classList.toggle('active', el.dataset.page === key));
+  window.scrollTo({ top:0, behavior:'smooth' });
+  renderAll();
+}
+
+/* ============================================================
+   RENDERERS
+   ============================================================ */
+function renderAll() {
+  renderQueue();
+  renderMyDay();
+  renderEnterprise();
+  renderByBrand();
+  renderByMarket();
+}
+
+function renderQueue() {
+  const appts = scopedAppts();
+  const m = rollup(appts, scopedSubs());
+  // Hero
+  document.getElementById('heroScore').innerHTML = `
+    <div>
+      <div class="lbl">${persona.role === 'Enterprise' ? 'Enterprise · Today' : persona.role + ' · Today'}</div>
+      <div class="score"><span class="sold">${m.sold}</span><span class="slash">for</span>${m.appts}</div>
+      <div class="rate">Close rate <strong>${m.closePct.toFixed(1)}%</strong> · ${m.open} open · ${m.nosale} not sold · ${m.callback} callbacks</div>
+    </div>
+    <div class="scope">
+      <div class="lbl">Sold GM %</div>
+      <div style="font-size:30px;font-weight:700;color:${gmColor(m.gmPct)}">${m.gmPct.toFixed(1)}%</div>
+      <div>${fmt(m.sold$)} sold · ${fmt(m.gm$)} GM</div>
+    </div>
+  `;
+  // KPIs
+  document.getElementById('kpiGrid').innerHTML = [
+    tile('Appts Run', String(m.appts-m.open), `${m.open} still open`),
+    tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`),
+    tile('Not Sold', String(m.nosale), m.appts ? (m.nosale/m.appts*100).toFixed(1)+'%' : '—'),
+    tile('Callback', String(m.callback), m.appts ? (m.callback/m.appts*100).toFixed(1)+'%' : '—'),
+    tile('Sold $', fmt(m.sold$), m.sold ? 'Avg '+fmt(m.sold$/m.sold) : ''),
+    tile('Sold GM %', m.gmPct.toFixed(1)+'%', 'Target 42.5%', gmColor(m.gmPct)),
+  ].join('');
+  document.getElementById('kpiSectionTitle').textContent = `${persona.role} · Today`;
+
+  // Queue table
+  const tbody = document.getElementById('apptBody');
+  const list = queueFilter === 'open' ? appts.filter(a => a.status === 'open') : appts;
+  document.getElementById('apptCountSub').textContent = `${list.length} appt${list.length===1?'':'s'} · click "Disposition" to log outcome`;
+  tbody.innerHTML = list.map(a => `
+    <tr>
+      <td>${a.time}</td>
+      <td><span class="brand-chip">${escapeHtml(a.brand)}</span></td>
+      <td>${escapeHtml(a.customer)}</td>
+      <td>${escapeHtml(a.market)}</td>
+      <td><span class="rep-chip">${escapeHtml(a.rep)}</span></td>
+      <td><span class="status-chip ${a.status}">${labelStatus(a.status)}</span></td>
+      <td style="text-align:right;">
+        <button class="btn ${a.status==='open'?'primary':'ghost'}" data-id="${a.id}">
+          ${a.status==='open' ? 'Disposition' : 'Edit'}
+        </button>
+      </td>
+    </tr>
+  `).join('');
+  [...tbody.querySelectorAll('button[data-id]')].forEach(b =>
+    b.addEventListener('click', e => { e.stopPropagation(); openDispo(APPTS.find(a => a.id === b.dataset.id)); }));
+}
+
+function renderMyDay() {
+  const subs = scopedSubs().filter(s => persona.role !== 'Rep' || s.rep === persona.name).slice().reverse();
+  const appts = scopedAppts().filter(a => persona.role !== 'Rep' || a.rep === persona.name);
+  const m = rollup(appts, submissions.filter(s => persona.role !== 'Rep' || s.rep === persona.name));
+  document.getElementById('mydayKpis').innerHTML = [
+    tile('My Appts', String(appts.length), ''),
+    tile('Dispositioned', String(appts.length - appts.filter(a=>a.status==='open').length), ''),
+    tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`),
+    tile('Sold $', fmt(m.sold$), ''),
+    tile('GM %', m.gmPct.toFixed(1)+'%', '', gmColor(m.gmPct)),
+    tile('Open', String(m.open), ''),
+  ].join('');
+  document.getElementById('mydayBody').innerHTML = subs.length === 0
+    ? `<tr><td colspan="6" style="text-align:center;color:var(--text-mute);padding:24px">No submissions yet.</td></tr>`
+    : subs.map(s => `
+        <tr>
+          <td>${timeAgo(s.ts)}</td>
+          <td>${escapeHtml(s.customer)}</td>
+          <td><span class="brand-chip">${escapeHtml(s.brand)}</span></td>
+          <td><span class="status-chip ${s.outcome}">${labelStatus(s.outcome)}</span></td>
+          <td class="num">${s.outcome==='sold' ? fmt(s.net) : '—'}</td>
+          <td class="num" style="color:${s.outcome==='sold'?gmColor(s.gmPct):'var(--text-mute)'}">${s.outcome==='sold' ? s.gmPct.toFixed(1)+'%' : '—'}</td>
+        </tr>`).join('');
+}
+
+function renderEnterprise() {
+  // Enterprise always rolled up across everything (ignores most filters; respects nothing but reality)
+  const appts = APPTS; // full dataset
+  const m = rollup(appts, submissions);
+  document.getElementById('entHero').innerHTML = `
+    <div>
+      <div class="lbl">Enterprise · Today</div>
+      <div class="score"><span class="sold">${m.sold}</span><span class="slash">for</span>${m.appts}</div>
+      <div class="rate">Close rate <strong>${m.closePct.toFixed(1)}%</strong> · ${m.open} still open · ${m.nosale} not sold · ${m.callback} callback</div>
+    </div>
+    <div class="scope">
+      <div class="lbl">Sold $ · GM %</div>
+      <div style="font-size:30px;font-weight:700;color:${gmColor(m.gmPct)}">${m.gmPct.toFixed(1)}%</div>
+      <div>${fmt(m.sold$)}</div>
+    </div>`;
+  document.getElementById('entKpis').innerHTML = [
+    tile('Appts Run', String(m.appts - m.open), `${m.open} open`),
+    tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`),
+    tile('Not Sold', String(m.nosale), ''),
+    tile('Callback', String(m.callback), ''),
+    tile('Sold $', fmt(m.sold$), m.sold?'Avg '+fmt(m.sold$/m.sold):''),
+    tile('Sold GM %', m.gmPct.toFixed(1)+'%', 'Target 42.5%', gmColor(m.gmPct)),
+  ].join('');
+
+  // By Brand (top 10)
+  const byBrand = groupBy(appts, 'brand').map(([brand, arr]) => {
+    const rm = rollup(arr, submissions.filter(s => s.brand === brand));
+    return { brand, ...rm };
+  }).sort((a,b) => b.appts - a.appts);
+  const brandBody = document.querySelector('#tblByBrand tbody');
+  brandBody.innerHTML = byBrand.slice(0, 10).map((r, i) => `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td><span class="brand-chip">${escapeHtml(r.brand)}</span></td>
+      <td class="num">${r.appts}</td>
+      <td class="num">${r.sold}</td>
+      <td class="num"><div class="rate-cell"><div class="mini-bar"><span style="width:${Math.min(100,r.closePct)}%"></span></div><div class="pct">${r.closePct.toFixed(0)}%</div></div></td>
+      <td class="num">${fmt(r.sold$)}</td>
+      <td class="num" style="color:${gmColor(r.gmPct)}">${r.gmPct.toFixed(1)}%</td>
+    </tr>`).join('');
+
+  // By Market (top 10)
+  const byMarket = groupBy(appts, 'market').map(([market, arr]) => {
+    const rm = rollup(arr, submissions.filter(s => s.market === market));
+    return { market, ...rm };
+  }).sort((a,b) => b.appts - a.appts);
+  document.querySelector('#tblByMarket tbody').innerHTML = byMarket.slice(0, 10).map((r, i) => `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td>${escapeHtml(r.market)}</td>
+      <td class="num">${r.appts}</td>
+      <td class="num">${r.sold}</td>
+      <td class="num"><div class="rate-cell"><div class="mini-bar"><span style="width:${Math.min(100,r.closePct)}%"></span></div><div class="pct">${r.closePct.toFixed(0)}%</div></div></td>
+      <td class="num">${fmt(r.sold$)}</td>
+      <td class="num" style="color:${gmColor(r.gmPct)}">${r.gmPct.toFixed(1)}%</td>
+    </tr>`).join('');
+
+  // By Rep
+  const byRep = groupBy(appts, 'rep').map(([rep, arr]) => {
+    const rm = rollup(arr, submissions.filter(s => s.rep === rep));
+    return { rep, brand: arr[0]?.brand || '—', ...rm };
+  }).sort((a,b) => b.sold - a.sold);
+  document.querySelector('#tblByRep tbody').innerHTML = byRep.slice(0, 10).map((r, i) => `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td><span class="rep-chip">${escapeHtml(r.rep)}</span></td>
+      <td><span class="brand-chip">${escapeHtml(r.brand)}</span></td>
+      <td class="num">${r.appts}</td>
+      <td class="num">${r.sold}</td>
+      <td class="num">${r.closePct.toFixed(1)}%</td>
+      <td class="num">${fmt(r.sold$)}</td>
+      <td class="num" style="color:${gmColor(r.gmPct)}">${r.sold?r.gmPct.toFixed(1)+'%':'—'}</td>
+    </tr>`).join('');
+}
+
+function renderByBrand() {
+  const appts = scopedAppts();
+  const rows = BRANDS.map(brand => {
+    const arr = appts.filter(a => a.brand === brand);
+    const rm = rollup(arr, submissions.filter(s => s.brand === brand));
+    return { brand, ...rm };
+  }).filter(r => r.appts > 0).sort((a,b) => b.closePct - a.closePct);
+  document.querySelector('#tblBrandFull tbody').innerHTML = rows.length === 0
+    ? `<tr><td colspan="8" style="text-align:center;color:var(--text-mute);padding:24px">No appointments in current scope.</td></tr>`
+    : rows.map(r => `
+        <tr>
+          <td><span class="brand-chip">${escapeHtml(r.brand)}</span></td>
+          <td class="num">${r.appts}</td>
+          <td class="num">${r.sold}</td>
+          <td class="num">${r.nosale}</td>
+          <td class="num">${r.callback}</td>
+          <td class="num">${r.closePct.toFixed(1)}%</td>
+          <td class="num">${fmt(r.sold$)}</td>
+          <td class="num" style="color:${gmColor(r.gmPct)}">${r.sold?r.gmPct.toFixed(1)+'%':'—'}</td>
+        </tr>`).join('');
+}
+
+function renderByMarket() {
+  const appts = scopedAppts();
+  const rows = MARKETS.map(market => {
+    const arr = appts.filter(a => a.market === market);
+    const rm = rollup(arr, submissions.filter(s => s.market === market));
+    return { market, ...rm };
+  }).filter(r => r.appts > 0).sort((a,b) => b.appts - a.appts);
+  document.querySelector('#tblMarketFull tbody').innerHTML = rows.length === 0
+    ? `<tr><td colspan="8" style="text-align:center;color:var(--text-mute);padding:24px">No appointments in current scope.</td></tr>`
+    : rows.map(r => `
+        <tr>
+          <td>${escapeHtml(r.market)}</td>
+          <td class="num">${r.appts}</td>
+          <td class="num">${r.sold}</td>
+          <td class="num">${r.nosale}</td>
+          <td class="num">${r.callback}</td>
+          <td class="num">${r.closePct.toFixed(1)}%</td>
+          <td class="num">${fmt(r.sold$)}</td>
+          <td class="num" style="color:${gmColor(r.gmPct)}">${r.sold?r.gmPct.toFixed(1)+'%':'—'}</td>
+        </tr>`).join('');
+}
+
+/* ============================================================
+   DISPOSITION MODAL FLOW
+   ============================================================ */
+function openDispo(appt) {
+  selectedAppt = appt;
+  chosenDispo = null;
+  document.getElementById('dispoScrim').classList.add('show');
+  document.getElementById('dispoTitle').textContent = appt ? 'Disposition Appointment' : 'Manual Entry';
+  document.getElementById('dispoSub').innerHTML = appt
+    ? `<strong>${escapeHtml(appt.customer)}</strong> · ${escapeHtml(appt.brand)} · ${escapeHtml(appt.market)} · ${escapeHtml(appt.rep)} · ${appt.time} · <span style="color:var(--text-mute)">Appt ${appt.id}</span>`
+    : 'No CRM appointment linked — walk-in or offline capture.';
+  [...document.querySelectorAll('.dispo-opt')].forEach(el => el.classList.remove('sel','sold','nosale','callback','noshow'));
+  ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
+  ['s-price','s-cogs','s-disc','s-notes','n-comp','n-compprice','n-notes','n-followup','c-notes','ns-notes'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  recalcSold();
+}
+function closeDispo() {
+  document.getElementById('dispoScrim').classList.remove('show');
+  selectedAppt = null; chosenDispo = null;
+}
+function pickDispo(d) {
+  chosenDispo = d;
+  [...document.querySelectorAll('.dispo-opt')].forEach(el => {
+    el.classList.toggle('sel', el.dataset.d === d);
+    el.classList.toggle(d, el.dataset.d === d);
+  });
+  ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
+  const showId = { sold:'soldForm', nosale:'nosaleForm', callback:'callbackForm', noshow:'noshowForm' }[d];
+  document.getElementById(showId).style.display = 'block';
+}
+function recalcSold() {
+  const price = +document.getElementById('s-price').value || 0;
+  const cogs = +document.getElementById('s-cogs').value || 0;
+  const disc = +document.getElementById('s-disc').value || 0;
+  const fin = document.getElementById('s-fin').value;
+  const net = Math.max(0, price - disc);
+  const feeCost = (FIN_RATES[fin] || 0) * net;
+  const gm$ = net - cogs - feeCost;
+  const gmPct = net > 0 ? gm$/net*100 : 0;
+  document.getElementById('s-net').textContent = fmt(net);
+  const gmDollarEl = document.getElementById('s-gm$');
+  const gmPctEl = document.getElementById('s-gm%');
+  gmDollarEl.textContent = fmt(gm$);
+  gmPctEl.textContent = gmPct.toFixed(1)+'%';
+  const c = gmPct>=42?'good':gmPct>=35?'warn':'bad';
+  gmDollarEl.className = 'v '+c;
+  gmPctEl.className = 'v '+c;
+  return { price, cogs, disc, fin, net, feeCost, gm$, gmPct };
+}
+
+function commonRec(outcome, extra) {
+  return {
+    ts: Date.now(), outcome,
+    apptId: selectedAppt?.id || 'MANUAL-'+Date.now().toString(36).toUpperCase(),
+    customer: selectedAppt?.customer || 'Walk-in / Manual',
+    brand: selectedAppt?.brand || (document.getElementById('f-brand').value || persona.scope.brand || 'Unassigned'),
+    market: selectedAppt?.market || (document.getElementById('f-market').value || persona.scope.market || '—'),
+    rep: selectedAppt?.rep || (document.getElementById('f-rep').value || (persona.role === 'Rep' ? persona.name : 'Unassigned')),
+    synced: navigator.onLine,
+    ...extra,
+  };
+}
+
+function submitSold(e) {
+  e.preventDefault();
+  const price = +document.getElementById('s-price').value || 0;
+  const cogs = +document.getElementById('s-cogs').value || 0;
+  if (!price || !cogs) { alert('Enter Sold Price and Sold COGS.'); return false; }
+  const c = recalcSold();
+  const rec = commonRec('sold', {
+    price: c.price, cogs: c.cogs, disc: c.disc,
+    net: c.net, feeCost: c.feeCost, gm$: c.gm$, gmPct: +c.gmPct.toFixed(2),
+    financing: c.fin,
+    service: document.getElementById('s-service').value,
+    customerType: document.getElementById('s-ctype').value,
+    notes: document.getElementById('s-notes').value,
+  });
+  commit(rec, 'sold');
+  return false;
+}
+function submitNoSale(e) {
+  e.preventDefault();
+  const reason = document.getElementById('n-reason').value;
+  if (!reason) { alert('Pick a reason.'); return false; }
+  const rec = commonRec('nosale', {
+    reason, competitor: document.getElementById('n-comp').value,
+    competitorPrice: +document.getElementById('n-compprice').value || null,
+    revisit: document.getElementById('n-revisit').value,
+    followup: document.getElementById('n-followup').value,
+    notes: document.getElementById('n-notes').value,
+  });
+  commit(rec, 'nosale');
+  return false;
+}
+function submitCallback(e) {
+  e.preventDefault();
+  const date = document.getElementById('c-date').value;
+  if (!date) { alert('Pick a callback date.'); return false; }
+  const rec = commonRec('callback', {
+    callbackDate: date, callbackTime: document.getElementById('c-time').value,
+    reason: document.getElementById('c-reason').value,
+    notes: document.getElementById('c-notes').value,
+  });
+  commit(rec, 'callback');
+  return false;
+}
+function submitNoShow(e) {
+  e.preventDefault();
+  const rec = commonRec('noshow', {
+    reason: document.getElementById('ns-reason').value,
+    notes: document.getElementById('ns-notes').value,
+  });
+  commit(rec, 'noshow');
+  return false;
+}
+
+function commit(rec, status) {
+  submissions.push(rec);
+  saveSubs();
+  if (selectedAppt) selectedAppt.status = status;
+  closeDispo();
+  renderAll();
+  const msg = status === 'sold'
+    ? `Sold · ${rec.rep} · ${fmt(rec.net)} · ${rec.gmPct.toFixed(1)}% GM`
+    : `${labelStatus(status)} · ${rec.customer}`;
+  toast(msg);
+}
+
+/* ============================================================
+   ROLLUP MATH
+   ============================================================ */
+function rollup(appts, subs) {
+  const sold = subs.filter(s => s.outcome === 'sold');
+  const nosale = subs.filter(s => s.outcome === 'nosale').length;
+  const callback = subs.filter(s => s.outcome === 'callback').length;
+  const noshow = subs.filter(s => s.outcome === 'noshow').length;
+  const soldCt = sold.length;
+  const sold$ = sold.reduce((a,s) => a + (s.net||0), 0);
+  const cogs$ = sold.reduce((a,s) => a + (s.cogs||0) + (s.feeCost||0), 0);
+  const gm$ = sold$ - cogs$;
+  const gmPct = sold$ > 0 ? gm$/sold$*100 : 0;
+  const apptsCount = appts.length;
+  const open = appts.filter(a => a.status === 'open').length;
+  const run = apptsCount - open;
+  const closePct = run > 0 ? soldCt/run*100 : 0;
+  return { appts:apptsCount, open, sold:soldCt, nosale, callback, noshow, sold$, gm$, gmPct, closePct };
+}
+function groupBy(arr, key) {
+  const map = new Map();
+  arr.forEach(x => { const k = x[key]; if (!map.has(k)) map.set(k, []); map.get(k).push(x); });
+  return [...map.entries()];
+}
+
+/* ============================================================
+   OFFLINE / PWA
+   ============================================================ */
+function updateConn() {
+  const online = navigator.onLine;
+  const dot = document.getElementById('connDot'), txt = document.getElementById('connText');
+  if (dot && txt) {
+    if (online) { dot.classList.remove('off'); txt.textContent = 'Connected · Last sync just now'; }
+    else { dot.classList.add('off'); txt.textContent = 'Offline · Entries queued locally'; }
+  }
+}
+function loadSubs() { try { return JSON.parse(localStorage.getItem(LS_SUBS) || '[]'); } catch { return []; } }
+function saveSubs() { localStorage.setItem(LS_SUBS, JSON.stringify(submissions)); }
+function registerSW() { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function fillSelect(el, items, firstLabel = null) {
+  const first = firstLabel ? `<option value="">${firstLabel}</option>` : '';
+  el.innerHTML = first + items.map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join('');
+}
+function tile(lbl, num, sub, color) {
+  return `<div class="tile"><div class="lbl">${lbl}</div><div class="num" ${color?`style="color:${color}"`:''}>${num}</div><div class="sub">${sub||''}</div></div>`;
+}
+function fmt(n) {
+  if (!isFinite(n)) return '$0';
+  const neg = n < 0, abs = Math.abs(n);
+  const s = abs.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  return (neg ? '-$' : '$') + s;
+}
+function timeAgo(ts) {
+  const s = Math.floor((Date.now()-ts)/1000);
+  if (s < 60) return 'just now';
+  const m = Math.floor(s/60); if (m < 60) return m+'m ago';
+  const h = Math.floor(m/60); if (h < 24) return h+'h ago';
+  return Math.floor(h/24)+'d ago';
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function gmColor(pct) { return pct>=42?'var(--good-text)':pct>=35?'var(--warn-text)':'var(--bad-text)'; }
+function labelStatus(s) { return { open:'Open', sold:'Sold', nosale:'Not Sold', callback:'Callback', noshow:'No Show' }[s] || s; }
+function toast(msg) {
+  let el = document.getElementById('toastEl');
+  if (!el) { el = document.createElement('div'); el.id = 'toastEl'; document.body.appendChild(el); }
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+init();
+</script>
+</body>
+</html>

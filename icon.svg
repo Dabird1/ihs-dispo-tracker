@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2CB2DF"/>
+      <stop offset="100%" stop-color="#1A89AE"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="32" fill="#0b1220"/>
+  <rect x="16" y="16" width="160" height="160" rx="24" fill="url(#g)"/>
+  <g fill="#0b1220" font-family="Inter, Arial, sans-serif" font-weight="800">
+    <text x="96" y="84" text-anchor="middle" font-size="36" letter-spacing="2">IHS</text>
+    <text x="96" y="140" text-anchor="middle" font-size="52" letter-spacing="-1">D</text>
+  </g>
+</svg>
