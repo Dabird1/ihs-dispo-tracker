@@ -672,7 +672,7 @@
     </section>
 
     <div class="foot-note">
-      <strong>Security (production requirement):</strong> Azure AD SSO. Role → visibility: <em>Rep</em> sees their brand &amp; their appointments. <em>Branch / Market Mgr</em> sees their market across brands. <em>Brand Mgr</em> sees all markets within their brand. <em>RVP</em> sees their region across brands. <em>Enterprise</em> sees all. Row-level security enforced in the warehouse, not the client. Persona switcher above is a demo affordance — will be removed.
+      <strong>Security (production requirement):</strong> Azure AD SSO. Three access tiers: <em>Rep</em> sees their own appointments within their brand and is the primary dispositioner. <em>Brand Leadership</em> (Sales Manager, Branch Manager, Brand President) sees their brand across all markets and can disposition on behalf of a rep when needed. <em>Corporate (Brand Support Center)</em> — RVPs and above — sees everything, read-only; dispositions remain with the field. Row-level security enforced in the warehouse, not the client. Persona switcher above is a demo affordance — will be removed.
       <br><br>
       <strong>Prototype note:</strong> Brand and market lists pulled live from Reports filters. Appointments shown are illustrative; production wiring requires a CRM webhook per source (Acculynx, DataForma, Gorilla Desk, Leap, Salesforce, Zoho/DF) feeding a normalized Appointments table. Submissions queue locally and replay when network returns.
     </div>
@@ -845,12 +845,9 @@ const BRAND_MARKET_MAP = {
 
 /* PERSONAS — mock SSO (role → scope) */
 const PERSONAS = [
-  { key:'rep-karen',   name:'Karen P.',   email:'kpatel@infinity.com',  role:'Rep',         scope:{ brand:'Infinity Exteriors' } },
-  { key:'rep-doug',    name:'Doug M.',    email:'dmorgan@premier.com',  role:'Rep',         scope:{ brand:'Premier Roofing' } },
-  { key:'bmgr-ie',     name:'Lori J.',    email:'ljohnson@infinity.com',role:'Market Mgr',  scope:{ brand:'Infinity Exteriors', market:'Kenosha, WI' } },
-  { key:'brmgr-ie',    name:'Rex T.',     email:'rtomas@infinity.com',  role:'Brand Mgr',   scope:{ brand:'Infinity Exteriors' } },
-  { key:'rvp-mw',      name:'Dana K.',    email:'dkline@ihs.com',       role:'RVP Midwest', scope:{ region:'Midwest' } },
-  { key:'enterprise',  name:'Jay Teresi', email:'jteresi@infinityhomeservices.com', role:'Enterprise', scope:{} }
+  { key:'rep',        name:'Karen P.',   email:'kpatel@infinityexteriors.com',     role:'Rep',               scope:{ brand:'Infinity Exteriors' } },
+  { key:'brand-lead', name:'Rex T.',     email:'rtomas@infinityexteriors.com',     role:'Brand Leadership',  scope:{ brand:'Infinity Exteriors' } },
+  { key:'corporate',  name:'Jay Teresi', email:'jteresi@infinityhomeservices.com', role:'Corporate',         scope:{} }
 ];
 
 /* Mock appointments — scheduled for "today". Status starts open. */
@@ -889,7 +886,7 @@ const FIN_RATES = { cash:0, ccard:.025, fin0:.08, fin12:.03, finLT:.07 };
    ============================================================ */
 const LS_PERSONA = 'ihs_dispo_persona_v1';
 const LS_SUBS = 'ihs_dispo_subs_v1';
-let persona = PERSONAS.find(p => p.key === (localStorage.getItem(LS_PERSONA) || 'enterprise')) || PERSONAS[5];
+let persona = PERSONAS.find(p => p.key === (localStorage.getItem(LS_PERSONA) || 'corporate')) || PERSONAS[2];
 let submissions = loadSubs();
 let queueFilter = 'all';
 
@@ -1049,10 +1046,12 @@ function setPersona(key) {
 /* ============================================================
    PERSONA → SCOPE
    ============================================================ */
-function canSeeAllBrands() { return ['Enterprise','RVP Midwest','RVP Northeast','RVP South','RVP West'].some(r => persona.role.startsWith('RVP')) || persona.role === 'Enterprise'; }
+function canSeeAllBrands() { return persona.role === 'Corporate'; }
+function canDispo() { return persona.role === 'Rep' || persona.role === 'Brand Leadership'; }
+function canSeeRollups() { return persona.role === 'Corporate' || persona.role === 'Brand Leadership'; }
 function applyPersona() {
-  const isActionRole = persona.role === 'Rep' || persona.role.startsWith('RVP');
-  queueFilter = isActionRole ? 'open' : 'all';
+  // Rep defaults to the action queue; leadership lands on everything so they can scan first.
+  queueFilter = persona.role === 'Rep' ? 'open' : 'all';
   [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === queueFilter));
   // User panel
   document.getElementById('userName').textContent = persona.name;
@@ -1060,7 +1059,7 @@ function applyPersona() {
   document.getElementById('userAvatar').textContent = persona.name.split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('roleBadge').textContent = persona.role;
 
-  // Lock brand filter for reps/brand mgr
+  // Lock brand filter unless Corporate
   const brandF = document.getElementById('f-brand');
   const marketF = document.getElementById('f-market');
   const repF = document.getElementById('f-rep');
@@ -1071,32 +1070,32 @@ function applyPersona() {
   else { marketF.disabled = false; if (!persona.scope.market) marketF.value = ''; }
   if (persona.role === 'Rep') { repF.value = persona.name; repF.disabled = true; } else { repF.disabled = false; }
 
-  // Hide enterprise-only nav for reps
+  // Nav gating: Rep only sees Queue + My Day; Brand Leadership + Corporate see rollups
   const gated = ['enterprise','bybrand','bybranch'];
   [...document.querySelectorAll('.navitem[data-page], .tab[data-page]')].forEach(el => {
     if (gated.includes(el.dataset.page)) {
-      const canSee = persona.role === 'Enterprise' || persona.role.startsWith('RVP') || persona.role === 'Brand Mgr';
+      const canSee = canSeeRollups();
       el.classList.toggle('locked', !canSee);
       el.style.display = canSee ? '' : 'none';
     }
   });
 
-  // Scope text
-  const scope = [];
-  if (persona.scope.brand && !canSeeAllBrands()) scope.push(`Brand: ${persona.scope.brand}`);
-  if (persona.scope.market) scope.push(`Market: ${persona.scope.market}`);
-  if (persona.scope.region) scope.push(`Region: ${persona.scope.region}`);
-  if (persona.role === 'Rep') scope.push(`Rep: ${persona.name}`);
-  document.getElementById('scopeText').textContent =
-    persona.role === 'Enterprise'
-      ? `You are viewing as ${persona.role}. All brands, markets, and reps visible.`
-      : `You are viewing as ${persona.role}. ${scope.join(' · ')}.`;
-
-  // If not allowed to see rollup pages, snap back to queue
-  if (currentPage !== 'queue' && currentPage !== 'myday') {
-    const canSee = persona.role === 'Enterprise' || persona.role.startsWith('RVP') || persona.role === 'Brand Mgr';
-    if (!canSee) goPage('queue');
+  // Scope banner - 3 roles
+  let scopeMsg = '';
+  if (persona.role === 'Corporate') {
+    scopeMsg = `You are viewing as Corporate (Brand Support Center). All brands, markets, and reps visible. Read-only — dispositions are recorded by the field.`;
+  } else if (persona.role === 'Brand Leadership') {
+    const bits = [];
+    if (persona.scope.brand) bits.push(`Brand: ${persona.scope.brand}`);
+    if (persona.scope.market) bits.push(`Market: ${persona.scope.market}`);
+    scopeMsg = `You are viewing as Brand Leadership. ${bits.join(' · ')}. You can disposition on behalf of a rep.`;
+  } else {
+    scopeMsg = `You are viewing as Rep. ${persona.scope.brand ? 'Brand: '+persona.scope.brand+' · ' : ''}Rep: ${persona.name}.`;
   }
+  document.getElementById('scopeText').textContent = scopeMsg;
+
+  // Snap back to queue if current page is a rollup the role can't see
+  if (currentPage !== 'queue' && currentPage !== 'myday' && !canSeeRollups()) goPage('queue');
 }
 
 /* Filter APPTS by persona scope + current filters */
@@ -1216,7 +1215,7 @@ function renderQueue() {
       <td><span class="status-chip ${isStuck(a) ? 'stuck' : a.status}">${isStuck(a) ? 'Stuck' : labelStatus(a.status)}</span></td>
       <td style="text-align:right;">
         ${a.status==='open'
-          ? `<button class="btn primary" data-id="${a.id}">Disposition</button>`
+          ? (canDispo() ? `<button class="btn primary" data-id="${a.id}">Disposition</button>` : `<span class="status-chip open" style="opacity:.8">Open</span>`)
           : `<span class="status-chip ${a.status}" style="opacity:.8">${labelStatus(a.status)} ✓</span>`}
       </td>
     </tr>
@@ -1239,7 +1238,7 @@ function renderQueue() {
           </div>
           <div class="c-action">
             ${a.status==='open'
-              ? `<button class="btn primary" data-id="${a.id}">Disposition →</button>`
+              ? (canDispo() ? `<button class="btn primary" data-id="${a.id}">Disposition →</button>` : `<button class="btn ghost" disabled>Open</button>`)
               : `<button class="btn ghost" disabled>${labelStatus(a.status)} ✓</button>`}
           </div>
         </div>`;
