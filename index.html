@@ -148,10 +148,15 @@
 
   /* KPIs */
   .kpis { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:10px; }
-  .tile { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:13px; min-height:106px; }
+  .tile { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:13px; min-height:118px; }
   .tile .lbl { font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); }
   .tile .num { font-size:24px; font-weight:600; margin-top:6px; }
   .tile .sub { font-size:11px; color:var(--text-mute); margin-top:2px; }
+  .tile .delta { font-size:10.5px; font-weight:700; margin-top:6px; letter-spacing:.3px; display:inline-block; }
+  .tile .delta.good  { color:var(--good-text); }
+  .tile .delta.bad   { color:var(--bad-text); }
+  .tile .delta.flat  { color:var(--text-mute); }
+  .tile .delta .ctx  { color:var(--text-mute); font-weight:500; margin-left:2px; }
 
   /* Cards / tables */
   .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; }
@@ -260,9 +265,25 @@
     color:var(--bad-text); font-size:13px; font-weight:600; cursor:pointer; }
   .stuck-banner.show { display:flex; }
   .stuck-banner .icon { font-size:18px; }
-  .stuck-banner .lead { flex:1; }
+  .stuck-banner .lead { flex:1; min-width:0; }
   .stuck-banner .sub { color:var(--text-dim); font-weight:400; font-size:12px; margin-top:2px; }
   .stuck-banner .cta { font-size:12px; color:var(--bad-text); text-decoration:underline; }
+  .stuck-banner .escalation {
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    margin-top:8px; font-weight:500; font-size:11px;
+  }
+  .stuck-banner .esc-step {
+    padding:2px 8px; border-radius:10px; background:rgba(255,255,255,.08);
+    color:var(--text-dim); font-weight:600; letter-spacing:.3px;
+  }
+  .stuck-banner .esc-arrow { color:var(--text-mute); font-weight:400; }
+  .stuck-banner .esc-time { font-weight:400; color:var(--text-mute); margin-left:3px; }
+  .stuck-banner .esc-note { color:var(--text-mute); font-style:italic; margin-left:6px; font-weight:400; }
+  .stuck-banner.tier-warn .esc-bl   { background:var(--warn-soft); color:var(--warn-text); }
+  .stuck-banner.tier-bad .esc-bl    { background:var(--warn-soft); color:var(--warn-text); }
+  .stuck-banner.tier-bad .esc-corp,
+  .stuck-banner.tier-critical .esc-bl  { background:var(--bad-soft); color:var(--bad-text); }
+  .stuck-banner.tier-critical .esc-corp { background:var(--bad-soft); color:var(--bad-text); animation: stuckPulse 1.6s ease-in-out infinite; }
 
   /* GM waterfall strip (Enterprise) */
   .waterfall { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:12px;
@@ -298,6 +319,9 @@
   .appt-cards { display:none; flex-direction:column; gap:10px; }
   .appt-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px 14px;
     display:grid; grid-template-columns:1fr auto; gap:6px 12px; align-items:start; position:relative; }
+  .appt-card.tappable { cursor:pointer; transition:transform .08s ease, border-color .15s ease; }
+  .appt-card.tappable:active { transform:scale(.985); border-color:var(--primary); }
+  .appt-card.tappable::after { content:'›'; position:absolute; right:12px; top:14px; color:var(--text-mute); font-size:18px; pointer-events:none; }
   .appt-card.stuck { border-left:3px solid var(--bad); }
   .appt-card .c-time { font-size:12px; color:var(--text-dim); font-variant-numeric:tabular-nums; }
   .appt-card .c-cust { font-size:15px; font-weight:600; color:var(--text); line-height:1.25; margin-top:2px; }
@@ -343,9 +367,7 @@
     body.role-rep #page-queue > .pagehead       { order:1; }
     body.role-rep #page-queue > .stuck-banner   { order:2; }
     body.role-rep #page-queue > #queueCard      { order:3; }
-    body.role-rep #page-queue > .hero-score     { order:4; margin-top:14px; }
-    body.role-rep #page-queue > #kpiSectionTitle{ order:5; }
-    body.role-rep #page-queue > #kpiGrid        { order:6; }
+    body.role-rep #page-queue > #dayDigest      { order:4; margin-top:14px; }
     body.role-rep #page-queue > #queueFilterBar { display:none; } /* rep scope is locked — filters are noise */
     body.role-rep #page-queue .pagehead .pagesub { font-size:13px; opacity:.85; }
     body.role-rep #kpiSectionTitle::before { content:'Your numbers · '; opacity:.7; }
@@ -381,6 +403,10 @@
   body.role-rep #queueFilterBar .filtergrid { display:none; }
   /* Rep only sees Today/Yesterday pills; hide rollup pills */
   body.role-rep #tfPills .pill-rollup { display:none; }
+  /* Production: rep doesn't see persona switcher (it's a demo affordance for everyone else) */
+  body.role-rep .persona-block,
+  body.role-rep #personaMobile,
+  body.role-rep .persona-label { display:none; }
 
   /* Clickable KPI tiles */
   .tile.tile-click { cursor: pointer; transition: transform .08s ease, border-color .15s ease, background .15s ease; }
@@ -473,6 +499,12 @@
   .success-card .sc-foot .sc-status.posted::before  { content:'●'; color:var(--good-text); margin-right:4px; }
   .success-card .sc-close { background:transparent; border:none; color:var(--text-mute); cursor:pointer; font-size:16px; padding:0 4px; }
   .success-card .sc-close:hover { color:var(--text); }
+  .success-card .sc-undo-btn {
+    background:transparent; border:1px solid var(--border); color:var(--primary);
+    border-radius:6px; padding:3px 10px; font-size:11px; font-weight:700;
+    letter-spacing:.4px; text-transform:uppercase; cursor:pointer; margin-left:auto;
+  }
+  .success-card .sc-undo-btn:hover { background:var(--primary); color:#001018; border-color:var(--primary); }
   @media (max-width:700px) {
     .success-card { right:12px; left:12px; bottom:calc(72px + var(--safe-bot)); width:auto; }
   }
@@ -519,6 +551,93 @@
     body.role-rep .sticky-cta.has-next { display:flex; }
     body.role-rep .main { padding-bottom:calc(96px + var(--safe-bot)); }
   }
+
+  /* Persona tour */
+  .tour-scrim {
+    display:none; position:fixed; inset:0; z-index:40;
+    background:rgba(0,0,0,.62); backdrop-filter:blur(6px);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .tour-scrim.show { display:flex; }
+  .tour-card {
+    width:100%; max-width:460px; background:var(--panel);
+    border:1px solid var(--border); border-left:4px solid var(--primary);
+    border-radius:12px; padding:22px 24px;
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+  .tour-card .tour-step {
+    font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--primary); font-weight:700;
+  }
+  .tour-card h3 { margin:8px 0 8px; font-family:'DM Serif Display',serif; font-weight:400; font-size:22px; line-height:1.2; }
+  .tour-card p  { margin:0; font-size:13px; line-height:1.55; color:var(--text-dim); }
+  .tour-card .tour-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:18px; flex-wrap:wrap; }
+  .tour-card .tour-actions .btn { min-height:38px; }
+
+  /* My-day-so-far collapsible (rep mobile only — others see it expanded inline) */
+  .day-digest { border:none; padding:0; margin:0; }
+  .day-digest > .day-digest-toggle { display:none; }
+  /* Rep on mobile: collapsible. Closed by default so the queue dominates. */
+  @media (max-width:900px) {
+    body.role-rep .day-digest > .day-digest-toggle {
+      display:flex; align-items:center; justify-content:space-between;
+      gap:8px; padding:10px 14px; margin-bottom:10px;
+      background:var(--panel); border:1px solid var(--border); border-radius:8px;
+      color:var(--text-dim); font-size:13px; font-weight:600;
+      cursor:pointer; list-style:none;
+    }
+    body.role-rep .day-digest > .day-digest-toggle::-webkit-details-marker { display:none; }
+    body.role-rep .day-digest > .day-digest-toggle .dd-arrow { transition:transform .15s ease; color:var(--text-mute); }
+    body.role-rep .day-digest[open] > .day-digest-toggle .dd-arrow { transform:rotate(180deg); }
+    body.role-rep .day-digest:not([open]) > .hero-score,
+    body.role-rep .day-digest:not([open]) > .section-title,
+    body.role-rep .day-digest:not([open]) > .kpis { display:none !important; }
+  }
+
+  /* Triage cards (Brand Leadership My Day) */
+  .triage-grid { display:none; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+  body.role-lead .triage-grid { display:grid; }
+  .triage-card {
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:14px 16px; cursor:pointer;
+    transition:transform .08s ease, border-color .15s ease;
+  }
+  .triage-card:hover  { border-color:var(--primary); }
+  .triage-card:active { transform:scale(.98); }
+  .triage-card .tc-lbl { font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--text-mute); }
+  .triage-card .tc-name { font-family:'DM Serif Display',serif; font-size:20px; line-height:1.2; margin-top:6px; }
+  .triage-card .tc-meta { font-size:12px; color:var(--text-dim); margin-top:6px; }
+  .triage-card .tc-cta  { font-size:11px; font-weight:700; color:var(--primary); margin-top:10px; letter-spacing:.4px; text-transform:uppercase; }
+  .triage-card.bad  { border-left:3px solid var(--bad); }
+  .triage-card.warn { border-left:3px solid var(--warn); }
+  .triage-card.flat { border-left:3px solid var(--border); }
+  @media (max-width:900px) { .triage-grid { grid-template-columns:1fr; } }
+
+  /* Sortable table headers */
+  table th.sortable { cursor:pointer; user-select:none; position:relative; padding-right:18px; }
+  table th.sortable:hover { color:var(--primary); }
+  table th.sortable::after {
+    content:'↕'; position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    color:var(--text-mute); font-size:10px; opacity:.6;
+  }
+  table th.sortable.sort-asc::after  { content:'↑'; color:var(--primary); opacity:1; }
+  table th.sortable.sort-desc::after { content:'↓'; color:var(--primary); opacity:1; }
+
+  /* Demo-mode chip strip */
+  .demo-strip {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:-4px 0 12px; padding:8px 12px;
+    background:var(--panel-2); border:1px dashed var(--border); border-radius:8px;
+    font-size:11px; color:var(--text-mute);
+  }
+  .demo-chip {
+    padding:3px 9px; border-radius:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase;
+    font-size:10px; white-space:nowrap;
+  }
+  .demo-chip.mode  { background:var(--callback-soft); color:var(--callback-text); }
+  .demo-chip.clock { background:var(--warn-soft);     color:var(--warn-text); }
+  .demo-strip .demo-hint { flex:1; min-width:200px; font-style:italic; }
+  body.role-rep .demo-strip { display:none; }
 
   /* Keyboard-focused row */
   tr.row-kbd {
@@ -576,12 +695,16 @@
     <div class="nav-foot">
       <div class="navitem"><span class="ico">⚑</span> Roadmap</div>
       <div class="navitem"><span class="ico">?</span> Help &amp; Support</div>
-      <div style="padding:8px;">
+      <div class="persona-block" id="personaBlockDesktop" style="padding:8px;">
         <div class="persona-label">Persona (demo)</div>
         <select id="personaDesktop" class="persona-pick" style="width:100%;"></select>
         <button class="theme-toggle" id="themeToggleDesktop" aria-label="Toggle theme" style="margin-top:8px;width:100%;justify-content:center;">
           <span class="ico" id="themeIcoDesktop" aria-hidden="true">☾</span>
           <span id="themeLblDesktop">Dark</span>
+        </button>
+        <button type="button" class="theme-toggle" id="replayTour" style="margin-top:8px;width:100%;justify-content:center;font-size:11px;">
+          <span class="ico" aria-hidden="true">↻</span>
+          <span>Replay tour</span>
         </button>
       </div>
       <div class="user">
@@ -657,22 +780,42 @@
         </div>
       </div>
 
+      <!-- Demo-mode chip strip -->
+      <div class="demo-strip" id="demoStrip">
+        <span class="demo-chip mode">Demo Mode</span>
+        <span class="demo-chip clock" id="demoClock">Demo time · 3:00 PM</span>
+        <span class="demo-hint">Persona switcher and 3:00 PM anchor are demo affordances. Production uses Azure AD SSO and live time.</span>
+      </div>
+
       <!-- Stuck banner -->
       <div class="stuck-banner" id="stuckBanner" onclick="filterStuck()" role="button" tabindex="0" aria-label="Filter to stuck appointments" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterStuck();}">
         <span class="icon" aria-hidden="true">⚠</span>
         <div class="lead">
           <span id="stuckBannerLead">0 appts stuck · production handoff delayed</span>
           <div class="sub" id="stuckBannerSub">Open &gt;2 hrs past appointment time. Production is waiting for a clean handoff.</div>
+          <div class="escalation" id="stuckEscalation" aria-label="Escalation routing">
+            <span class="esc-step esc-rep">Rep</span>
+            <span class="esc-arrow">→</span>
+            <span class="esc-step esc-bl">Brand Leadership <span class="esc-time">@ 90 min</span></span>
+            <span class="esc-arrow">→</span>
+            <span class="esc-step esc-corp">Corporate <span class="esc-time">@ 4 hr</span></span>
+            <span class="esc-note">Routing rules · audit trail · TBD with IT</span>
+          </div>
         </div>
         <span class="cta">Filter stuck →</span>
       </div>
 
-      <!-- Hero score for scope -->
-      <div class="hero-score" id="heroScore"></div>
-
-      <!-- KPIs -->
-      <div class="section-title" id="kpiSectionTitle">Today · What Needs Your Attention</div>
-      <div class="kpis" id="kpiGrid"></div>
+      <!-- Rep-mobile collapsible wrapper for hero + KPIs.
+           For non-rep: appears inline (CSS leaves details open and removes summary).
+           For rep on mobile: collapsed by default so the queue dominates the viewport. -->
+      <details id="dayDigest" class="day-digest">
+        <summary class="day-digest-toggle"><span class="dd-lbl">My day so far</span><span class="dd-arrow">▾</span></summary>
+        <!-- Hero score for scope -->
+        <div class="hero-score" id="heroScore"></div>
+        <!-- KPIs -->
+        <div class="section-title" id="kpiSectionTitle">Today · What Needs Your Attention</div>
+        <div class="kpis" id="kpiGrid"></div>
+      </details>
 
       <!-- Queue table -->
       <div class="card" id="queueCard" style="margin-top:14px;">
@@ -712,11 +855,13 @@
     <section class="page" id="page-myday">
       <div class="pagehead"><div>
         <h1 class="pagetitle">My <span class="accent">Day</span></h1>
-        <div class="pagesub">Your appointments, dispositions, and GM — scoped to you.</div>
+        <div class="pagesub" id="mydaySub">Your appointments, dispositions, and GM — scoped to you.</div>
       </div></div>
+      <!-- Triage cards (Brand Leadership only — see CSS) -->
+      <div class="triage-grid" id="triageGrid"></div>
       <div class="kpis" id="mydayKpis"></div>
       <div class="card" style="margin-top:14px;">
-        <h3>My Submissions</h3>
+        <h3 id="myDaySubsTitle">My Submissions</h3>
         <div class="cardsub">Most recent first. <span style="color:var(--text-mute)">Production column = handoff to job movement (Margin IQ). Sold GM is rep-reported and preliminary.</span></div>
         <div class="tablewrap">
           <table class="num">
@@ -769,7 +914,7 @@
           <div class="cardsub">Appts run · sold · close rate · sold GM %</div>
           <div class="tablewrap">
             <table class="num hover" id="tblByBrand">
-              <thead><tr><th style="width:22px">#</th><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+              <thead><tr><th style="width:22px">#</th><th class="sortable" data-sort="brand">Brand</th><th class="num sortable" data-sort="appts">Appts</th><th class="num sortable" data-sort="sold">Sold</th><th class="num sortable" data-sort="closePct">Close %</th><th class="num sortable" data-sort="sold$">Sold $</th><th class="num sortable" data-sort="gmPct">GM %</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -779,7 +924,7 @@
           <div class="cardsub">Top markets by activity today</div>
           <div class="tablewrap">
             <table class="num hover" id="tblByMarket">
-              <thead><tr><th style="width:22px">#</th><th>Market</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+              <thead><tr><th style="width:22px">#</th><th class="sortable" data-sort="market">Market</th><th class="num sortable" data-sort="appts">Appts</th><th class="num sortable" data-sort="sold">Sold</th><th class="num sortable" data-sort="closePct">Close %</th><th class="num sortable" data-sort="sold$">Sold $</th><th class="num sortable" data-sort="gmPct">GM %</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -789,7 +934,7 @@
       <div class="card">
         <div class="tablewrap">
           <table class="num" id="tblByRep">
-            <thead><tr><th style="width:22px">#</th><th>Rep</th><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+            <thead><tr><th style="width:22px">#</th><th class="sortable" data-sort="rep">Rep</th><th>Brand</th><th class="num sortable" data-sort="appts">Appts</th><th class="num sortable" data-sort="sold">Sold</th><th class="num sortable" data-sort="closePct">Close %</th><th class="num sortable" data-sort="sold$">Sold $</th><th class="num sortable" data-sort="gmPct">GM %</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -817,7 +962,7 @@
       <div class="card">
         <div class="tablewrap">
           <table class="num" id="tblBrandFull">
-            <thead><tr><th>Brand</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">No Sale</th><th class="num">Callback</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+            <thead><tr><th class="sortable" data-sort="brand">Brand</th><th class="num sortable" data-sort="appts">Appts</th><th class="num sortable" data-sort="sold">Sold</th><th class="num sortable" data-sort="nosale">No Sale</th><th class="num sortable" data-sort="callback">Callback</th><th class="num sortable" data-sort="closePct">Close %</th><th class="num sortable" data-sort="sold$">Sold $</th><th class="num sortable" data-sort="gmPct">GM %</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -833,7 +978,7 @@
       <div class="card">
         <div class="tablewrap">
           <table class="num" id="tblMarketFull">
-            <thead><tr><th>Market</th><th class="num">Appts</th><th class="num">Sold</th><th class="num">No Sale</th><th class="num">Callback</th><th class="num">Close %</th><th class="num">Sold $</th><th class="num">GM %</th></tr></thead>
+            <thead><tr><th class="sortable" data-sort="market">Market</th><th class="num sortable" data-sort="appts">Appts</th><th class="num sortable" data-sort="sold">Sold</th><th class="num sortable" data-sort="nosale">No Sale</th><th class="num sortable" data-sort="callback">Callback</th><th class="num sortable" data-sort="closePct">Close %</th><th class="num sortable" data-sort="sold$">Sold $</th><th class="num sortable" data-sort="gmPct">GM %</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -848,6 +993,20 @@
   </main>
 </div>
 
+<!-- Persona tour (3 stops, shown once, replayable) -->
+<div class="tour-scrim" id="tourScrim" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+  <div class="tour-card">
+    <div class="tour-step"><span id="tourIdx">1</span> of <span id="tourTotal">3</span></div>
+    <h3 id="tourTitle">—</h3>
+    <p id="tourBody">—</p>
+    <div class="tour-actions">
+      <button type="button" class="btn ghost" id="tourSkip">Skip</button>
+      <button type="button" class="btn ghost" id="tourBack" hidden>Back</button>
+      <button type="button" class="btn primary" id="tourNext">Next</button>
+    </div>
+  </div>
+</div>
+
 <!-- Sticky mobile CTA (rep only, mobile only — see CSS) -->
 <button class="sticky-cta" id="stickyCta" type="button" aria-label="Disposition next open appointment">
   <span class="cta-label">Disposition Next →</span>
@@ -860,7 +1019,10 @@
   <div class="sc-body">
     <div class="sc-title" id="scTitle">Submitted</div>
     <div class="sc-meta" id="scMeta"></div>
-    <div class="sc-foot"><span class="sc-status posting" id="scStatus">Posting to Margin IQ…</span></div>
+    <div class="sc-foot">
+      <span class="sc-status posting" id="scStatus">Posting to Margin IQ…</span>
+      <button class="sc-undo-btn" id="scUndo" type="button" hidden>Undo</button>
+    </div>
   </div>
   <button class="sc-close" id="scClose" aria-label="Dismiss">×</button>
 </div>
@@ -886,7 +1048,7 @@
       <form id="soldForm" style="display:none;" onsubmit="return submitSold(event)">
         <div class="entry-grid">
           <div class="field req"><label>Sold Price</label><div class="money-input"><input id="s-price" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
-          <div class="field req"><label>Sold COGS</label><div class="money-input"><input id="s-cogs" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div><div class="hint">Materials + labor + subs + permits</div></div>
+          <div class="field req"><label>Job Cost (all-in)</label><div class="money-input"><input id="s-cogs" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div><div class="hint">materials + labor + subs + permits + dump fees + financing fees</div></div>
           <div class="field"><label>Discount $</label><div class="money-input"><input id="s-disc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
           <div class="field"><label>Financing</label><select id="s-fin" onchange="recalcSold()">
             <option value="cash">Cash / Check</option><option value="ccard">Credit Card</option>
@@ -1230,8 +1392,9 @@ function init() {
   // Sticky mobile CTA
   document.getElementById('stickyCta').addEventListener('click', goNextOpen);
 
-  // Success card close
-  document.getElementById('scClose').addEventListener('click', hideSuccessCard);
+  // Success card close + undo
+  document.getElementById('scClose').addEventListener('click', () => { hideSuccessCard(); lastSubmission = null; });
+  document.getElementById('scUndo').addEventListener('click', undoLastSubmission);
 
   // Keyboard navigation: queue (j/k/Enter) + modal (S/N/C/X/Esc/Enter)
   document.addEventListener('keydown', onGlobalKey);
@@ -1240,11 +1403,24 @@ function init() {
   window.addEventListener('online', updateConn);
   window.addEventListener('offline', updateConn);
 
+  // Tour buttons
+  document.getElementById('tourSkip').addEventListener('click', endTour);
+  document.getElementById('tourBack').addEventListener('click', () => { if (tourIdx > 0) { tourIdx--; paintTour(); } });
+  document.getElementById('tourNext').addEventListener('click', () => {
+    if (tourIdx < TOUR_STEPS.length - 1) { tourIdx++; paintTour(); }
+    else endTour();
+  });
+  // Replay tour from the sidebar
+  const replayBtn = document.getElementById('replayTour');
+  if (replayBtn) replayBtn.addEventListener('click', () => { localStorage.removeItem(TOUR_KEY); startTour(); });
+
   applyPersona();
   renderAll();
+  bindSortHeaders();
   registerSW();
   updateConn();
   initTheme();
+  maybeStartTour();
 }
 
 const LS_THEME = 'ihs_dispo_theme_v1';
@@ -1339,6 +1515,9 @@ function applyPersona() {
 
   // Snap back to queue if current page is a rollup the role can't see
   if (currentPage !== 'queue' && currentPage !== 'myday' && !canSeeRollups()) goPage('queue');
+  // Day digest: closed by default for rep, open for everyone else
+  const dd = document.getElementById('dayDigest');
+  if (dd) dd.open = persona.role !== 'Rep';
 }
 
 /* Filter APPTS by persona scope + current filters */
@@ -1373,6 +1552,48 @@ function scopedSubs() {
     if (mf && s.market !== mf) return false;
     if (rf && s.rep !== rf) return false;
     return true;
+  });
+}
+
+/* ============================================================
+   TABLE SORT
+   ============================================================ */
+const tableSorts = {
+  tblByBrand:    { key:'appts',    dir:-1 },
+  tblByMarket:   { key:'appts',    dir:-1 },
+  tblByRep:      { key:'sold',     dir:-1 },
+  tblBrandFull:  { key:'closePct', dir:-1 },
+  tblMarketFull: { key:'appts',    dir:-1 },
+};
+function applyTableSort(rows, tblId) {
+  const s = tableSorts[tblId]; if (!s) return rows;
+  const k = s.key, d = s.dir;
+  return rows.slice().sort((a,b) => {
+    const av = a[k], bv = b[k];
+    if (typeof av === 'string') return d * av.localeCompare(bv);
+    return d * ((av||0) - (bv||0));
+  });
+}
+function paintSortHeaders(tblId) {
+  const tbl = document.getElementById(tblId); if (!tbl) return;
+  const s = tableSorts[tblId];
+  [...tbl.querySelectorAll('th.sortable')].forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.dataset.sort === s.key) th.classList.add(s.dir > 0 ? 'sort-asc' : 'sort-desc');
+  });
+}
+function bindSortHeaders() {
+  Object.keys(tableSorts).forEach(tblId => {
+    const tbl = document.getElementById(tblId); if (!tbl) return;
+    [...tbl.querySelectorAll('th.sortable')].forEach(th => {
+      if (th._bound) return; th._bound = true;
+      th.addEventListener('click', () => {
+        const s = tableSorts[tblId];
+        if (s.key === th.dataset.sort) s.dir = -s.dir;
+        else { s.key = th.dataset.sort; s.dir = -1; }
+        renderAll();
+      });
+    });
   });
 }
 
@@ -1417,14 +1638,22 @@ function renderQueue() {
       <div>${fmt(m.sold$)} sold · ${fmt(m.gm$)} GM</div>
     </div>
   `;
-  // KPIs
+  // KPIs (with prior-period deltas)
+  const pw = priorTfWindow();
+  const pr = pw ? priorRollup() : null;
+  const ctx = pw ? pw.label : '';
+  const dRun  = pr ? fmtDelta((m.appts-m.open) - (pr.appts-pr.open), 'count', ctx, 'up') : null;
+  const dSold = pr ? fmtDelta(m.sold - pr.sold, 'count', ctx, 'up') : null;
+  const dNS   = pr ? fmtDelta(m.nosale - pr.nosale, 'count', ctx, 'down') : null;
+  const dCB   = pr ? fmtDelta(m.callback - pr.callback, 'count', ctx, 'down') : null;
+  const dGM   = pr ? fmtDelta(m.gmPct - pr.gmPct, 'pts', ctx, 'up') : null;
   document.getElementById('kpiGrid').innerHTML = [
-    tile('Appts Run', String(m.appts-m.open), `${m.open} still open`, null, 'all'),
+    tile('Appts Run', String(m.appts-m.open), `${m.open} still open`, null, 'all', dRun),
     tile('Open', String(m.open), 'Need disposition', null, 'open'),
-    tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`, null, 'sold'),
-    tile('Not Sold', String(m.nosale), m.appts ? (m.nosale/m.appts*100).toFixed(1)+'%' : '—', null, 'nosale'),
-    tile('Callback', String(m.callback), m.appts ? (m.callback/m.appts*100).toFixed(1)+'%' : '—', null, 'callback'),
-    tile('Sold GM %', m.gmPct.toFixed(1)+'%', `AOP plan ${GM_AOP}%`, gmColor(m.gmPct), 'sold'),
+    tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`, null, 'sold', dSold),
+    tile('Not Sold', String(m.nosale), m.appts ? (m.nosale/m.appts*100).toFixed(1)+'%' : '—', null, 'nosale', dNS),
+    tile('Callback', String(m.callback), m.appts ? (m.callback/m.appts*100).toFixed(1)+'%' : '—', null, 'callback', dCB),
+    tile('Sold GM %', m.gmPct.toFixed(1)+'%', `AOP plan ${GM_AOP}%`, gmColor(m.gmPct), 'sold', dGM),
   ].join('');
   document.getElementById('kpiSectionTitle').textContent = `${persona.role} · Today`;
 
@@ -1479,16 +1708,18 @@ function renderQueue() {
     </tr>`;
   }).join('');
 
-  // Mobile cards — parallel render
+  // Mobile cards — parallel render. Open cards are entirely tappable.
   const cards = document.getElementById('apptCards');
   if (cards) {
     cards.innerHTML = list.map(a => {
       const tier = stuckTier(a);
-      const cardCls = tier ? ` stuck-${tier}` : '';
+      const open = a.status === 'open';
+      const tappable = open && canDispo();
+      const cardCls = (tier ? ` stuck-${tier}` : '') + (tappable ? ' tappable' : '');
       const chipCls = tier ? `stuck-${tier}` : a.status;
       const chipLbl = tier ? stuckLabel(tier) : labelStatus(a.status);
       return `
-        <div class="appt-card${cardCls}" data-id="${a.id}">
+        <div class="appt-card${cardCls}" data-id="${a.id}"${tappable ? ' role="button" tabindex="0" aria-label="Disposition '+escapeHtml(a.customer)+'"' : ''}>
           <div>
             <div class="c-time">${a.time}</div>
             <div class="c-cust">${escapeHtml(a.customer)}</div>
@@ -1496,16 +1727,15 @@ function renderQueue() {
           </div>
           <div class="c-right">
             <span class="status-chip ${chipCls}">${chipLbl}</span>
-          </div>
-          <div class="c-action">
-            ${a.status==='open'
-              ? (canDispo() ? `<button class="btn primary" data-id="${a.id}">Disposition →</button>` : `<button class="btn ghost" disabled>Open</button>`)
-              : `<button class="btn ghost" disabled>${labelStatus(a.status)} ✓</button>`}
+            ${!open ? `<span class="status-chip ${a.status}" style="opacity:.7;font-size:10px">${labelStatus(a.status)} ✓</span>` : ''}
           </div>
         </div>`;
     }).join('');
-    [...cards.querySelectorAll('button[data-id]')].forEach(b =>
-      b.addEventListener('click', e => { e.stopPropagation(); openDispo(APPTS.find(a => a.id === b.dataset.id)); }));
+    [...cards.querySelectorAll('.appt-card.tappable')].forEach(c => {
+      const fire = () => openDispo(APPTS.find(a => a.id === c.dataset.id));
+      c.addEventListener('click', fire);
+      c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fire(); } });
+    });
   }
 
   [...tbody.querySelectorAll('button[data-id]')].forEach(b =>
@@ -1637,6 +1867,15 @@ function renderMyDay() {
   const subs = scopedSubs().filter(s => persona.role !== 'Rep' || s.rep === persona.name).slice().reverse();
   const appts = scopedAppts().filter(a => persona.role !== 'Rep' || a.rep === persona.name);
   const m = rollupTF(appts, subs);
+  // Page sub copy + table title flex by role
+  const sub = document.getElementById('mydaySub');
+  if (sub) sub.textContent = persona.role === 'Brand Leadership'
+    ? 'Where this brand is weak today and what to do about it.'
+    : 'Your appointments, dispositions, and GM — scoped to you.';
+  const subsTitleEl = document.getElementById('myDaySubsTitle');
+  if (subsTitleEl) subsTitleEl.textContent = persona.role === 'Brand Leadership' ? 'Brand Activity' : 'My Submissions';
+  // Triage cards (Brand Leadership only)
+  renderTriageCards(appts, subs);
   document.getElementById('mydayKpis').innerHTML = [
     tile('My Appts', String(appts.length), '', null, 'all'),
     tile('Dispositioned', String(appts.length - appts.filter(a=>a.status==='open').length), '', null, 'all'),
@@ -1660,6 +1899,66 @@ function renderMyDay() {
   const latest = subs[0];
   const peek = document.getElementById('payloadJson');
   if (peek) peek.textContent = latest ? JSON.stringify(latest, null, 2) : '(no submissions yet)';
+}
+
+function renderTriageCards(appts, subs) {
+  const grid = document.getElementById('triageGrid');
+  if (!grid) return;
+  if (persona.role !== 'Brand Leadership') { grid.innerHTML = ''; return; }
+  // Weakest market today (lowest close rate among markets with ≥2 appts)
+  const byMkt = groupBy(appts, 'market').map(([market, arr]) => {
+    const r = rollupTF(arr, subs.filter(s => s.market === market));
+    return { market, ...r };
+  }).filter(r => r.appts >= 2);
+  const weakMkt = byMkt.slice().sort((a,b) => a.closePct - b.closePct)[0];
+  // Weakest rep (same logic, by rep)
+  const byRep = groupBy(appts, 'rep').map(([rep, arr]) => {
+    const r = rollupTF(arr, subs.filter(s => s.rep === rep));
+    return { rep, ...r };
+  }).filter(r => r.appts >= 2);
+  const weakRep = byRep.slice().sort((a,b) => a.closePct - b.closePct)[0];
+  // Oldest stuck (open appt with the earliest time and a stuckTier)
+  const stuck = appts.filter(isStuck).slice().sort((a,b) => (parseApptMin(a.time)||9999) - (parseApptMin(b.time)||9999));
+  const oldest = stuck[0];
+  const card = (kind, lbl, name, meta, cta) => `
+    <div class="triage-card ${kind}" data-triage="${cta.action}" data-arg="${escapeHtml(cta.arg||'')}">
+      <div class="tc-lbl">${lbl}</div>
+      <div class="tc-name">${escapeHtml(name)}</div>
+      <div class="tc-meta">${meta}</div>
+      <div class="tc-cta">${cta.label} →</div>
+    </div>`;
+  const cards = [];
+  if (weakMkt) cards.push(card(weakMkt.closePct < 30 ? 'bad' : weakMkt.closePct < 40 ? 'warn' : 'flat',
+    'Weakest market today', weakMkt.market,
+    `${weakMkt.sold}/${weakMkt.appts-weakMkt.open} · ${weakMkt.closePct.toFixed(1)}% close · ${weakMkt.gmPct.toFixed(1)}% GM`,
+    { label:'Filter to market', action:'filter-market', arg:weakMkt.market }));
+  else cards.push(card('flat', 'Weakest market today', '—', 'Not enough activity yet.', { label:'View all markets', action:'goto-bybranch' }));
+  if (weakRep) cards.push(card(weakRep.closePct < 25 ? 'bad' : weakRep.closePct < 35 ? 'warn' : 'flat',
+    'Weakest rep today', weakRep.rep,
+    `${weakRep.sold}/${weakRep.appts-weakRep.open} · ${weakRep.closePct.toFixed(1)}% close`,
+    { label:'Filter to rep', action:'filter-rep', arg:weakRep.rep }));
+  else cards.push(card('flat', 'Weakest rep today', '—', 'Not enough activity yet.', { label:'View all reps', action:'goto-enterprise' }));
+  if (oldest) {
+    const tier = stuckTier(oldest);
+    cards.push(card(tier === 'critical' ? 'bad' : tier === 'bad' ? 'bad' : 'warn',
+      'Oldest stuck appointment', oldest.customer,
+      `${oldest.time} · ${oldest.market} · ${oldest.rep} · ${stuckLabel(tier)}`,
+      { label:'Disposition now', action:'open-dispo', arg:oldest.id }));
+  } else {
+    cards.push(card('flat', 'Oldest stuck appointment', 'None', 'All open appts within SLA.', { label:'View queue', action:'goto-queue' }));
+  }
+  grid.innerHTML = cards.join('');
+  [...grid.querySelectorAll('.triage-card')].forEach(c => {
+    c.addEventListener('click', () => {
+      const action = c.dataset.triage, arg = c.dataset.arg;
+      if (action === 'filter-market') { const f = document.getElementById('f-market'); if (f && !f.disabled) f.value = arg; goPage('queue'); }
+      else if (action === 'filter-rep') { const f = document.getElementById('f-rep'); if (f && !f.disabled) f.value = arg; goPage('queue'); }
+      else if (action === 'open-dispo') { const a = APPTS.find(x => x.id === arg); if (a) { goPage('queue'); setTimeout(() => openDispo(a), 0); } }
+      else if (action === 'goto-queue') goPage('queue');
+      else if (action === 'goto-bybranch') goPage('bybranch');
+      else if (action === 'goto-enterprise') goPage('enterprise');
+    });
+  });
 }
 
 function renderEnterprise() {
@@ -1697,10 +1996,12 @@ function renderEnterprise() {
   ].join('');
 
   // By Brand (top 10)
-  const byBrand = groupBy(appts, 'brand').map(([brand, arr]) => {
+  const byBrandRaw = groupBy(appts, 'brand').map(([brand, arr]) => {
     const rm = rollupTF(arr, subs.filter(s => s.brand === brand));
     return { brand, ...rm };
-  }).sort((a,b) => b.appts - a.appts);
+  });
+  const byBrand = applyTableSort(byBrandRaw, 'tblByBrand');
+  paintSortHeaders('tblByBrand');
   const brandBody = document.querySelector('#tblByBrand tbody');
   brandBody.innerHTML = byBrand.slice(0, 10).map((r, i) => `
     <tr data-drill-brand="${escapeHtml(r.brand)}" style="cursor:pointer">
@@ -1716,10 +2017,12 @@ function renderEnterprise() {
     tr.addEventListener('click', () => drillTo({ brand: tr.dataset.drillBrand })));
 
   // By Market (top 10)
-  const byMarket = groupBy(appts, 'market').map(([market, arr]) => {
+  const byMarketRaw = groupBy(appts, 'market').map(([market, arr]) => {
     const rm = rollupTF(arr, subs.filter(s => s.market === market));
     return { market, ...rm };
-  }).sort((a,b) => b.appts - a.appts);
+  });
+  const byMarket = applyTableSort(byMarketRaw, 'tblByMarket');
+  paintSortHeaders('tblByMarket');
   const mktBody = document.querySelector('#tblByMarket tbody');
   mktBody.innerHTML = byMarket.slice(0, 10).map((r, i) => `
     <tr data-drill-market="${escapeHtml(r.market)}" style="cursor:pointer">
@@ -1735,10 +2038,12 @@ function renderEnterprise() {
     tr.addEventListener('click', () => drillTo({ market: tr.dataset.drillMarket })));
 
   // By Rep
-  const byRep = groupBy(appts, 'rep').map(([rep, arr]) => {
+  const byRepRaw = groupBy(appts, 'rep').map(([rep, arr]) => {
     const rm = rollupTF(arr, subs.filter(s => s.rep === rep));
     return { rep, brand: arr[0]?.brand || '—', ...rm };
-  }).sort((a,b) => b.sold - a.sold);
+  });
+  const byRep = applyTableSort(byRepRaw, 'tblByRep');
+  paintSortHeaders('tblByRep');
   document.querySelector('#tblByRep tbody').innerHTML = byRep.slice(0, 10).map((r, i) => `
     <tr>
       <td class="rank">${i+1}</td>
@@ -1754,11 +2059,13 @@ function renderEnterprise() {
 
 function renderByBrand() {
   const appts = scopedAppts();
-  const rows = BRANDS.map(brand => {
+  const raw = BRANDS.map(brand => {
     const arr = appts.filter(a => a.brand === brand);
     const rm = rollupTF(arr, scopedSubs().filter(s => s.brand === brand));
     return { brand, ...rm };
-  }).filter(r => r.appts > 0).sort((a,b) => b.closePct - a.closePct);
+  }).filter(r => r.appts > 0);
+  const rows = applyTableSort(raw, 'tblBrandFull');
+  paintSortHeaders('tblBrandFull');
   document.querySelector('#tblBrandFull tbody').innerHTML = rows.length === 0
     ? `<tr><td colspan="8" style="text-align:center;color:var(--text-mute);padding:24px">No appointments in current scope.</td></tr>`
     : rows.map(r => `
@@ -1776,11 +2083,13 @@ function renderByBrand() {
 
 function renderByMarket() {
   const appts = scopedAppts();
-  const rows = MARKETS.map(market => {
+  const raw = MARKETS.map(market => {
     const arr = appts.filter(a => a.market === market);
     const rm = rollupTF(arr, scopedSubs().filter(s => s.market === market));
     return { market, ...rm };
-  }).filter(r => r.appts > 0).sort((a,b) => b.appts - a.appts);
+  }).filter(r => r.appts > 0);
+  const rows = applyTableSort(raw, 'tblMarketFull');
+  paintSortHeaders('tblMarketFull');
   document.querySelector('#tblMarketFull tbody').innerHTML = rows.length === 0
     ? `<tr><td colspan="8" style="text-align:center;color:var(--text-mute);padding:24px">No appointments in current scope.</td></tr>`
     : rows.map(r => `
@@ -2151,17 +2460,21 @@ function submitSold(e) {
   e.preventDefault();
   const price = +document.getElementById('s-price').value || 0;
   const cogs = +document.getElementById('s-cogs').value || 0;
-  if (!price || !cogs) { alert('Enter Sold Price and Sold COGS.'); return false; }
+  if (!price || !cogs) { alert('Enter Sold Price and Job Cost.'); return false; }
   const services = [...multiBuffer, buildSoldPayload()];
   const groupId = 'GRP-' + Date.now().toString(36).toUpperCase();
+  const priorStatus = selectedAppt ? selectedAppt.status : null;
   const firstRec = commonRec('sold', { ...services[0], soldGroup: groupId, serviceIndex: 1, servicesTotal: services.length });
   submissions.push(firstRec);
+  const submittedIds = [firstRec.submissionId];
   services.slice(1).forEach((svc, idx) => {
     const rec = commonRec('sold', { ...svc, soldGroup: groupId, serviceIndex: idx + 2, servicesTotal: services.length });
     submissions.push(rec);
+    submittedIds.push(rec.submissionId);
   });
   saveSubs();
   if (selectedAppt) selectedAppt.status = 'sold';
+  lastSubmission = { ids: submittedIds, apptId: selectedAppt?.id, priorStatus };
 
   const apptId = selectedAppt?.id;
   const row = apptId ? document.querySelector(`#apptBody tr button[data-id="${apptId}"]`)?.closest('tr') : null;
@@ -2188,6 +2501,7 @@ function showSoldSuccess(rec, services) {
       title: `Booked · ${cust}`,
       meta: `${services.length} linked jobs · ${fmt(services.reduce((a,s)=>a+(s.net||0),0))} total`,
       tier: 'green',
+      undoable: true,
     });
   } else {
     const t = gmTier(rec.gmPct);
@@ -2195,6 +2509,7 @@ function showSoldSuccess(rec, services) {
       title: `Booked · ${cust}`,
       meta: `${fmt(rec.net)} net · ${rec.gmPct.toFixed(1)}% GM · ${rec.service || 'Sale'}`,
       tier: t.tier,
+      undoable: true,
     });
   }
 }
@@ -2248,9 +2563,11 @@ function drillTo({ brand, market }) {
 }
 
 function commit(rec, status) {
+  const priorStatus = selectedAppt ? selectedAppt.status : null;
   submissions.push(rec);
   saveSubs();
   if (selectedAppt) selectedAppt.status = status;
+  lastSubmission = { ids:[rec.submissionId], apptId: selectedAppt?.id, priorStatus };
 
   // Commit animation: fade the row before re-rendering
   const apptId = selectedAppt?.id;
@@ -2268,7 +2585,7 @@ function commit(rec, status) {
     const meta = status === 'callback' && rec.callbackDate
       ? `${rec.customer} · ${rec.callbackDate}${rec.callbackTime ? ' · '+rec.callbackTime : ''}`
       : `${rec.customer} · ${rec.reason || ''}`.trim();
-    showSuccessCard({ title: titles[status] || labelStatus(status), meta, kind:'info' });
+    showSuccessCard({ title: titles[status] || labelStatus(status), meta, kind:'info', undoable:true });
   };
 
   if (row) { row.classList.add('row-submitting'); setTimeout(finish, 420); }
@@ -2317,15 +2634,17 @@ function applyDatePopover() {
 }
 
 /* ============================================================
-   SUCCESS-CONFIRMATION CARD (replaces toast-only flow)
+   SUCCESS-CONFIRMATION CARD + 5-sec SOFT UNDO
    ============================================================ */
 let scTimer = null;
-function showSuccessCard({ title, meta, tier, kind }) {
+let lastSubmission = null; // { ids:[submissionId,...], apptId, priorStatus }
+function showSuccessCard({ title, meta, tier, kind, undoable }) {
   const card  = document.getElementById('successCard');
   const tEl   = document.getElementById('scTitle');
   const mEl   = document.getElementById('scMeta');
   const sEl   = document.getElementById('scStatus');
   const iEl   = document.getElementById('scIcon');
+  const uBtn  = document.getElementById('scUndo');
   if (!card) return;
   card.classList.remove('tier-green','tier-yellow','tier-red','kind-info');
   if (kind === 'info') card.classList.add('kind-info');
@@ -2335,20 +2654,77 @@ function showSuccessCard({ title, meta, tier, kind }) {
   mEl.textContent = meta || '';
   sEl.className = 'sc-status posting';
   sEl.textContent = 'Posting to Margin IQ…';
+  if (uBtn) uBtn.hidden = !undoable;
   card.classList.add('show');
   clearTimeout(scTimer);
-  // Flip to "posted" after 1.2s
+  // Flip to "posted" at 1.2s; undo window stays open until card hides
   setTimeout(() => {
     sEl.className = 'sc-status posted';
-    sEl.textContent = 'Posted · queued for production';
+    sEl.textContent = undoable ? 'Posted · undo available for 5 sec' : 'Posted · queued for production';
   }, 1200);
-  // Auto-dismiss after 4.5s total
-  scTimer = setTimeout(hideSuccessCard, 4500);
+  // Auto-dismiss at 5s — also closes the undo window
+  scTimer = setTimeout(() => { hideSuccessCard(); lastSubmission = null; }, 5000);
 }
 function hideSuccessCard() {
   const card = document.getElementById('successCard');
   if (card) card.classList.remove('show');
   clearTimeout(scTimer);
+}
+function undoLastSubmission() {
+  if (!lastSubmission) return;
+  const { ids, apptId, priorStatus } = lastSubmission;
+  submissions = submissions.filter(s => !ids.includes(s.submissionId));
+  saveSubs();
+  if (apptId) {
+    const a = APPTS.find(x => x.id === apptId);
+    if (a) a.status = priorStatus || 'open';
+  }
+  lastSubmission = null;
+  hideSuccessCard();
+  renderAll();
+  showSuccessCard({ title:'Reversed', meta:'Submission removed · production not notified', kind:'info', undoable:false });
+}
+
+/* ============================================================
+   PERSONA TOUR — 3 stops, shown once, replayable from sidebar
+   ============================================================ */
+const TOUR_KEY = 'ihs_dispo_tour_v1';
+const TOUR_STEPS = [
+  {
+    title: 'Disposition. Done. Walk away.',
+    body:  'Tap any open appointment to record the outcome — Sold, Not Sold, Callback, or No Show. The Sold form computes GM live against the 42.5% AOP plan. There\'s a 5-second undo if you fat-finger a submit.'
+  },
+  {
+    title: 'Three roles, three views.',
+    body:  'Reps see only their own day. Brand Leadership sees their brand across markets. Corporate sees the enterprise read-only. Switch personas in the lower-left to see how the same data reframes — that switcher is a demo stand-in for Azure AD SSO.'
+  },
+  {
+    title: 'Stuck appointments escalate.',
+    body:  'Open appointments slip past 90 min, become stuck at 2 hr, and go critical at 4 hr. The escalation chip on the banner shows where notifications would route in production: Rep → Brand Leadership @ 90 min → Corporate @ 4 hr. Routing rules and audit trail are TBD with IT.'
+  }
+];
+let tourIdx = 0;
+function maybeStartTour() {
+  if (localStorage.getItem(TOUR_KEY)) return;
+  startTour();
+}
+function startTour() {
+  tourIdx = 0;
+  document.getElementById('tourScrim').classList.add('show');
+  paintTour();
+}
+function paintTour() {
+  const s = TOUR_STEPS[tourIdx];
+  document.getElementById('tourIdx').textContent = String(tourIdx + 1);
+  document.getElementById('tourTotal').textContent = String(TOUR_STEPS.length);
+  document.getElementById('tourTitle').textContent = s.title;
+  document.getElementById('tourBody').textContent = s.body;
+  document.getElementById('tourBack').hidden = tourIdx === 0;
+  document.getElementById('tourNext').textContent = tourIdx === TOUR_STEPS.length - 1 ? 'Done' : 'Next';
+}
+function endTour() {
+  document.getElementById('tourScrim').classList.remove('show');
+  localStorage.setItem(TOUR_KEY, '1');
 }
 
 /* ============================================================
@@ -2469,10 +2845,81 @@ function fillSelect(el, items, firstLabel = null) {
   const first = firstLabel ? `<option value="">${firstLabel}</option>` : '';
   el.innerHTML = first + items.map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join('');
 }
-function tile(lbl, num, sub, color, filterKey) {
+function tile(lbl, num, sub, color, filterKey, delta) {
   const cls = filterKey ? 'tile tile-click' : 'tile';
   const attr = filterKey ? ` data-filter-key="${filterKey}"` : '';
-  return `<div class="${cls}"${attr}><div class="lbl">${lbl}</div><div class="num" ${color?`style="color:${color}"`:''}>${num}</div><div class="sub">${sub||''}</div></div>`;
+  const dHtml = delta ? `<div class="delta ${delta.kind}">${delta.text}<span class="ctx"> ${delta.ctx}</span></div>` : '';
+  return `<div class="${cls}"${attr}><div class="lbl">${lbl}</div><div class="num" ${color?`style="color:${color}"`:''}>${num}</div><div class="sub">${sub||''}</div>${dHtml}</div>`;
+}
+function priorTfWindow() {
+  const now = new Date();
+  const sod = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const eod = (d) => sod(d) + 86400000 - 1;
+  if (timeFrame === 'TODAY')     { const y = new Date(now); y.setDate(y.getDate()-1); return { start: sod(y), end: eod(y), label:'yesterday' }; }
+  if (timeFrame === 'YESTERDAY') { const y = new Date(now); y.setDate(y.getDate()-2); return { start: sod(y), end: eod(y), label:'2 days ago' }; }
+  if (timeFrame === 'WTD') {
+    const d = new Date(now); const dow = d.getDay() || 7;
+    const monThis = new Date(d); monThis.setDate(d.getDate() - (dow - 1));
+    const monPrev = new Date(monThis); monPrev.setDate(monThis.getDate() - 7);
+    const endPrev = new Date(monPrev); endPrev.setDate(monPrev.getDate() + (dow - 1));
+    return { start: sod(monPrev), end: eod(endPrev), label:'LWK to date' };
+  }
+  if (timeFrame === 'LWK') {
+    const d = new Date(now); const dow = d.getDay() || 7;
+    const monLast = new Date(d); monLast.setDate(d.getDate() - (dow - 1) - 7);
+    const monPrev = new Date(monLast); monPrev.setDate(monLast.getDate() - 7);
+    const sunPrev = new Date(monPrev); sunPrev.setDate(monPrev.getDate() + 6);
+    return { start: sod(monPrev), end: eod(sunPrev), label:'week before' };
+  }
+  if (timeFrame === 'MTD') {
+    const d = new Date(now);
+    const startPrev = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+    const endPrev   = new Date(d.getFullYear(), d.getMonth() - 1, d.getDate());
+    return { start: sod(startPrev), end: eod(endPrev), label:'LMTD' };
+  }
+  if (timeFrame === 'QTD') {
+    const d = new Date(now);
+    const q = Math.floor(d.getMonth()/3);
+    const startPrev = new Date(d.getFullYear(), (q - 1) * 3, 1);
+    const dayInto = Math.floor((d - new Date(d.getFullYear(), q * 3, 1)) / 86400000);
+    const endPrev = new Date(startPrev); endPrev.setDate(startPrev.getDate() + dayInto);
+    return { start: sod(startPrev), end: eod(endPrev), label:'LQTD' };
+  }
+  return null;
+}
+function priorScopedSubs() {
+  const w = priorTfWindow();
+  if (!w) return [];
+  const bf = (document.getElementById('f-brand') || {}).value;
+  const mf = (document.getElementById('f-market') || {}).value;
+  const rf = (document.getElementById('f-rep') || {}).value;
+  return submissions.filter(s => {
+    if (s.ts < w.start || s.ts > w.end) return false;
+    if (persona.scope.brand && !canSeeAllBrands() && s.brand !== persona.scope.brand) return false;
+    if (persona.scope.market && s.market !== persona.scope.market) return false;
+    if (persona.scope.region && s.region !== persona.scope.region) return false;
+    if (persona.role === 'Rep' && s.rep !== persona.name) return false;
+    if (bf && s.brand !== bf) return false;
+    if (mf && s.market !== mf) return false;
+    if (rf && s.rep !== rf) return false;
+    return true;
+  });
+}
+function priorRollup() {
+  const subs = priorScopedSubs();
+  return rollup(virtualApptsFromSubs(subs), subs);
+}
+function fmtDelta(diff, kind, ctxLabel, betterDir) {
+  if (diff === 0 || diff == null || !isFinite(diff)) return { kind:'flat', text:'—', ctx: ctxLabel ? 'vs '+ctxLabel : '' };
+  const isUp = diff > 0;
+  const isGood = (betterDir === 'down') ? !isUp : isUp;
+  const arrow = isUp ? '↑' : '↓';
+  const abs = Math.abs(diff);
+  let val;
+  if (kind === 'count')      val = abs;
+  else if (kind === 'pts')   val = abs.toFixed(1) + ' pts';
+  else if (kind === 'money') val = fmt(abs);
+  return { kind: isGood ? 'good' : 'bad', text: arrow + ' ' + val, ctx: ctxLabel ? 'vs '+ctxLabel : '' };
 }
 function fmt(n) {
   if (!isFinite(n)) return '$0';
