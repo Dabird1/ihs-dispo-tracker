@@ -616,6 +616,134 @@
     body.role-rep .main { padding-bottom:calc(96px + var(--safe-bot)); }
   }
 
+  /* =========================================================
+     ASK RTAT — wireframe LLM search/query
+     ========================================================= */
+  .ask-panel {
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:18px; margin-bottom:14px;
+  }
+  .ask-input-row { display:flex; gap:10px; }
+  .ask-input-row input {
+    flex:1; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    padding:14px 16px; border-radius:8px; font-size:15px; font-family:inherit; min-height:48px;
+  }
+  .ask-input-row input:focus { outline:none; border-color:var(--primary); }
+  .ask-input-row .btn { min-height:48px; padding:0 20px; }
+  .ask-suggestions { margin-top:14px; }
+  .ask-suggestions .ask-lbl {
+    font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--text-mute);
+    margin-bottom:8px; font-weight:700;
+  }
+
+  .ask-response { margin-bottom:14px; padding:18px 20px; border-left:3px solid var(--primary); }
+  .ask-response .ask-q {
+    font-size:11px; letter-spacing:.6px; color:var(--text-mute); text-transform:uppercase;
+    font-weight:700; margin-bottom:10px;
+  }
+  .ask-response .ask-q::before { content:'You asked · '; color:var(--primary); }
+  .ask-response .ask-a {
+    font-size:14px; line-height:1.6; color:var(--text); white-space:pre-wrap;
+  }
+  .ask-response .ask-a strong { color:var(--text); }
+  .ask-response .ask-followups { display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; }
+  .ask-response .ask-meta {
+    margin-top:14px; padding-top:10px; border-top:1px dashed var(--border-soft);
+    font-size:11px; color:var(--text-mute);
+  }
+  .ask-response .ask-meta span { color:var(--text-dim); }
+  .ask-response .ask-a table.ask-table { width:100%; margin:10px 0; font-size:12px; border-collapse:collapse; }
+  .ask-response .ask-a table.ask-table th { text-align:left; padding:6px 8px; color:var(--text-mute); font-weight:700; border-bottom:1px solid var(--border); font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; }
+  .ask-response .ask-a table.ask-table td { padding:6px 8px; border-bottom:1px solid var(--border-soft); font-variant-numeric:tabular-nums; }
+
+  /* =========================================================
+     ROADMAP — timeline matching the IHS BI suite visual language
+     ========================================================= */
+  .roadmap-wrap { position:relative; padding:30px 0 40px; }
+  /* Center vertical line — gradient fades from primary (past) to muted (future) */
+  .roadmap-wrap::before {
+    content:''; position:absolute; left:50%; top:0; bottom:0; width:2px;
+    transform:translateX(-1px);
+    background:linear-gradient(to bottom,
+      var(--primary) 0%, var(--primary) 30%,
+      var(--good) 30%, var(--good) 32%,
+      var(--border) 32%, var(--border) 100%);
+  }
+  .roadmap-anchor {
+    position:relative; text-align:center; margin-bottom:40px; z-index:1;
+  }
+  .roadmap-anchor .anchor-label {
+    font-size:10.5px; letter-spacing:2px; color:var(--primary); font-weight:700;
+    margin-bottom:8px;
+  }
+  .roadmap-anchor .anchor-icon {
+    display:inline-flex; width:36px; height:36px; border-radius:50%;
+    background:var(--primary); color:#001018;
+    align-items:center; justify-content:center; font-size:16px; font-weight:700;
+    box-shadow:0 0 0 4px rgba(44,178,223,.18);
+  }
+  .roadmap-items { list-style:none; padding:0; margin:0; position:relative; }
+  .rmap-item {
+    display:grid; grid-template-columns:1fr 40px 1fr; align-items:start;
+    margin-bottom:22px; min-height:80px;
+  }
+  .rmap-item .rmap-card {
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:14px 18px; position:relative;
+  }
+  .rmap-item.left  .rmap-card { grid-column:1; }
+  .rmap-item.right .rmap-card { grid-column:3; }
+  .rmap-item .rmap-marker {
+    grid-column:2; justify-self:center; align-self:start; margin-top:14px;
+    width:18px; height:18px; border-radius:50%;
+    border:2px solid var(--text-mute); background:var(--bg);
+    z-index:2; flex-shrink:0;
+  }
+  .rmap-item.done .rmap-marker {
+    background:var(--primary); border-color:var(--primary);
+    box-shadow:0 0 0 4px rgba(44,178,223,.18);
+  }
+  .rmap-item.now .rmap-marker {
+    background:var(--good); border-color:var(--good);
+    animation:rmapPulse 2s ease-in-out infinite;
+  }
+  @keyframes rmapPulse {
+    0%, 100% { box-shadow:0 0 0 0 rgba(103,166,75,.45); }
+    50%      { box-shadow:0 0 0 10px rgba(103,166,75,0); }
+  }
+  .rmap-item.now .rmap-card { border-color:var(--good); border-left:3px solid var(--good); }
+  .rmap-item.done .rmap-card { opacity:.85; }
+
+  .rmap-card .rmap-head {
+    display:flex; align-items:center; gap:10px; margin-bottom:8px;
+  }
+  .rmap-card .rmap-pill {
+    padding:2px 9px; border-radius:11px; font-size:10px; font-weight:700;
+    letter-spacing:.6px; text-transform:uppercase;
+  }
+  .rmap-card .rmap-pill.major { background:var(--callback-soft); color:var(--callback-text); }
+  .rmap-card .rmap-pill.minor { background:var(--chip);          color:var(--text-dim); }
+  .rmap-card .rmap-date {
+    font-size:11px; color:var(--text-mute); font-weight:500; letter-spacing:.3px;
+  }
+  .rmap-card h3 {
+    margin:0 0 6px; font-family:'DM Serif Display',serif; font-weight:400;
+    font-size:17px; line-height:1.3; color:var(--text);
+  }
+  .rmap-card p {
+    margin:0; font-size:12.5px; line-height:1.55; color:var(--text-dim);
+  }
+
+  /* Mobile: collapse timeline to a single column on the left */
+  @media (max-width:760px) {
+    .roadmap-wrap::before { left:14px; transform:none; }
+    .rmap-item { grid-template-columns:30px 1fr; }
+    .rmap-item.left .rmap-card,
+    .rmap-item.right .rmap-card { grid-column:2; }
+    .rmap-item .rmap-marker { grid-column:1; justify-self:start; margin-left:5px; margin-top:14px; }
+    .roadmap-anchor { text-align:left; padding-left:6px; }
+  }
+
   /* Persona tour */
   .tour-scrim {
     display:none; position:fixed; inset:0; z-index:40;
@@ -757,7 +885,8 @@
     <div class="navitem" data-page="bybranch"><span class="ico">▦</span> By Market</div>
 
     <div class="nav-foot">
-      <div class="navitem"><span class="ico">⚑</span> Roadmap</div>
+      <div class="navitem" data-page="ask"><span class="ico">⌕</span> Ask RTAT</div>
+      <div class="navitem" data-page="roadmap"><span class="ico">⚑</span> Roadmap</div>
       <div class="navitem"><span class="ico">?</span> Help &amp; Support</div>
       <div class="persona-block" id="personaBlockDesktop" style="padding:8px;">
         <div class="persona-label">Persona (demo)</div>
@@ -1046,6 +1175,152 @@
             <tbody></tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- =============== PAGE: ASK RTAT =============== -->
+    <section class="page" id="page-ask">
+      <div class="pagehead"><div>
+        <h1 class="pagetitle">Ask <span class="accent">RTAT</span></h1>
+        <div class="pagesub">Plain-English questions, scoped to your role and brand. Powered by Anthropic Claude.</div>
+      </div></div>
+      <div class="ask-panel">
+        <div class="ask-input-row">
+          <input type="text" id="askInput" placeholder="e.g. Which brand has the lowest GM% this week?" autocomplete="off" />
+          <button type="button" class="btn primary" id="askGo">Ask</button>
+        </div>
+        <div class="ask-suggestions">
+          <div class="ask-lbl">Try one of these</div>
+          <div class="chip-row" id="askSuggestRow">
+            <button type="button" class="chip-opt compact" data-q="Which appointments are critical right now?">Critical right now</button>
+            <button type="button" class="chip-opt compact" data-q="Show me Karen P's last 5 sales">Karen P · last 5 sales</button>
+            <button type="button" class="chip-opt compact" data-q="Why is Premier Roofing's close rate slipping?">Why is Premier slipping?</button>
+            <button type="button" class="chip-opt compact" data-q="Compare Infinity Exteriors WTD vs LWK to date">Infinity · WTD vs LWK</button>
+            <button type="button" class="chip-opt compact" data-q="Which reps are below the 42.5% AOP plan today?">Reps below AOP plan today</button>
+            <button type="button" class="chip-opt compact" data-q="What's blocking production handoff?">What's blocking production?</button>
+          </div>
+        </div>
+      </div>
+      <div class="ask-response card" id="askResponse" hidden>
+        <div class="ask-q" id="askQ">—</div>
+        <div class="ask-a" id="askA">—</div>
+        <div class="ask-followups" id="askFollowups"></div>
+        <div class="ask-meta">Scope: <span id="askScope">—</span> · <span id="askLatency">demo response · routes through Claude in production</span></div>
+      </div>
+      <div class="foot-note">
+        <strong>Wireframe note:</strong> In production this routes through Anthropic Claude with row-level-secure access only to the data your role and scope can see. The model never gets data outside your scope. Audit log captures every question + answer + sources. For Monday's demo the responses are canned to show the UX shape — real LLM wiring requires the backend (post-CRM integration). Cost guardrails: response budget capped per query, daily token budget per persona.
+      </div>
+    </section>
+
+    <!-- =============== PAGE: ROADMAP =============== -->
+    <section class="page" id="page-roadmap">
+      <div class="pagehead"><div>
+        <h1 class="pagetitle">Product <span class="accent">Roadmap</span></h1>
+        <div class="pagesub">Track our development milestones and upcoming releases.</div>
+      </div></div>
+      <div class="roadmap-wrap">
+        <div class="roadmap-anchor">
+          <div class="anchor-label">ROADMAP</div>
+          <div class="anchor-icon" aria-hidden="true">⚑</div>
+        </div>
+        <ol class="roadmap-items">
+          <li class="rmap-item left done">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill major">Major</span><span class="rmap-date">Apr 23, 2026</span></div>
+              <h3>🌱 v11 — Initial Demo Build</h3>
+              <p>Narrative-shaped seed data (~80 days), real time-frame pill filtering, rep-first mobile layout with disposition queue above the fold.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item right done">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill minor">Minor</span><span class="rmap-date">Apr 24, 2026</span></div>
+              <h3>🔧 v12 — Stuck SLA + GM Tier Polish</h3>
+              <p>GM tiers anchored on 42.5% AOP, three-tier stuck SLA (90 / 120 / 240 min), pill+button count badges, contextual empty states, slide-in success card, keyboard nav, ARIA pass.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item left done">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill major">Major</span><span class="rmap-date">Apr 25, 2026</span></div>
+              <h3>🚀 v13–v15 — Form Rework</h3>
+              <p>Job Cost rename, chip pickers for Reason / Service / Why-callback, sticky mobile submit, GM% hero readout, brand-defaulted service, 5-second soft undo, persona escape, light-mode contrast fixes.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item right now">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill major">Major</span><span class="rmap-date">Apr 27, 2026</span></div>
+              <h3>📍 FP&amp;A + COO Demo</h3>
+              <p>First stakeholder demo: explain the gap between CRM and Margin IQ, demonstrate disposition flow, walk through escalation routing, set up IT alignment conversation.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item left">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill minor">Minor</span><span class="rmap-date">Apr 28 – May 1, 2026</span></div>
+              <h3>🔧 Stakeholder Feedback Window</h3>
+              <p>Collect feedback from FP&amp;A and the COO. Align with IT on Azure AD SSO, CRM webhook contracts, escalation routing ownership, audit-trail requirements.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item right">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill major">Major</span><span class="rmap-date">May 4, 2026</span></div>
+              <h3>🌱 Pilot Brand Selection</h3>
+              <p>Select 1 brand × 1 market for pilot. Working assumption: Infinity Exteriors / Kenosha. Stand up the production backend (replaces localStorage), wire the CRM webhook for that brand only.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item left">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill major">Major</span><span class="rmap-date">May 11, 2026</span></div>
+              <h3>🚀 Pilot Launch — 1 Brand</h3>
+              <p>Live with reps in the pilot brand. Real Azure AD SSO. Real CRM appointments. Real escalation notifications. Office stops manually re-entering rep texts.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item right">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill minor">Minor</span><span class="rmap-date">May 15 – May 22, 2026</span></div>
+              <h3>🔧 Pilot Feedback Window</h3>
+              <p>Iterate on real rep usage data. Tune escalation timing, refine GM coaching copy, add any missing reason chips, fix anything reps mention twice.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item left">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill major">Major</span><span class="rmap-date">Jun 1, 2026</span></div>
+              <h3>🌱 Multi-Brand Pilot — 3 Brands</h3>
+              <p>Expand to a second and third brand. Validate brand-specific service defaults, customer types, and escalation routing rules at small scale.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item right">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill major">Major</span><span class="rmap-date">Jun 22, 2026</span></div>
+              <h3>🚀 Enterprise Rollout — All 25 Brands</h3>
+              <p>All 25 IHS brands live. Office time saved on manual entry. RVPs run on today's truth instead of yesterday's. Reporting lag eliminated.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item left">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill minor">Minor</span><span class="rmap-date">Jul 1, 2026</span></div>
+              <h3>🔧 Ask RTAT — Live LLM Integration</h3>
+              <p>Replace the wireframe Ask page with real Claude integration. Row-level-secure context, audit logging, per-persona token budgets. Stakeholder-facing copilot for "what's slipping right now and why."</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+          <li class="rmap-item right">
+            <div class="rmap-card">
+              <div class="rmap-head"><span class="rmap-pill major">Major</span><span class="rmap-date">Jul 15, 2026</span></div>
+              <h3>⛵ Official MVP Release</h3>
+              <p>RTAT graduates from rollout to steady-state. Either folded into the IHS BI suite as a sister surface, or maintained alongside as the field-facing disposition tier.</p>
+            </div>
+            <span class="rmap-marker"></span>
+          </li>
+        </ol>
       </div>
     </section>
 
@@ -1526,6 +1801,18 @@ function init() {
   window.addEventListener('online', updateConn);
   window.addEventListener('offline', updateConn);
 
+  // Ask RTAT — input, suggestion chips, submit
+  const askGo = document.getElementById('askGo');
+  const askInput = document.getElementById('askInput');
+  if (askGo && askInput) {
+    const fire = () => showAskResponse(askInput.value);
+    askGo.addEventListener('click', fire);
+    askInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fire(); } });
+    [...document.querySelectorAll('#askSuggestRow .chip-opt')].forEach(c => {
+      c.addEventListener('click', () => { askInput.value = c.dataset.q; showAskResponse(c.dataset.q); });
+    });
+  }
+
   // Tour buttons
   document.getElementById('tourSkip').addEventListener('click', endTour);
   document.getElementById('tourBack').addEventListener('click', () => { if (tourIdx > 0) { tourIdx--; paintTour(); } });
@@ -1636,8 +1923,10 @@ function applyPersona() {
   }
   document.getElementById('scopeText').textContent = scopeMsg;
 
-  // Snap back to queue if current page is a rollup the role can't see
-  if (currentPage !== 'queue' && currentPage !== 'myday' && !canSeeRollups()) goPage('queue');
+  // Snap back to queue if current page is a rollup the role can't see.
+  // Ask + Roadmap are product pages (not scope-bound) — accessible to everyone.
+  const universalPages = ['queue','myday','ask','roadmap'];
+  if (!universalPages.includes(currentPage) && !canSeeRollups()) goPage('queue');
   // Day digest: closed by default for rep, open for everyone else
   const dd = document.getElementById('dayDigest');
   if (dd) dd.open = persona.role !== 'Rep';
@@ -2880,6 +3169,129 @@ function undoLastSubmission() {
   hideSuccessCard();
   renderAll();
   showSuccessCard({ title:'Reversed', meta:'Submission removed · production not notified', kind:'info', undoable:false });
+}
+
+/* ============================================================
+   ASK RTAT — wireframe LLM search/query
+   Canned answers tuned to the seeded narrative so the demo lands.
+   ============================================================ */
+const ASK_ANSWERS = {
+  'critical': {
+    match: q => /critical|stuck|right now|blocking|production handoff|blocking production/i.test(q),
+    a: ({scope}) => `**2 appointments are critical** (open >4 hours past appointment time):
+
+• **Okafor, C.** · 9:00 AM · Premier Roofing · Doug M. · Columbus
+• **Perez, M.** · 9:30 AM · Infinity Exteriors · Karen P. · Kenosha, WI
+
+Both have already triggered the escalation cadence: Brand Leadership was notified at 90 minutes, Corporate at 4 hours. Production handoff is delayed for both.
+
+The Premier appointment matches a known pattern — Doug M. is currently 4.0 percentage points below his close-rate baseline this week, and Premier as a brand is running 3.2 pp below its AOP plan. Worth a 1:1 with the brand president before the day ends.`,
+    followups: ['Draft a check-in message to Doug', 'Show me Premier Roofing trend WTD', 'Who else is below their baseline?']
+  },
+  'karen': {
+    match: q => /karen/i.test(q),
+    a: ({scope}) => `**Karen P.'s last 5 sales** (Infinity Exteriors · Kenosha, WI):
+
+1. Today 8:30 AM · **Hartman, D.** · Roofing · $27,900 net · **42.5% GM** ✓ at AOP
+2. Yesterday 4:00 PM · Mueller, K. · Siding · $19,200 · 41.0% GM
+3. Yesterday 11:00 AM · Diaz, R. · Roofing · $31,800 · 44.1% GM ✓
+4. 2 days ago · Brooks, T. · Roofing · $24,400 · 39.8% GM (below plan)
+5. 2 days ago · Park, S. · Windows & Doors · $14,600 · 46.2% GM ✓
+
+Karen is at **42.4% GM running average** — right on plan. Her weakest deal in the last 5 was Brooks (3 pp below). Likely scope creep: she discounted $1,200 on a job priced $25,600 with $14,500 cost. Worth coaching on hold-the-line pricing.`,
+    followups: ['Show Karen vs Doug M head-to-head', 'Why was Brooks discounted?', 'Karen MTD vs LMTD']
+  },
+  'premier': {
+    match: q => /premier/i.test(q),
+    a: ({scope}) => `**Premier Roofing is slipping for three reasons:**
+
+1. **Close rate** is 31.2% WTD vs 36.4% LWK to date — a 5.2 pp drop. The Columbus market specifically is at 28.0%.
+2. **GM%** is 37.5% running, vs 39.0% LWK. Columbus is the source — 36.1% there, 39.8% in Dayton.
+3. **Doug M.** is the rep behind 70% of Premier's appointments and is running -4.2 pp below his own baseline. He had 1 critical-stuck appointment today (Okafor, C. 9:00 AM) that's still un-dispositioned at 3:00 PM.
+
+Premier as a brand is **3.2 pp below its 42.5% AOP plan** for GM%. Not catastrophic yet, but the trend is consistent over the last 8 days.`,
+    followups: ['Show me Doug\'s open queue', 'What changed at Columbus 8 days ago?', 'Compare Premier vs Skywalker']
+  },
+  'wtd': {
+    match: q => /wtd|week to date|vs lwk|infinity/i.test(q),
+    a: ({scope}) => `**Infinity Exteriors · WTD vs LWK to date:**
+
+|             | WTD    | LWK to date | Δ        |
+|-------------|--------|-------------|----------|
+| Appts run   | 14     | 12          | +2       |
+| Sold        | 6      | 5           | +1       |
+| Close rate  | 42.9%  | 41.7%       | +1.2 pp  |
+| Sold $      | $172K  | $148K       | +$24K    |
+| GM %        | 43.1%  | 42.4%       | +0.7 pp  |
+
+**Above plan on close rate and GM%.** Kenosha continues to be the strongest market in scope (+6 pp close rate vs the brand baseline). Karen P. is the standout — 4 of 6 brand sales this week.`,
+    followups: ['Show Infinity MTD vs LMTD', 'Drill into Kenosha specifically', 'Karen P weekly trend']
+  },
+  'aop': {
+    match: q => /below.*aop|below.*plan|42\.5|under plan/i.test(q),
+    a: ({scope}) => `**3 reps are below the 42.5% AOP plan today:**
+
+• **Doug M.** — 37.7% GM (4.8 pp under) · Premier Roofing · Columbus
+• **Aaron K.** — 38.0% GM (4.5 pp under) · Skywalker / Henderson · split markets
+• **Luis G.** — 38.4% GM (4.1 pp under) · Watkins Construction · Jackson, MS
+
+Combined, these three are responsible for **9 of today's 14 dispositioned sales**. Total Sold $ exposed to under-plan pricing: ~$214K, which lands ~$9.6K below planned GM contribution.
+
+The pattern across all three: heavy financing fees (8% Promo 0% appears in 4 of 9 deals) and average-to-low Job Cost (all-in) accuracy. Worth checking whether they're capturing dump fees and dealer fees consistently.`,
+    followups: ['Show me their financing mix', 'Compare to top 3 reps', 'Coach them or flag in 1:1?']
+  }
+};
+
+const ASK_DEFAULT_FALLBACK = ({q}) => `I'd answer that against the data in scope, but this is the wireframe — for Monday's demo only the suggested questions return canned answers.
+
+In production, **"${q}"** would route through Anthropic Claude with row-level-secure access to your scope. The model never sees data outside what your role and brand permission allows. Every question, answer, and source citation is captured to the audit log.
+
+Try one of the suggested questions to see the response shape.`;
+
+function answerAsk(q) {
+  for (const key of Object.keys(ASK_ANSWERS)) {
+    const entry = ASK_ANSWERS[key];
+    if (entry.match(q)) return { a: entry.a({ scope: persona.role }), followups: entry.followups || [] };
+  }
+  return { a: ASK_DEFAULT_FALLBACK({ q }), followups: [] };
+}
+
+function showAskResponse(q) {
+  if (!q || !q.trim()) return;
+  const { a, followups } = answerAsk(q);
+  document.getElementById('askQ').textContent = q;
+  document.getElementById('askA').innerHTML = renderAskMarkup(a);
+  const fu = document.getElementById('askFollowups');
+  fu.innerHTML = followups.map(f => `<button type="button" class="chip-opt compact" data-q="${escapeHtml(f)}">${escapeHtml(f)}</button>`).join('');
+  [...fu.querySelectorAll('.chip-opt')].forEach(b => b.addEventListener('click', () => {
+    document.getElementById('askInput').value = b.dataset.q;
+    showAskResponse(b.dataset.q);
+  }));
+  document.getElementById('askScope').textContent =
+    persona.role === 'Corporate' ? 'Enterprise · all brands · read-only'
+    : persona.role === 'Brand Leadership' ? `${persona.scope.brand} · all reps · read-write`
+    : `${persona.name} · own appointments only`;
+  document.getElementById('askResponse').hidden = false;
+  document.getElementById('askResponse').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+/* Minimal markdown-ish rendering: bold, simple tables, line breaks. */
+function renderAskMarkup(s) {
+  let out = escapeHtml(s);
+  // Bold
+  out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Pipe tables — only if the text has rows of pipe lines
+  out = out.replace(/((?:\|[^\n]+\|\n?){2,})/g, (block) => {
+    const lines = block.trim().split('\n');
+    if (lines.length < 2) return block;
+    const cells = lines.map(l => l.split('|').slice(1, -1).map(c => c.trim()));
+    // Detect divider row
+    const hasDivider = cells[1] && cells[1].every(c => /^-+$/.test(c.replace(/\s/g,'')));
+    const head = hasDivider ? cells[0] : null;
+    const body = hasDivider ? cells.slice(2) : cells;
+    return `<table class="ask-table"><thead>${head ? '<tr>'+head.map(c=>`<th>${c}</th>`).join('')+'</tr>' : ''}</thead><tbody>${body.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  });
+  return out;
 }
 
 /* ============================================================
