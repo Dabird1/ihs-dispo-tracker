@@ -2069,17 +2069,20 @@ function seedDemoSubs() {
   const now = Date.now();
   const seed = [
     // [apptIdx, outcome, extra]
+    // Indexes 1, 2, 6, 10 intentionally left UN-dispositioned so the
+    // stuck-SLA tiers show in the demo (warn ≥90 min, bad ≥2 hr, critical ≥4 hr
+    // before the demo "now" of 3:00p):
+    //   #1  9:00a  Premier · Doug M.       → critical (6 hr)
+    //   #2  9:30a  Infinity · Karen P.     → critical (5.5 hr)
+    //   #6  11:30a Exterior Medics · Priya → bad (3.5 hr)
+    //   #10 1:30p  Watkins · Luis G.       → slipping/warn (1.5 hr)
     [0,  'sold',     { price:28400, cogs:15200, disc:500, fin:'fin12', net:27900, feeCost:837, gm$:11863, gmPct:42.52, service:'Roofing', ctype:'Residential' }],
-    [1,  'sold',     { price:41200, cogs:24900, disc:1200, fin:'cash',  net:40000, feeCost:0,   gm$:15100, gmPct:37.75, service:'Roofing', ctype:'Residential' }],
-    [2,  'nosale',   { reason:'Price / Budget', competitor:'Local competitor', compPrice:22000, revisit:'Maybe' }],
     [3,  'sold',     { price:18600, cogs:9800,  disc:0,    fin:'fin0',  net:18600, feeCost:1488,gm$:7312,  gmPct:39.31, service:'Windows & Doors', ctype:'Residential' }],
     [4,  'sold',     { price:52000, cogs:32000, disc:2000, fin:'finLT', net:50000, feeCost:3500,gm$:14500, gmPct:29.00, service:'Roofing', ctype:'Residential' }],
     [5,  'callback', { reason:'Other Decision Maker Required' }],
-    [6,  'sold',     { price:14800, cogs:7600,  disc:0,    fin:'cash',  net:14800, feeCost:0,   gm$:7200,  gmPct:48.65, service:'Gutters', ctype:'Residential' }],
     [7,  'nosale',   { reason:'Timing / Not Ready', revisit:'Yes — warm' }],
     [8,  'sold',     { price:36500, cogs:19200, disc:500,  fin:'ccard', net:36000, feeCost:900, gm$:15900, gmPct:44.17, service:'Roofing', ctype:'Residential' }],
     [9,  'callback', { reason:'Comparing Quotes' }],
-    [10, 'sold',     { price:23400, cogs:13800, disc:0,    fin:'fin12', net:23400, feeCost:702, gm$:8898,  gmPct:38.03, service:'Siding', ctype:'Residential' }],
     [11, 'nosale',   { reason:'Competitor Quote', competitor:'Big-box install', compPrice:19500 }],
   ];
   seed.forEach(([i, outcome, extra], k) => {
