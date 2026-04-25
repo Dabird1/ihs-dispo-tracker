@@ -97,15 +97,15 @@
   .status .dot.off { background:var(--warn); box-shadow:0 0 8px rgba(217,164,65,.7); }
   .pagehead-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 
-  .btn { background:#10223e; border:1px solid #1d3562; color:var(--text); border-radius:7px; padding:8px 12px; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+  .btn { background:var(--chip); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:8px 12px; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
   .btn:hover { border-color:var(--primary); color:var(--primary); }
   .btn.primary { background:var(--primary); border-color:var(--primary); color:#001018; font-weight:700; }
   .btn.primary:hover { background:#3cc4ef; color:#001018; }
   .btn.ghost { background:transparent; }
-  .btn.ghost.ghost-active { background:#10223e; color:var(--primary); border-color:#17305a; }
+  .btn.ghost.ghost-active { background:var(--row-sel); color:var(--primary); border-color:var(--primary); }
   .btn.good { background:var(--good); border-color:var(--good); color:#001018; font-weight:700; }
-  .btn.bad  { background:#401515; border-color:#5a2a2a; color:var(--bad-text); }
-  .btn.warn { background:#3a2e15; border-color:#5a4522; color:var(--warn-text); }
+  .btn.bad  { background:var(--bad-soft); border-color:var(--bad);  color:var(--bad-text); }
+  .btn.warn { background:var(--warn-soft); border-color:var(--warn); color:var(--warn-text); }
 
   .persona-pick {
     background:var(--panel-2); border:1px solid var(--border); color:var(--text);
@@ -228,11 +228,74 @@
   .money-input { position:relative; }
   .money-input::before { content:'$'; position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-mute); pointer-events:none; }
   .money-input input { padding-left:24px; }
-  .gm-readout { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:14px; background:var(--panel-2); border:1px dashed var(--border); border-radius:8px; margin-top:14px; }
+  /* GM readout — GM% is the hero, GM $ secondary, Net Sold smallest */
+  .gm-readout {
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    padding:16px; background:var(--panel-2); border:1px dashed var(--border); border-radius:8px; margin-top:14px;
+    align-items:end;
+  }
   .gm-readout .cell .k { font-size:10px; letter-spacing:1px; color:var(--text-mute); text-transform:uppercase; }
-  .gm-readout .cell .v { font-size:22px; font-weight:600; margin-top:4px; }
+  .gm-readout .cell.hero { grid-column:1 / -1; text-align:center; padding-bottom:6px; border-bottom:1px solid var(--border-soft); }
+  .gm-readout .cell.hero .v { font-size:42px; line-height:1; font-weight:700; margin-top:6px; font-variant-numeric:tabular-nums; }
+  .gm-readout .cell:not(.hero) .v { font-size:18px; font-weight:600; margin-top:4px; font-variant-numeric:tabular-nums; }
+  .gm-readout .cell.foot { font-size:11px; color:var(--text-mute); }
+  .gm-readout .cell.foot .v { font-size:13px; font-weight:500; color:var(--text-dim); margin-top:2px; }
   .gm-readout .cell .v.good { color:var(--good-text); } .gm-readout .cell .v.warn { color:var(--warn-text); } .gm-readout .cell .v.bad { color:var(--bad-text); }
+
+  /* Modal actions — sticky bottom on mobile so Submit never scrolls away */
   .modal-actions { display:flex; gap:10px; margin-top:16px; justify-content:flex-end; flex-wrap:wrap; }
+  @media (max-width:700px) {
+    .modal-actions {
+      position:sticky; bottom:0;
+      margin:16px -18px 0; padding:12px 18px calc(12px + var(--safe-bot));
+      background:var(--panel); border-top:1px solid var(--border-soft);
+    }
+    .modal-actions .btn { flex:1; min-height:48px; font-size:15px; }
+  }
+
+  /* Tap-chip grid — used for Service, Reason, Why-callback */
+  .chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .chip-opt {
+    background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    padding:9px 12px; border-radius:8px; font-size:13px; font-weight:500;
+    font-family:inherit; cursor:pointer; line-height:1.2; min-height:38px;
+    display:inline-flex; align-items:center;
+  }
+  .chip-opt:hover { border-color:var(--primary); color:var(--primary); }
+  .chip-opt.sel { background:var(--primary); border-color:var(--primary); color:#001018; font-weight:700; }
+  .chip-opt.compact { padding:6px 10px; min-height:32px; font-size:12px; }
+
+  /* "+ Add" optional-field toggles */
+  .opt-toggle {
+    background:transparent; border:1px dashed var(--border); color:var(--primary);
+    padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;
+    font-family:inherit; display:inline-flex; align-items:center; gap:4px;
+    margin-top:8px;
+  }
+  .opt-toggle:hover { border-color:var(--primary); background:var(--row-sel); }
+  .opt-toggle .ico { font-size:14px; line-height:1; }
+  .opt-field[hidden] { display:none; }
+  .opt-field { animation: optFade .2s ease; }
+  @keyframes optFade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+  /* Chunky callback-date picker (hero of the Callback form) */
+  .cb-date-hero { padding:14px; background:var(--panel-2); border:1px solid var(--border); border-radius:10px; margin-bottom:8px; }
+  .cb-date-hero label { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--text-mute); display:block; margin-bottom:8px; }
+  .cb-date-hero input[type="date"] {
+    width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text);
+    padding:14px 16px; border-radius:8px; font-size:18px; font-weight:600; font-family:inherit;
+    min-height:52px;
+  }
+  .cb-date-hero .cb-time-row { display:flex; gap:8px; margin-top:10px; align-items:center; }
+  .cb-date-hero .cb-time-row label { margin:0; min-width:48px; }
+  .cb-date-hero .cb-time-row input[type="time"] {
+    flex:1; background:var(--panel); border:1px solid var(--border); color:var(--text);
+    padding:10px 12px; border-radius:8px; font-size:15px; font-family:inherit; min-height:44px;
+  }
+
+  /* Field labels above chip rows */
+  .chip-label { display:block; font-size:12px; font-weight:600; color:var(--text); margin-bottom:6px; margin-top:4px; }
+  .chip-label.req::after { content:' *'; color:var(--primary); }
 
   .foot-note { margin-top:24px; font-size:11px; color:var(--text-mute); border-top:1px dashed var(--border-soft); padding-top:12px; line-height:1.55; }
 
@@ -403,10 +466,11 @@
   body.role-rep #queueFilterBar .filtergrid { display:none; }
   /* Rep only sees Today/Yesterday pills; hide rollup pills */
   body.role-rep #tfPills .pill-rollup { display:none; }
-  /* Production: rep doesn't see persona switcher (it's a demo affordance for everyone else) */
-  body.role-rep .persona-block,
-  body.role-rep #personaMobile,
-  body.role-rep .persona-label { display:none; }
+  /* Production: rep doesn't see persona switcher (it's a demo affordance for everyone else).
+     Demo Mode keeps it visible so demo flow can switch back out of rep. */
+  body.role-rep:not(.demo-mode) .persona-block,
+  body.role-rep:not(.demo-mode) #personaMobile,
+  body.role-rep:not(.demo-mode) .persona-label { display:none; }
 
   /* Clickable KPI tiles */
   .tile.tile-click { cursor: pointer; transition: transform .08s ease, border-color .15s ease, background .15s ease; }
@@ -1049,19 +1113,21 @@
         <div class="entry-grid">
           <div class="field req"><label>Sold Price</label><div class="money-input"><input id="s-price" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
           <div class="field req"><label>Job Cost (all-in)</label><div class="money-input"><input id="s-cogs" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div><div class="hint">materials + labor + subs + permits + dump fees + financing fees</div></div>
-          <div class="field"><label>Discount $</label><div class="money-input"><input id="s-disc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
+          <div class="field full">
+            <label class="chip-label req">Service Offering</label>
+            <div class="chip-row" id="s-service-chips" role="radiogroup" aria-label="Service offering"></div>
+            <select id="s-service" hidden></select>
+          </div>
           <div class="field"><label>Financing</label><select id="s-fin" onchange="recalcSold()">
             <option value="cash">Cash / Check</option><option value="ccard">Credit Card</option>
             <option value="fin0">Promo 0% (dealer fee)</option><option value="fin12">12 mo SAC</option><option value="finLT">Long-Term Fixed</option>
           </select></div>
-          <div class="field"><label>Service Offering</label><select id="s-service"></select></div>
           <div class="field"><label>Customer Type</label><select id="s-ctype"></select></div>
-          <div class="field full"><label>Notes</label><input id="s-notes" type="text" placeholder="optional" /></div>
         </div>
-        <div class="gm-readout">
-          <div class="cell"><div class="k">Net Sold $</div><div class="v" id="s-net">$0</div></div>
+        <div class="gm-readout" id="s-readout">
+          <div class="cell hero"><div class="k">Sold GM %</div><div class="v" id="s-gm%">0.0%</div></div>
           <div class="cell"><div class="k">Sold GM $</div><div class="v" id="s-gm$">$0</div></div>
-          <div class="cell"><div class="k">Sold GM %</div><div class="v" id="s-gm%">0.0%</div></div>
+          <div class="cell foot"><div class="k">Net Sold</div><div class="v" id="s-net">$0</div></div>
         </div>
         <div class="gm-bench" id="s-bench" hidden>
           <span class="bench-anchor">AOP plan: <strong>42.5%</strong></span>
@@ -1071,36 +1137,55 @@
           <div class="k">Services in this sale</div>
           <div class="chips" id="multiChips"></div>
         </div>
+        <button type="button" class="opt-toggle" id="s-add-service" onclick="addAnotherService()" hidden>
+          <span class="ico">+</span> Save &amp; add another service to this sale
+        </button>
+        <button type="button" class="opt-toggle" data-toggle="s-disc-field" aria-expanded="false">
+          <span class="ico">+</span> Add discount
+        </button>
+        <div class="opt-field" id="s-disc-field" hidden>
+          <div class="field"><label>Discount $</label><div class="money-input"><input id="s-disc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
+        </div>
+        <button type="button" class="opt-toggle" data-toggle="s-notes-field" aria-expanded="false">
+          <span class="ico">+</span> Add notes
+        </button>
+        <div class="opt-field" id="s-notes-field" hidden>
+          <div class="field"><label>Notes</label><input id="s-notes" type="text" placeholder="What does the production team need to know?" /></div>
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
-          <button type="button" class="btn" id="addAnotherServiceBtn" onclick="addAnotherService()">+ Save &amp; add another service</button>
           <button type="submit" class="btn good">Submit Sale</button>
         </div>
-        <div class="hint" style="text-align:center;margin-top:6px;">Each service = a separate job in the CRM.</div>
       </form>
 
       <!-- NOT SOLD branch -->
       <form id="nosaleForm" style="display:none;" onsubmit="return submitNoSale(event)">
-        <div class="entry-grid">
-          <div class="field req full"><label>Reason</label>
-            <select id="n-reason">
-              <option value="">Select a reason…</option>
-              <option>Price / Budget</option>
-              <option>Timing / Not Ready</option>
-              <option>Spouse / Decision Maker Not Present</option>
-              <option>Competitor Quote</option>
-              <option>Scope Mismatch</option>
-              <option>Financing Declined</option>
-              <option>Not Qualified (Ownership / Credit)</option>
-              <option>Insurance / Storm Adjuster Pending</option>
-              <option>Other</option>
-            </select>
+        <div class="field">
+          <label class="chip-label req">Reason</label>
+          <div class="chip-row" id="n-reason-chips" role="radiogroup" aria-label="Not-sold reason">
+            <button type="button" class="chip-opt" data-val="Price / Budget">Price / Budget</button>
+            <button type="button" class="chip-opt" data-val="Timing / Not Ready">Timing</button>
+            <button type="button" class="chip-opt" data-val="Spouse / Decision Maker Not Present">Spouse / DM not present</button>
+            <button type="button" class="chip-opt" data-val="Competitor Quote">Competitor Quote</button>
+            <button type="button" class="chip-opt" data-val="Scope Mismatch">Scope Mismatch</button>
+            <button type="button" class="chip-opt" data-val="Financing Declined">Financing Declined</button>
+            <button type="button" class="chip-opt" data-val="Not Qualified (Ownership / Credit)">Not Qualified</button>
+            <button type="button" class="chip-opt" data-val="Insurance / Storm Adjuster Pending">Insurance Pending</button>
+            <button type="button" class="chip-opt" data-val="Other">Other</button>
           </div>
+          <input type="hidden" id="n-reason" />
+        </div>
+        <div class="entry-grid" style="margin-top:14px;">
           <div class="field"><label>Competitor</label><input id="n-comp" type="text" placeholder="If applicable" /></div>
           <div class="field"><label>Their Price $</label><div class="money-input"><input id="n-compprice" type="number" inputmode="decimal" placeholder="0.00" /></div></div>
           <div class="field"><label>Revisit Likely?</label><select id="n-revisit"><option value="">—</option><option>Yes — warm</option><option>Maybe</option><option>No</option></select></div>
           <div class="field"><label>Follow-up Date</label><input id="n-followup" type="date" /></div>
-          <div class="field full"><label>Notes</label><input id="n-notes" type="text" placeholder="What killed the deal? What would win it?" /></div>
+        </div>
+        <button type="button" class="opt-toggle" data-toggle="n-notes-field" aria-expanded="false">
+          <span class="ico">+</span> Add notes
+        </button>
+        <div class="opt-field" id="n-notes-field" hidden>
+          <div class="field"><label>Notes</label><input id="n-notes" type="text" placeholder="What killed the deal? What would win it?" /></div>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
@@ -1110,19 +1195,30 @@
 
       <!-- CALLBACK branch -->
       <form id="callbackForm" style="display:none;" onsubmit="return submitCallback(event)">
-        <div class="entry-grid">
-          <div class="field req"><label>Callback Date</label><input id="c-date" type="date" /></div>
-          <div class="field"><label>Time</label><input id="c-time" type="time" /></div>
-          <div class="field full"><label>Why callback?</label>
-            <select id="c-reason">
-              <option>Other Decision Maker Required</option>
-              <option>Need More Info / Measurements</option>
-              <option>Financing Pending</option>
-              <option>Comparing Quotes</option>
-              <option>Other</option>
-            </select>
+        <div class="cb-date-hero">
+          <label for="c-date">When?</label>
+          <input id="c-date" type="date" required />
+          <div class="cb-time-row">
+            <label for="c-time">Time</label>
+            <input id="c-time" type="time" />
           </div>
-          <div class="field full"><label>Notes</label><input id="c-notes" type="text" placeholder="What do they need to decide?" /></div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label class="chip-label">Why callback?</label>
+          <div class="chip-row" id="c-reason-chips" role="radiogroup" aria-label="Callback reason">
+            <button type="button" class="chip-opt" data-val="Other Decision Maker Required">Other DM</button>
+            <button type="button" class="chip-opt" data-val="Need More Info / Measurements">Need info</button>
+            <button type="button" class="chip-opt" data-val="Financing Pending">Financing</button>
+            <button type="button" class="chip-opt" data-val="Comparing Quotes">Comparing quotes</button>
+            <button type="button" class="chip-opt" data-val="Other">Other</button>
+          </div>
+          <input type="hidden" id="c-reason" />
+        </div>
+        <button type="button" class="opt-toggle" data-toggle="c-notes-field" aria-expanded="false">
+          <span class="ico">+</span> Add notes
+        </button>
+        <div class="opt-field" id="c-notes-field" hidden>
+          <div class="field"><label>Notes</label><input id="c-notes" type="text" placeholder="What do they need to decide?" /></div>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
@@ -1132,18 +1228,23 @@
 
       <!-- NO SHOW branch -->
       <form id="noshowForm" style="display:none;" onsubmit="return submitNoShow(event)">
-        <div class="entry-grid">
-          <div class="field full req"><label>Reason</label>
-            <select id="ns-reason">
-              <option>No Show — customer not home</option>
-              <option>One-Legger (only one decision maker)</option>
-              <option>Canceled by Customer</option>
-              <option>Canceled by Office</option>
-              <option>Unqualified / Pre-Canceled</option>
-              <option>Other</option>
-            </select>
+        <div class="field">
+          <label class="chip-label req">Reason</label>
+          <div class="chip-row" id="ns-reason-chips" role="radiogroup" aria-label="No-show reason">
+            <button type="button" class="chip-opt" data-val="No Show — customer not home">Customer not home</button>
+            <button type="button" class="chip-opt" data-val="One-Legger (only one decision maker)">One-legger</button>
+            <button type="button" class="chip-opt" data-val="Canceled by Customer">Canceled by customer</button>
+            <button type="button" class="chip-opt" data-val="Canceled by Office">Canceled by office</button>
+            <button type="button" class="chip-opt" data-val="Unqualified / Pre-Canceled">Unqualified</button>
+            <button type="button" class="chip-opt" data-val="Other">Other</button>
           </div>
-          <div class="field full"><label>Notes</label><input id="ns-notes" type="text" placeholder="Details" /></div>
+          <input type="hidden" id="ns-reason" />
+        </div>
+        <button type="button" class="opt-toggle" data-toggle="ns-notes-field" aria-expanded="false">
+          <span class="ico">+</span> Add notes
+        </button>
+        <div class="opt-field" id="ns-notes-field" hidden>
+          <div class="field"><label>Notes</label><input id="ns-notes" type="text" placeholder="Details" /></div>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn ghost" onclick="closeDispo()">Cancel</button>
@@ -1233,6 +1334,20 @@ const APPTS = makeAppts();
 /* Finance fees */
 const FIN_RATES = { cash:0, ccard:.025, fin0:.08, fin12:.03, finLT:.07 };
 
+/* Brand → primary service (for sensible defaults on the Sold form).
+   In production this comes from a brand-services dim table. */
+const BRAND_PRIMARY_SERVICE = {
+  "Altec Roofing":"Roofing","American Home Contractors":"Roofing","Carpenter's Roofing & Sheet Metal":"Roofing",
+  "Cochran Exteriors":"Siding","Couto Construction":"Roofing","D'Angelo and Sons":"Roofing",
+  "Exterior Heroes":"Siding","Exterior Medics":"Roofing","Franzoso Contracting":"Roofing",
+  "G. Fedale":"Roofing","GF Sprague":"Roofing","Henderson Roofing":"Roofing",
+  "High Point Roofing":"Roofing","Infinity Exteriors":"Roofing","Interstate Roofing":"Roofing",
+  "Overhead Solutions":"Repairs","Parkhill Roofing":"Roofing","Premier Roofing":"Roofing",
+  "Resnick Roofing":"Roofing","Skywalker Roofing":"Roofing","Specialty Home":"Roofing",
+  "Valentine Roofing":"Roofing","Watkins Construction":"Roofing","Werner":"Roofing","Wheatland Roofing":"Roofing"
+};
+function primaryServiceFor(brand) { return BRAND_PRIMARY_SERVICE[brand] || 'Roofing'; }
+
 /* ============================================================
    STATE
    ============================================================ */
@@ -1305,6 +1420,9 @@ let chosenDispo = null;
    INIT
    ============================================================ */
 function init() {
+  // Demo Mode is always on in this prototype — production toggles it off so
+  // the persona switcher hides for reps. See CSS rule body.role-rep:not(.demo-mode).
+  document.body.classList.add('demo-mode');
   // Seed demo data on first load, then replay persisted submissions
   seedDemoSubs();
   replayStatus();
@@ -1362,9 +1480,14 @@ function init() {
   document.getElementById('closeDispo').addEventListener('click', closeDispo);
   document.getElementById('dispoScrim').addEventListener('click', e => { if (e.target.id==='dispoScrim') closeDispo(); });
 
-  // Service/customer selects in sold form
+  // Sold form — render service chips + customer-type select. Hidden select
+  // backs the chip row (so existing code that reads s-service.value still works).
   fillSelect(document.getElementById('s-service'), SERVICES);
+  document.getElementById('s-service-chips').innerHTML =
+    SERVICES.map(s => `<button type="button" class="chip-opt" data-val="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('');
   fillSelect(document.getElementById('s-ctype'), CUSTOMER_TYPES);
+  bindChipRows();
+  bindOptToggles();
 
   // Manual entry
   document.getElementById('newManualBtn').addEventListener('click', () => openDispo(null));
@@ -2117,9 +2240,19 @@ function openDispo(appt) {
   document.getElementById('dispoSub').innerHTML = appt
     ? `<strong>${escapeHtml(appt.customer)}</strong> · ${escapeHtml(appt.brand)} · ${escapeHtml(appt.market)} · ${escapeHtml(appt.rep)} · ${appt.time} · <span style="color:var(--text-mute)">Appt ${appt.id}</span>`
     : 'No CRM appointment linked — walk-in or offline capture.';
-  [...document.querySelectorAll('.dispo-opt')].forEach(el => el.classList.remove('sel','sold','nosale','callback','noshow'));
+  [...document.querySelectorAll('.dispo-opt')].forEach(el => { el.classList.remove('sel','sold','nosale','callback','noshow'); el.setAttribute('aria-checked','false'); });
   ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
-  ['s-price','s-cogs','s-disc','s-notes','n-comp','n-compprice','n-notes','n-followup','c-notes','ns-notes'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  ['s-price','s-cogs','s-disc','s-notes','n-comp','n-compprice','n-notes','n-followup','c-notes','ns-notes','n-reason','c-reason','ns-reason'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  // Reset chip selections + opt-field visibility
+  document.querySelectorAll('.chip-row .chip-opt').forEach(c => c.classList.remove('sel'));
+  document.querySelectorAll('.opt-field').forEach(f => f.hidden = true);
+  document.querySelectorAll('.opt-toggle[data-toggle]').forEach(b => { b.hidden = false; b.setAttribute('aria-expanded','false'); });
+  // Hide the multi-service "Add another" button until a service is picked
+  const addAnotherBtn = document.getElementById('s-add-service');
+  if (addAnotherBtn) addAnotherBtn.hidden = true;
+  // Default Customer Type to Residential
+  const ctype = document.getElementById('s-ctype');
+  if (ctype) ctype.value = 'Residential';
   // Reset GM bench
   const bench = document.getElementById('s-bench');
   if (bench) { bench.hidden = true; bench.classList.remove('tier-green','tier-yellow','tier-red'); }
@@ -2130,6 +2263,51 @@ function openDispo(appt) {
     if (first) first.focus();
   }, 0);
 }
+
+/* Generic chip picker — sets the hidden input's value, marks visual state */
+function pickChip(rowEl, val) {
+  [...rowEl.querySelectorAll('.chip-opt')].forEach(c => {
+    const sel = c.dataset.val === val;
+    c.classList.toggle('sel', sel);
+    c.setAttribute('aria-checked', sel ? 'true' : 'false');
+  });
+  // Find sibling hidden input or referenced source-of-truth input
+  const targetId = rowEl.id.replace(/-chips$/, '');
+  const t = document.getElementById(targetId);
+  if (t) t.value = val;
+}
+
+/* Toggle handler for "+ Add discount/notes" links */
+function bindOptToggles() {
+  document.querySelectorAll('.opt-toggle[data-toggle]').forEach(btn => {
+    if (btn._bound) return; btn._bound = true;
+    btn.addEventListener('click', () => {
+      const f = document.getElementById(btn.dataset.toggle);
+      if (!f) return;
+      f.hidden = false;
+      btn.hidden = true;  // collapse the toggle once expanded
+      btn.setAttribute('aria-expanded','true');
+      const inp = f.querySelector('input,select,textarea');
+      if (inp) inp.focus();
+    });
+  });
+}
+
+/* Bind chip rows: click → pickChip; for service chips also surface the
+   "Add another" button and trigger recalc/storage */
+function bindChipRows() {
+  document.querySelectorAll('.chip-row').forEach(row => {
+    if (row._bound) return; row._bound = true;
+    row.addEventListener('click', e => {
+      const c = e.target.closest('.chip-opt'); if (!c) return;
+      pickChip(row, c.dataset.val);
+      if (row.id === 's-service-chips') {
+        const addBtn = document.getElementById('s-add-service');
+        if (addBtn) addBtn.hidden = false;
+      }
+    });
+  });
+}
 function closeDispo() {
   document.getElementById('dispoScrim').classList.remove('show');
   selectedAppt = null; chosenDispo = null;
@@ -2139,7 +2317,6 @@ function pickDispo(d) {
   chosenDispo = d;
   [...document.querySelectorAll('.dispo-opt')].forEach(el => {
     const sel = el.dataset.d === d;
-    // Clear all state classes first so re-picking different outcomes doesn't stack
     el.classList.remove('sel','sold','nosale','callback','noshow');
     if (sel) el.classList.add('sel', d);
     el.setAttribute('aria-checked', sel ? 'true' : 'false');
@@ -2148,9 +2325,19 @@ function pickDispo(d) {
   const showId = { sold:'soldForm', nosale:'nosaleForm', callback:'callbackForm', noshow:'noshowForm' }[d];
   const form = document.getElementById(showId);
   form.style.display = 'block';
+  // Sold: preselect the brand's primary service chip so reps don't tap unless overriding
+  if (d === 'sold') {
+    const brand = selectedAppt?.brand
+      || (document.getElementById('f-brand')?.value)
+      || persona.scope.brand
+      || 'Infinity Exteriors';
+    const primary = primaryServiceFor(brand);
+    const row = document.getElementById('s-service-chips');
+    if (row) pickChip(row, primary);
+  }
   // Focus the first interactive element in the chosen branch
   setTimeout(() => {
-    const target = form.querySelector('input, select');
+    const target = form.querySelector('input:not([type="hidden"]), select:not([hidden])');
     if (target) target.focus();
   }, 0);
 }
@@ -2450,17 +2637,25 @@ function buildSoldPayload() {
 function addAnotherService() {
   const price = +document.getElementById('s-price').value || 0;
   const cogs = +document.getElementById('s-cogs').value || 0;
-  if (!price || !cogs) { alert('Enter Sold Price and Sold COGS for this service before adding another.'); return; }
+  const svc = document.getElementById('s-service').value;
+  if (!price || !cogs) { toast('Enter Sold Price and Job Cost first.'); return; }
+  if (!svc) { toast('Pick a service first.'); return; }
   multiBuffer.push(buildSoldPayload());
   renderMultiStrip();
   resetSoldFields();
-  toast(`Service ${multiBuffer.length} saved. Enter the next service.`);
+  // Reset service chip so the rep picks the next one explicitly
+  document.querySelectorAll('#s-service-chips .chip-opt').forEach(c => c.classList.remove('sel'));
+  document.getElementById('s-service').value = '';
+  document.getElementById('s-add-service').hidden = true;
+  toast(`Service ${multiBuffer.length} saved · pick the next service.`);
 }
 function submitSold(e) {
   e.preventDefault();
   const price = +document.getElementById('s-price').value || 0;
   const cogs = +document.getElementById('s-cogs').value || 0;
-  if (!price || !cogs) { alert('Enter Sold Price and Job Cost.'); return false; }
+  const svc = document.getElementById('s-service').value;
+  if (!price || !cogs) { toast('Enter Sold Price and Job Cost.'); return false; }
+  if (!svc) { toast('Pick a service.'); return false; }
   const services = [...multiBuffer, buildSoldPayload()];
   const groupId = 'GRP-' + Date.now().toString(36).toUpperCase();
   const priorStatus = selectedAppt ? selectedAppt.status : null;
@@ -2516,7 +2711,7 @@ function showSoldSuccess(rec, services) {
 function submitNoSale(e) {
   e.preventDefault();
   const reason = document.getElementById('n-reason').value;
-  if (!reason) { alert('Pick a reason.'); return false; }
+  if (!reason) { toast('Pick a reason.'); return false; }
   const rec = commonRec('nosale', {
     reason, competitor: document.getElementById('n-comp').value,
     competitorPrice: +document.getElementById('n-compprice').value || null,
@@ -2541,8 +2736,10 @@ function submitCallback(e) {
 }
 function submitNoShow(e) {
   e.preventDefault();
+  const reason = document.getElementById('ns-reason').value;
+  if (!reason) { toast('Pick a reason.'); return false; }
   const rec = commonRec('noshow', {
-    reason: document.getElementById('ns-reason').value,
+    reason,
     notes: document.getElementById('ns-notes').value,
   });
   commit(rec, 'noshow');
