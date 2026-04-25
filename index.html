@@ -208,7 +208,7 @@
   .close-x:hover { color:var(--text); }
 
   .dispo-picker { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:16px; }
-  .dispo-opt { padding:14px 10px; border:1px solid var(--border); border-radius:9px; background:var(--panel-2); cursor:pointer; text-align:center; color:var(--text-dim); font-weight:600; font-size:13px; }
+  .dispo-opt { padding:14px 10px; border:1px solid var(--border); border-radius:9px; background:var(--panel-2); cursor:pointer; text-align:center; color:var(--text-dim); font-weight:600; font-size:13px; font-family:inherit; line-height:1.2; width:100%; }
   .dispo-opt .emoji { font-size:20px; display:block; margin-bottom:4px; }
   .dispo-opt:hover { border-color:var(--primary); color:var(--text); }
   .dispo-opt.sel.sold { background:var(--good-soft); color:var(--good-text); border-color:var(--good); }
@@ -395,6 +395,145 @@
   @media (max-width:900px) { .tabs { display:flex; } }
   .tab { padding:7px 12px; border-radius:7px; background:var(--panel); border:1px solid var(--border); color:var(--text-dim); font-size:12px; white-space:nowrap; cursor:pointer; }
   .tab.active { background:var(--panel-2); color:var(--primary); border-color:var(--primary); }
+
+  /* Pill / button count badges */
+  .pill .count, .btn .count {
+    display:inline-block; margin-left:6px; padding:1px 6px; border-radius:8px;
+    background:rgba(255,255,255,.12); color:inherit; font-size:10px; font-weight:700;
+    font-variant-numeric:tabular-nums; min-width:16px; text-align:center;
+  }
+  .pill.active .count { background:rgba(0,16,24,.18); color:#001018; }
+  .btn .count { background:var(--chip); color:var(--text-dim); }
+  .btn.ghost-active .count { background:var(--primary); color:#001018; }
+  .btn.bad .count, .btn .count.bad { background:var(--bad); color:#fff; }
+
+  /* Stuck SLA tiers */
+  tr.row-stuck-warn td:first-child     { box-shadow: inset 3px 0 0 var(--warn); }
+  tr.row-stuck-bad td:first-child      { box-shadow: inset 3px 0 0 var(--bad); }
+  tr.row-stuck-critical td:first-child { box-shadow: inset 3px 0 0 var(--bad); animation: stuckPulse 1.6s ease-in-out infinite; }
+  .appt-card.stuck-warn     { border-left:3px solid var(--warn); }
+  .appt-card.stuck-bad      { border-left:3px solid var(--bad); }
+  .appt-card.stuck-critical { border-left:3px solid var(--bad); animation: stuckPulse 1.6s ease-in-out infinite; }
+  @keyframes stuckPulse {
+    0%,100% { box-shadow: inset 3px 0 0 var(--bad), 0 0 0 0 rgba(160,33,33,.0); }
+    50%     { box-shadow: inset 3px 0 0 var(--bad), 0 0 0 4px rgba(160,33,33,.18); }
+  }
+  .status-chip.stuck-warn     { background:var(--warn-soft);     color:var(--warn-text); }
+  .status-chip.stuck-bad      { background:var(--bad-soft);      color:var(--bad-text); }
+  .status-chip.stuck-critical { background:var(--bad-soft);      color:var(--bad-text); }
+  .stuck-banner.tier-warn     { background:var(--warn-soft); border-color:var(--warn); color:var(--warn-text); }
+  .stuck-banner.tier-bad      { background:var(--bad-soft);  border-color:var(--bad);  color:var(--bad-text); }
+  .stuck-banner.tier-critical { background:var(--bad-soft);  border-color:var(--bad);  color:var(--bad-text); animation: stuckPulse 1.6s ease-in-out infinite; }
+
+  /* GM benchmark anchor (Sold form) */
+  .gm-bench {
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin-top:10px; padding:10px 12px; border-radius:8px;
+    background:var(--panel-2); border:1px solid var(--border-soft); font-size:12px;
+  }
+  .gm-bench .bench-anchor { color:var(--text-dim); letter-spacing:.4px; }
+  .gm-bench .bench-anchor strong { color:var(--text); font-weight:700; }
+  .gm-bench .bench-msg { font-weight:600; flex:1; text-align:right; min-width:160px; }
+  .gm-bench.tier-green  { border-color:var(--good); }
+  .gm-bench.tier-green  .bench-msg { color:var(--good-text); }
+  .gm-bench.tier-yellow { border-color:var(--warn); }
+  .gm-bench.tier-yellow .bench-msg { color:var(--warn-text); }
+  .gm-bench.tier-red    { border-color:var(--bad); }
+  .gm-bench.tier-red    .bench-msg { color:var(--bad-text); }
+  .gm-bench[hidden] { display:none; }
+
+  /* Success-confirmation card (post-submit) */
+  .success-card {
+    position:fixed; right:24px; bottom:24px; z-index:32;
+    width:min(360px, calc(100vw - 28px));
+    background:var(--panel); border:1px solid var(--good); border-left:4px solid var(--good);
+    border-radius:10px; padding:14px 16px;
+    box-shadow:0 14px 40px rgba(0,0,0,.45);
+    display:none; gap:12px; align-items:flex-start;
+    animation: scSlide .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .success-card.show { display:flex; }
+  @keyframes scSlide { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .success-card.tier-yellow { border-color:var(--warn); border-left-color:var(--warn); }
+  .success-card.tier-red    { border-color:var(--bad);  border-left-color:var(--bad); }
+  .success-card.kind-info   { border-color:var(--primary); border-left-color:var(--primary); }
+  .success-card .sc-icon {
+    width:32px; height:32px; flex:0 0 32px; border-radius:50%;
+    display:grid; place-items:center; font-size:16px; font-weight:800;
+    background:var(--good-soft); color:var(--good-text);
+  }
+  .success-card.tier-yellow .sc-icon { background:var(--warn-soft); color:var(--warn-text); }
+  .success-card.tier-red    .sc-icon { background:var(--bad-soft);  color:var(--bad-text); }
+  .success-card.kind-info   .sc-icon { background:var(--callback-soft); color:var(--callback-text); }
+  .success-card .sc-body { flex:1; min-width:0; }
+  .success-card .sc-title { font-weight:700; font-size:14px; line-height:1.2; }
+  .success-card .sc-meta  { font-size:12px; color:var(--text-dim); margin-top:3px; }
+  .success-card .sc-foot  { font-size:11px; color:var(--text-mute); margin-top:6px; display:flex; align-items:center; gap:6px; }
+  .success-card .sc-foot .sc-status.posting::before { content:'○'; color:var(--warn-text); margin-right:4px; }
+  .success-card .sc-foot .sc-status.posted::before  { content:'●'; color:var(--good-text); margin-right:4px; }
+  .success-card .sc-close { background:transparent; border:none; color:var(--text-mute); cursor:pointer; font-size:16px; padding:0 4px; }
+  .success-card .sc-close:hover { color:var(--text); }
+  @media (max-width:700px) {
+    .success-card { right:12px; left:12px; bottom:calc(72px + var(--safe-bot)); width:auto; }
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align:center; padding:36px 18px; color:var(--text-dim);
+    background:var(--panel-2); border:1px dashed var(--border); border-radius:10px;
+  }
+  .empty-state .es-emoji { font-size:32px; line-height:1; margin-bottom:10px; }
+  .empty-state .es-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--text); margin-bottom:6px; }
+  .empty-state .es-sub   { font-size:13px; max-width:380px; margin:0 auto; }
+  .empty-state.win { border-color:var(--good); background:var(--good-soft); }
+  .empty-state.win .es-title { color:var(--good-text); }
+
+  /* Date-range popover */
+  .date-pop {
+    position:absolute; z-index:25; background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; padding:14px; box-shadow:0 12px 36px rgba(0,0,0,.4);
+    display:none; min-width:280px;
+  }
+  .date-pop.show { display:block; }
+  .date-pop .dp-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .date-pop .dp-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+  .date-pop label { font-size:11px; color:var(--text-mute); letter-spacing:.6px; text-transform:uppercase; display:block; margin-bottom:4px; }
+  .date-pop input[type="date"] {
+    width:100%; background:var(--panel-2); border:1px solid var(--border);
+    color:var(--text); padding:8px 10px; border-radius:6px; font-size:13px;
+  }
+
+  /* Sticky mobile CTA (rep-first) */
+  .sticky-cta {
+    display:none; position:fixed; left:12px; right:12px;
+    bottom:calc(12px + var(--safe-bot)); z-index:18;
+    padding:14px 18px; min-height:52px;
+    background:var(--primary); color:#001018; font-weight:700; font-size:15px;
+    border:none; border-radius:11px;
+    box-shadow:0 12px 28px rgba(0,0,0,.5);
+    align-items:center; justify-content:center; gap:8px;
+  }
+  .sticky-cta:active { transform:scale(.98); }
+  .sticky-cta .cta-meta { font-weight:500; opacity:.85; font-size:12px; margin-left:4px; }
+  @media (max-width:900px) {
+    body.role-rep .sticky-cta.has-next { display:flex; }
+    body.role-rep .main { padding-bottom:calc(96px + var(--safe-bot)); }
+  }
+
+  /* Keyboard-focused row */
+  tr.row-kbd {
+    background:var(--row-sel); outline:1px solid var(--primary); outline-offset:-1px;
+  }
+  /* Better focus rings (a11y) */
+  .btn:focus-visible, .pill:focus-visible, .navitem:focus-visible, .tab:focus-visible,
+  .dispo-opt:focus-visible, .theme-toggle:focus-visible,
+  .field select:focus-visible, .field input:focus-visible {
+    outline:2px solid var(--primary); outline-offset:2px;
+  }
+  .sr-only {
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
 </style>
 </head>
 <body>
@@ -440,8 +579,8 @@
       <div style="padding:8px;">
         <div class="persona-label">Persona (demo)</div>
         <select id="personaDesktop" class="persona-pick" style="width:100%;"></select>
-        <button class="theme-toggle" id="themeToggleDesktop" style="margin-top:8px;width:100%;justify-content:center;">
-          <span class="ico" id="themeIcoDesktop">☾</span>
+        <button class="theme-toggle" id="themeToggleDesktop" aria-label="Toggle theme" style="margin-top:8px;width:100%;justify-content:center;">
+          <span class="ico" id="themeIcoDesktop" aria-hidden="true">☾</span>
           <span id="themeLblDesktop">Dark</span>
         </button>
       </div>
@@ -489,14 +628,25 @@
       <!-- Filter bar -->
       <div class="filterbar" id="queueFilterBar">
         <div class="fblabel">Time Frame</div>
-        <div class="pills" id="tfPills">
-          <button class="pill active" data-tf="TODAY">Today</button>
-          <button class="pill" data-tf="YESTERDAY">Yesterday</button>
-          <button class="pill pill-rollup" data-tf="WTD">WTD</button>
-          <button class="pill pill-rollup" data-tf="LWK">LWK</button>
-          <button class="pill pill-rollup" data-tf="MTD">MTD</button>
-          <button class="pill pill-rollup" data-tf="QTD">QTD</button>
-          <button class="pill pill-rollup" data-tf="CUSTOM">Custom</button>
+        <div class="pills" id="tfPills" style="position:relative;">
+          <button class="pill active" data-tf="TODAY">Today<span class="count" data-count-tf="TODAY"></span></button>
+          <button class="pill" data-tf="YESTERDAY">Yesterday<span class="count" data-count-tf="YESTERDAY"></span></button>
+          <button class="pill pill-rollup" data-tf="WTD">WTD<span class="count" data-count-tf="WTD"></span></button>
+          <button class="pill pill-rollup" data-tf="LWK">LWK<span class="count" data-count-tf="LWK"></span></button>
+          <button class="pill pill-rollup" data-tf="MTD">MTD<span class="count" data-count-tf="MTD"></span></button>
+          <button class="pill pill-rollup" data-tf="QTD">QTD<span class="count" data-count-tf="QTD"></span></button>
+          <button class="pill pill-rollup" data-tf="CUSTOM" id="pillCustom">Custom<span class="count" data-count-tf="CUSTOM"></span></button>
+          <!-- Custom date popover -->
+          <div class="date-pop" id="datePop" role="dialog" aria-label="Custom date range">
+            <div class="dp-grid">
+              <div><label for="dpFrom">From</label><input type="date" id="dpFrom" /></div>
+              <div><label for="dpTo">To</label><input type="date" id="dpTo" /></div>
+            </div>
+            <div class="dp-actions">
+              <button type="button" class="btn ghost" id="dpCancel">Cancel</button>
+              <button type="button" class="btn primary" id="dpApply">Apply</button>
+            </div>
+          </div>
         </div>
         <div class="filtergrid">
           <div class="field"><label>Division</label><select id="f-division"></select></div>
@@ -508,8 +658,8 @@
       </div>
 
       <!-- Stuck banner -->
-      <div class="stuck-banner" id="stuckBanner" onclick="filterStuck()">
-        <span class="icon">⚠</span>
+      <div class="stuck-banner" id="stuckBanner" onclick="filterStuck()" role="button" tabindex="0" aria-label="Filter to stuck appointments" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterStuck();}">
+        <span class="icon" aria-hidden="true">⚠</span>
         <div class="lead">
           <span id="stuckBannerLead">0 appts stuck · production handoff delayed</span>
           <div class="sub" id="stuckBannerSub">Open &gt;2 hrs past appointment time. Production is waiting for a clean handoff.</div>
@@ -532,13 +682,13 @@
             <div class="cardsub" id="apptCountSub">—</div>
           </div>
           <div>
-            <button class="btn ghost" data-filter="open">Needs Disposition</button>
-            <button class="btn ghost" data-filter="stuck">Stuck <span id="stuckCount" class="stuck-count"></span></button>
-            <button class="btn ghost" data-filter="all">All</button>
+            <button class="btn ghost" data-filter="open">Needs Disposition<span class="count" id="cntOpen"></span></button>
+            <button class="btn ghost" data-filter="stuck">Stuck<span class="count" id="cntStuck"></span></button>
+            <button class="btn ghost" data-filter="all">All<span class="count" id="cntAll"></span></button>
           </div>
         </div>
         <div class="tablewrap queue-table-wrap">
-          <table class="hover">
+          <table class="hover" id="queueTable">
             <thead>
               <tr>
                 <th>Time</th>
@@ -554,6 +704,7 @@
           </table>
         </div>
         <div class="appt-cards" id="apptCards"></div>
+        <div id="queueEmpty"></div>
       </div>
     </section>
 
@@ -697,21 +848,38 @@
   </main>
 </div>
 
+<!-- Sticky mobile CTA (rep only, mobile only — see CSS) -->
+<button class="sticky-cta" id="stickyCta" type="button" aria-label="Disposition next open appointment">
+  <span class="cta-label">Disposition Next →</span>
+  <span class="cta-meta" id="stickyCtaMeta"></span>
+</button>
+
+<!-- Success-confirmation card (post-submit) -->
+<div class="success-card" id="successCard" role="status" aria-live="polite">
+  <div class="sc-icon" id="scIcon">✓</div>
+  <div class="sc-body">
+    <div class="sc-title" id="scTitle">Submitted</div>
+    <div class="sc-meta" id="scMeta"></div>
+    <div class="sc-foot"><span class="sc-status posting" id="scStatus">Posting to Margin IQ…</span></div>
+  </div>
+  <button class="sc-close" id="scClose" aria-label="Dismiss">×</button>
+</div>
+
 <!-- =============== DISPOSITION MODAL =============== -->
 <div class="scrim" id="dispoScrim">
   <div class="modal">
     <div class="modal-head">
       <h3 id="dispoTitle">Disposition Appointment</h3>
-      <button class="close-x" id="closeDispo">×</button>
+      <button class="close-x" id="closeDispo" aria-label="Close disposition modal">×</button>
     </div>
     <div class="modal-body">
       <div class="cardsub" id="dispoSub">—</div>
 
-      <div class="dispo-picker" id="dispoPicker">
-        <div class="dispo-opt" data-d="sold"><span class="emoji">✓</span>Sold</div>
-        <div class="dispo-opt" data-d="nosale"><span class="emoji">✕</span>Not Sold</div>
-        <div class="dispo-opt" data-d="callback"><span class="emoji">↻</span>Callback</div>
-        <div class="dispo-opt" data-d="noshow"><span class="emoji">∅</span>No Show</div>
+      <div class="dispo-picker" id="dispoPicker" role="radiogroup" aria-label="Disposition outcome">
+        <button type="button" class="dispo-opt" data-d="sold"     role="radio" aria-checked="false"><span class="emoji">✓</span>Sold <span class="sr-only">(press S)</span></button>
+        <button type="button" class="dispo-opt" data-d="nosale"   role="radio" aria-checked="false"><span class="emoji">✕</span>Not Sold <span class="sr-only">(press N)</span></button>
+        <button type="button" class="dispo-opt" data-d="callback" role="radio" aria-checked="false"><span class="emoji">↻</span>Callback <span class="sr-only">(press C)</span></button>
+        <button type="button" class="dispo-opt" data-d="noshow"   role="radio" aria-checked="false"><span class="emoji">∅</span>No Show <span class="sr-only">(press X)</span></button>
       </div>
 
       <!-- SOLD branch -->
@@ -732,6 +900,10 @@
           <div class="cell"><div class="k">Net Sold $</div><div class="v" id="s-net">$0</div></div>
           <div class="cell"><div class="k">Sold GM $</div><div class="v" id="s-gm$">$0</div></div>
           <div class="cell"><div class="k">Sold GM %</div><div class="v" id="s-gm%">0.0%</div></div>
+        </div>
+        <div class="gm-bench" id="s-bench" hidden>
+          <span class="bench-anchor">AOP plan: <strong>42.5%</strong></span>
+          <span class="bench-msg" id="s-bench-msg" aria-live="polite">—</span>
         </div>
         <div class="multi-strip" id="multiStrip" style="display:none;">
           <div class="k">Services in this sale</div>
@@ -910,20 +1082,38 @@ let queueFilter = 'all';
 let timeFrame = 'TODAY';
 let customRange = null; // {start:ts, end:ts}
 
-/* Stuck = open appointment whose scheduled time was more than 2 hrs ago.
+/* GM benchmarks anchored on enterprise AOP (42.5%).
+   Within 5pts of plan = caution; below = needs review. */
+const GM_AOP = 42.5;
+const GM_CAUTION_FLOOR = 37.5;
+function gmTier(pct) {
+  if (!isFinite(pct)) return { tier:'none', color:'var(--text-mute)', msg:'' };
+  if (pct >= GM_AOP)         return { tier:'green',  color:'var(--good-text)', msg:'At or above AOP plan.' };
+  if (pct >= GM_CAUTION_FLOOR) return { tier:'yellow', color:'var(--warn-text)', msg:'Below plan — confirm scope and pricing.' };
+  return { tier:'red',    color:'var(--bad-text)',  msg:'More than 5 pts under plan — needs sales-manager review.' };
+}
+
+/* Stuck SLA tiers — 90min warn / 2hr bad / 4hr critical.
    Demo "now" anchored at 3:00p so the wireframe always shows stuck rows. */
 const DEMO_NOW_MIN = 15 * 60; // 3:00p
+const STUCK_WARN_MIN = 90, STUCK_BAD_MIN = 120, STUCK_CRIT_MIN = 240;
 function parseApptMin(t) {
   const m = t.match(/^(\d{1,2}):(\d{2})(a|p)$/); if (!m) return null;
   let h = parseInt(m[1],10); const mm = parseInt(m[2],10);
   if (m[3]==='p' && h<12) h+=12; if (m[3]==='a' && h===12) h=0;
   return h*60 + mm;
 }
-function isStuck(a) {
-  if (a.status !== 'open') return false;
-  const t = parseApptMin(a.time); if (t == null) return false;
-  return (DEMO_NOW_MIN - t) > 120;
+function stuckTier(a) {
+  if (a.status !== 'open') return null;
+  const t = parseApptMin(a.time); if (t == null) return null;
+  const elapsed = DEMO_NOW_MIN - t;
+  if (elapsed >= STUCK_CRIT_MIN) return 'critical';
+  if (elapsed >= STUCK_BAD_MIN)  return 'bad';
+  if (elapsed >= STUCK_WARN_MIN) return 'warn';
+  return null;
 }
+function isStuck(a) { return stuckTier(a) !== null; }
+function stuckLabel(tier) { return { warn:'Slipping', bad:'Stuck', critical:'Critical' }[tier] || 'Stuck'; }
 
 /* Multi-service buffer — each service becomes its own submission record on commit */
 let multiBuffer = [];
@@ -1020,20 +1210,31 @@ function init() {
   // Pills (time frame) - actually filter
   [...document.querySelectorAll('.pill')].forEach(p => p.addEventListener('click', () => {
     const tf = p.dataset.tf;
-    if (tf === 'CUSTOM') {
-      const from = prompt('From date (YYYY-MM-DD):');
-      const to   = prompt('To date (YYYY-MM-DD):');
-      if (!from || !to) return;
-      const s = new Date(from+'T00:00:00').getTime();
-      const e = new Date(to+'T23:59:59').getTime();
-      if (!isFinite(s) || !isFinite(e) || s > e) { toast('Bad date range'); return; }
-      customRange = { start:s, end:e };
-    }
+    if (tf === 'CUSTOM') { openDatePopover(p); return; }
     timeFrame = tf;
     document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
     p.classList.add('active');
     renderAll();
   }));
+
+  // Custom date-range popover wiring
+  document.getElementById('dpCancel').addEventListener('click', closeDatePopover);
+  document.getElementById('dpApply').addEventListener('click', applyDatePopover);
+  document.addEventListener('click', (e) => {
+    const pop = document.getElementById('datePop');
+    if (!pop || !pop.classList.contains('show')) return;
+    if (pop.contains(e.target) || e.target.id === 'pillCustom' || e.target.closest('#pillCustom')) return;
+    closeDatePopover();
+  });
+
+  // Sticky mobile CTA
+  document.getElementById('stickyCta').addEventListener('click', goNextOpen);
+
+  // Success card close
+  document.getElementById('scClose').addEventListener('click', hideSuccessCard);
+
+  // Keyboard navigation: queue (j/k/Enter) + modal (S/N/C/X/Esc/Enter)
+  document.addEventListener('keydown', onGlobalKey);
 
   // Connectivity
   window.addEventListener('online', updateConn);
@@ -1223,7 +1424,7 @@ function renderQueue() {
     tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`, null, 'sold'),
     tile('Not Sold', String(m.nosale), m.appts ? (m.nosale/m.appts*100).toFixed(1)+'%' : '—', null, 'nosale'),
     tile('Callback', String(m.callback), m.appts ? (m.callback/m.appts*100).toFixed(1)+'%' : '—', null, 'callback'),
-    tile('Sold GM %', m.gmPct.toFixed(1)+'%', 'Target 42.5%', gmColor(m.gmPct), 'sold'),
+    tile('Sold GM %', m.gmPct.toFixed(1)+'%', `AOP plan ${GM_AOP}%`, gmColor(m.gmPct), 'sold'),
   ].join('');
   document.getElementById('kpiSectionTitle').textContent = `${persona.role} · Today`;
 
@@ -1236,9 +1437,11 @@ function renderQueue() {
   else if (queueFilter === 'nosale') list = appts.filter(a => a.status === 'nosale');
   else if (queueFilter === 'callback') list = appts.filter(a => a.status === 'callback');
   else list = appts;
+  const openTotal  = appts.filter(a => a.status === 'open').length;
   const stuckTotal = appts.filter(isStuck).length;
-  const stuckEl = document.getElementById('stuckCount');
-  if (stuckEl) { stuckEl.textContent = stuckTotal ? stuckTotal : ''; stuckEl.className = 'stuck-count' + (stuckTotal ? ' has' : ''); }
+  setCount('cntOpen',  openTotal);
+  setCount('cntStuck', stuckTotal, stuckTotal > 0 ? 'bad' : '');
+  setCount('cntAll',   appts.length);
   const headingEl = document.getElementById('queueHeading');
   if (headingEl) {
     headingEl.textContent =
@@ -1250,41 +1453,49 @@ function renderQueue() {
                                  'Jobs needing disposition';
   }
   const hint = queueFilter === 'stuck'
-    ? 'stuck = open >2 hrs past appt time'
+    ? 'warn ≥90 min · stuck ≥2 hr · critical ≥4 hr past appt'
     : queueFilter === 'open'
       ? 'tap "Disposition" to log the outcome'
       : 'tap a filter above to narrow the list';
   document.getElementById('apptCountSub').textContent = `${list.length} appt${list.length===1?'':'s'} · ${hint}`;
-  tbody.innerHTML = list.map(a => `
-    <tr${isStuck(a) ? ' class="row-stuck"' : ''}>
+  tbody.innerHTML = list.map(a => {
+    const tier = stuckTier(a);
+    const rowCls = tier ? ` class="row-stuck-${tier}"` : '';
+    const chipCls = tier ? `stuck-${tier}` : a.status;
+    const chipLbl = tier ? stuckLabel(tier) : labelStatus(a.status);
+    return `
+    <tr${rowCls} data-id="${a.id}">
       <td>${a.time}</td>
       <td><span class="brand-chip">${escapeHtml(a.brand)}</span></td>
       <td>${escapeHtml(a.customer)}</td>
       <td>${escapeHtml(a.market)}</td>
       <td><span class="rep-chip">${escapeHtml(a.rep)}</span></td>
-      <td><span class="status-chip ${isStuck(a) ? 'stuck' : a.status}">${isStuck(a) ? 'Stuck' : labelStatus(a.status)}</span></td>
+      <td><span class="status-chip ${chipCls}">${chipLbl}</span></td>
       <td style="text-align:right;">
         ${a.status==='open'
           ? (canDispo() ? `<button class="btn primary" data-id="${a.id}">Disposition</button>` : `<span class="status-chip open" style="opacity:.8">Open</span>`)
           : `<span class="status-chip ${a.status}" style="opacity:.8">${labelStatus(a.status)} ✓</span>`}
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
   // Mobile cards — parallel render
   const cards = document.getElementById('apptCards');
   if (cards) {
     cards.innerHTML = list.map(a => {
-      const stuck = isStuck(a);
+      const tier = stuckTier(a);
+      const cardCls = tier ? ` stuck-${tier}` : '';
+      const chipCls = tier ? `stuck-${tier}` : a.status;
+      const chipLbl = tier ? stuckLabel(tier) : labelStatus(a.status);
       return `
-        <div class="appt-card${stuck ? ' stuck' : ''}" data-id="${a.id}">
+        <div class="appt-card${cardCls}" data-id="${a.id}">
           <div>
             <div class="c-time">${a.time}</div>
             <div class="c-cust">${escapeHtml(a.customer)}</div>
             <div class="c-meta">${escapeHtml(a.brand)} · ${escapeHtml(a.market)} · ${escapeHtml(a.rep)}</div>
           </div>
           <div class="c-right">
-            <span class="status-chip ${stuck ? 'stuck' : a.status}">${stuck ? 'Stuck' : labelStatus(a.status)}</span>
+            <span class="status-chip ${chipCls}">${chipLbl}</span>
           </div>
           <div class="c-action">
             ${a.status==='open'
@@ -1300,21 +1511,120 @@ function renderQueue() {
   [...tbody.querySelectorAll('button[data-id]')].forEach(b =>
     b.addEventListener('click', e => { e.stopPropagation(); openDispo(APPTS.find(a => a.id === b.dataset.id)); }));
 
-  // Stuck banner
-  const banner = document.getElementById('stuckBanner');
-  if (banner) {
-    if (stuckTotal > 0) {
-      const stuckAppts = appts.filter(isStuck);
-      const names = stuckAppts.slice(0, 3).map(a => a.customer.split(',')[0]).join(', ');
-      banner.classList.add('show');
-      document.getElementById('stuckBannerLead').textContent =
-        `${stuckTotal} appt${stuckTotal===1?'':'s'} stuck · production handoff delayed`;
-      document.getElementById('stuckBannerSub').textContent =
-        `${names}${stuckAppts.length > 3 ? ' and others' : ''} — open >2 hrs past appointment time. Production is waiting for a clean handoff.`;
-    } else {
-      banner.classList.remove('show');
-    }
+  // Empty state — show when nothing matches the active filter
+  renderQueueEmpty(list, { openTotal, stuckTotal, total: appts.length });
+
+  // Stuck banner — tiered by worst severity
+  renderStuckBanner(appts);
+
+  // Sticky mobile CTA — rep gets a one-tap "next open"
+  renderStickyCta(appts);
+
+  // Keep keyboard selection in bounds
+  if (kbdIndex >= list.length) kbdIndex = -1;
+  applyKbdHighlight();
+
+  // Time-frame pill counts (use scope, ignore tf for the count itself by walking each window)
+  renderPillCounts();
+}
+
+function renderQueueEmpty(list, ctx) {
+  const slot = document.getElementById('queueEmpty');
+  const tableWrap = document.querySelector('.queue-table-wrap');
+  const cards = document.getElementById('apptCards');
+  if (!slot) return;
+  if (list.length > 0) { slot.innerHTML = ''; if (tableWrap) tableWrap.style.display=''; if (cards) cards.style.display=''; return; }
+  if (tableWrap) tableWrap.style.display = 'none';
+  if (cards) cards.style.display = 'none';
+  // Pick a contextual empty message
+  let html;
+  if (queueFilter === 'open' && ctx.total > 0 && ctx.openTotal === 0) {
+    html = `<div class="empty-state win">
+      <div class="es-emoji">🏁</div>
+      <div class="es-title">Queue clear — nice work.</div>
+      <div class="es-sub">Every appointment in scope has a disposition. Production has what it needs.</div>
+    </div>`;
+  } else if (queueFilter === 'stuck' && ctx.stuckTotal === 0) {
+    html = `<div class="empty-state win">
+      <div class="es-emoji">✓</div>
+      <div class="es-title">No stuck appointments.</div>
+      <div class="es-sub">All open appointments are within the 90-minute SLA window.</div>
+    </div>`;
+  } else if (ctx.total === 0) {
+    html = `<div class="empty-state">
+      <div class="es-emoji">◯</div>
+      <div class="es-title">No activity in scope yet.</div>
+      <div class="es-sub">Once appointments land in this brand/market for the selected time frame, they'll show here.</div>
+    </div>`;
+  } else {
+    html = `<div class="empty-state">
+      <div class="es-emoji">◐</div>
+      <div class="es-title">Nothing matches this filter.</div>
+      <div class="es-sub">Try <button class="btn ghost" type="button" onclick="setQueueFilter('all')">All</button> to see every appointment in scope.</div>
+    </div>`;
   }
+  slot.innerHTML = html;
+}
+
+function renderStuckBanner(appts) {
+  const banner = document.getElementById('stuckBanner');
+  if (!banner) return;
+  const stuckList = appts.filter(isStuck);
+  banner.classList.remove('tier-warn','tier-bad','tier-critical');
+  if (stuckList.length === 0) { banner.classList.remove('show'); return; }
+  const counts = { warn:0, bad:0, critical:0 };
+  stuckList.forEach(a => counts[stuckTier(a)]++);
+  const worst = counts.critical ? 'critical' : counts.bad ? 'bad' : 'warn';
+  const names = stuckList.slice(0,3).map(a => a.customer.split(',')[0]).join(', ');
+  const lead = worst === 'critical'
+    ? `${counts.critical} critical · production handoff stalled >4 hr`
+    : worst === 'bad'
+      ? `${stuckList.length} stuck · production handoff delayed`
+      : `${stuckList.length} slipping · approaching SLA`;
+  const sub = `${names}${stuckList.length > 3 ? ' and others' : ''} — ${counts.critical?counts.critical+' critical · ':''}${counts.bad?counts.bad+' stuck · ':''}${counts.warn?counts.warn+' slipping':''}. Production is waiting for a clean handoff.`;
+  document.getElementById('stuckBannerLead').textContent = lead;
+  document.getElementById('stuckBannerSub').textContent = sub;
+  banner.classList.add('show', 'tier-'+worst);
+}
+
+function renderStickyCta(appts) {
+  const cta = document.getElementById('stickyCta');
+  if (!cta) return;
+  if (persona.role !== 'Rep') { cta.classList.remove('has-next'); return; }
+  const next = appts.filter(a => a.status === 'open').sort((a,b) => (parseApptMin(a.time)||0) - (parseApptMin(b.time)||0))[0];
+  if (!next) { cta.classList.remove('has-next'); return; }
+  cta.dataset.id = next.id;
+  document.getElementById('stickyCtaMeta').textContent = `${next.time} · ${next.customer.split(',')[0]}`;
+  cta.classList.add('has-next');
+}
+
+function renderPillCounts() {
+  const savedTf = timeFrame, savedRange = customRange;
+  ['TODAY','YESTERDAY','WTD','LWK','MTD','QTD'].forEach(tf => {
+    timeFrame = tf;
+    const subs = scopedSubs();
+    const appts = tf === 'TODAY' ? scopedAppts() : virtualApptsFromSubs(subs);
+    const m = rollup(appts, subs);
+    const node = document.querySelector(`[data-count-tf="${tf}"]`);
+    if (node) node.textContent = m.appts || '';
+  });
+  // Custom: only show count if a range is set and currently active
+  const cust = document.querySelector('[data-count-tf="CUSTOM"]');
+  if (cust) cust.textContent = (savedTf === 'CUSTOM' && savedRange) ? '·' : '';
+  timeFrame = savedTf; customRange = savedRange;
+}
+
+function setCount(id, n, kind) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = n > 0 ? n : '';
+  el.className = 'count' + (kind ? ' '+kind : '');
+}
+
+function setQueueFilter(key) {
+  queueFilter = key;
+  [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === queueFilter));
+  renderQueue();
 }
 function filterStuck() {
   queueFilter = 'stuck';
@@ -1383,7 +1693,7 @@ function renderEnterprise() {
     tile('Not Sold', String(m.nosale), '', null, 'nosale'),
     tile('Callback', String(m.callback), '', null, 'callback'),
     tile('Sold $', fmt(m.sold$), m.sold?'Avg '+fmt(m.sold$/m.sold):'', null, 'sold'),
-    tile('Sold GM %', m.gmPct.toFixed(1)+'%', 'Target 42.5%', gmColor(m.gmPct), 'sold'),
+    tile('Sold GM %', m.gmPct.toFixed(1)+'%', `AOP plan ${GM_AOP}%`, gmColor(m.gmPct), 'sold'),
   ].join('');
 
   // By Brand (top 10)
@@ -1501,7 +1811,15 @@ function openDispo(appt) {
   [...document.querySelectorAll('.dispo-opt')].forEach(el => el.classList.remove('sel','sold','nosale','callback','noshow'));
   ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
   ['s-price','s-cogs','s-disc','s-notes','n-comp','n-compprice','n-notes','n-followup','c-notes','ns-notes'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  // Reset GM bench
+  const bench = document.getElementById('s-bench');
+  if (bench) { bench.hidden = true; bench.classList.remove('tier-green','tier-yellow','tier-red'); }
   recalcSold();
+  // Focus the first dispo option for keyboard users
+  setTimeout(() => {
+    const first = document.querySelector('.dispo-opt');
+    if (first) first.focus();
+  }, 0);
 }
 function closeDispo() {
   document.getElementById('dispoScrim').classList.remove('show');
@@ -1511,12 +1829,21 @@ function closeDispo() {
 function pickDispo(d) {
   chosenDispo = d;
   [...document.querySelectorAll('.dispo-opt')].forEach(el => {
-    el.classList.toggle('sel', el.dataset.d === d);
-    el.classList.toggle(d, el.dataset.d === d);
+    const sel = el.dataset.d === d;
+    // Clear all state classes first so re-picking different outcomes doesn't stack
+    el.classList.remove('sel','sold','nosale','callback','noshow');
+    if (sel) el.classList.add('sel', d);
+    el.setAttribute('aria-checked', sel ? 'true' : 'false');
   });
   ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
   const showId = { sold:'soldForm', nosale:'nosaleForm', callback:'callbackForm', noshow:'noshowForm' }[d];
-  document.getElementById(showId).style.display = 'block';
+  const form = document.getElementById(showId);
+  form.style.display = 'block';
+  // Focus the first interactive element in the chosen branch
+  setTimeout(() => {
+    const target = form.querySelector('input, select');
+    if (target) target.focus();
+  }, 0);
 }
 function recalcSold() {
   const price = +document.getElementById('s-price').value || 0;
@@ -1532,13 +1859,23 @@ function recalcSold() {
   const gmPctEl = document.getElementById('s-gm%');
   gmDollarEl.textContent = fmt(gm$);
   gmPctEl.textContent = gmPct.toFixed(1)+'%';
-  const c = gmPct>=42?'good':gmPct>=35?'warn':'bad';
-  gmDollarEl.className = 'v '+c;
-  gmPctEl.className = 'v '+c;
-  // Progressive disclosure — only show readout when both price AND cogs entered
+  const t = gmTier(gmPct);
+  const cls = t.tier === 'green' ? 'good' : t.tier === 'yellow' ? 'warn' : t.tier === 'red' ? 'bad' : '';
+  gmDollarEl.className = 'v '+cls;
+  gmPctEl.className = 'v '+cls;
+  // Progressive disclosure — only show readout + bench when both price AND cogs entered
+  const ready = price > 0 && cogs > 0;
   const readout = document.querySelector('#soldForm .gm-readout');
-  if (readout) readout.style.display = (price > 0 && cogs > 0) ? 'grid' : 'none';
-  return { price, cogs, disc, fin, net, feeCost, gm$, gmPct };
+  if (readout) readout.style.display = ready ? 'grid' : 'none';
+  const bench = document.getElementById('s-bench');
+  const benchMsg = document.getElementById('s-bench-msg');
+  if (bench && benchMsg) {
+    bench.hidden = !ready;
+    bench.classList.remove('tier-green','tier-yellow','tier-red');
+    if (ready && t.tier !== 'none') bench.classList.add('tier-'+t.tier);
+    benchMsg.textContent = ready ? t.msg : '';
+  }
+  return { price, cogs, disc, fin, net, feeCost, gm$, gmPct, gmTierName: t.tier };
 }
 
 function replayStatus() {
@@ -1833,20 +2170,30 @@ function submitSold(e) {
     renderAll();
     const firstTile = document.querySelector('#kpiGrid .tile');
     if (firstTile) { firstTile.classList.add('kpi-pulse'); setTimeout(() => firstTile.classList.remove('kpi-pulse'), 900); }
-    toast(services.length > 1
-      ? `Sold · ${services.length} linked jobs · Posting to Production…`
-      : `Sold · ${fmt(firstRec.net)} · ${firstRec.gmPct.toFixed(1)}% GM · Posting to Production…`);
-    setTimeout(() => {
-      toast(services.length > 1
-        ? `✓ Posted to Production · ${services.length} jobs queued`
-        : `✓ Posted to Production · job queued for scheduling`);
-    }, 1300);
+    showSoldSuccess(firstRec, services);
   };
 
   if (row) { row.classList.add('row-submitting'); setTimeout(finish, 420); }
   else if (card) { card.classList.add('row-submitting'); setTimeout(finish, 420); }
   else { finish(); }
   return false;
+}
+function showSoldSuccess(rec, services) {
+  const cust = rec.customer || 'Walk-in';
+  if (services.length > 1) {
+    showSuccessCard({
+      title: `Booked · ${cust}`,
+      meta: `${services.length} linked jobs · ${fmt(services.reduce((a,s)=>a+(s.net||0),0))} total`,
+      tier: 'green',
+    });
+  } else {
+    const t = gmTier(rec.gmPct);
+    showSuccessCard({
+      title: `Booked · ${cust}`,
+      meta: `${fmt(rec.net)} net · ${rec.gmPct.toFixed(1)}% GM · ${rec.service || 'Sale'}`,
+      tier: t.tier,
+    });
+  }
 }
 function submitNoSale(e) {
   e.preventDefault();
@@ -1914,21 +2261,157 @@ function commit(rec, status) {
     // Pulse first KPI tile
     const firstTile = document.querySelector('#kpiGrid .tile');
     if (firstTile) { firstTile.classList.add('kpi-pulse'); setTimeout(() => firstTile.classList.remove('kpi-pulse'), 900); }
-    const msg = status === 'sold'
-      ? `Sold · ${fmt(rec.net)} · ${rec.gmPct.toFixed(1)}% GM · Posting to Production…`
-      : `${labelStatus(status)} · ${rec.customer} · Posting to Production…`;
-    toast(msg);
-    // Handoff chip moment — 1.2s later, flip to "Posted"
-    setTimeout(() => {
-      toast(status === 'sold'
-        ? `✓ Posted to Production · job queued for scheduling`
-        : `✓ Posted to Production · ${labelStatus(status)}`);
-    }, 1300);
+    const titles = { nosale:'Logged · Not Sold', callback:'Scheduled · Callback', noshow:'Logged · No Show' };
+    const meta = status === 'callback' && rec.callbackDate
+      ? `${rec.customer} · ${rec.callbackDate}${rec.callbackTime ? ' · '+rec.callbackTime : ''}`
+      : `${rec.customer} · ${rec.reason || ''}`.trim();
+    showSuccessCard({ title: titles[status] || labelStatus(status), meta, kind:'info' });
   };
 
   if (row) { row.classList.add('row-submitting'); setTimeout(finish, 420); }
   else if (card) { card.classList.add('row-submitting'); setTimeout(finish, 420); }
   else { finish(); }
+}
+
+/* ============================================================
+   DATE-RANGE POPOVER (replaces prompt())
+   ============================================================ */
+function openDatePopover(anchorBtn) {
+  const pop = document.getElementById('datePop');
+  if (!pop) return;
+  // position under the Custom pill
+  const r = anchorBtn.getBoundingClientRect();
+  const pillsR = anchorBtn.parentElement.getBoundingClientRect();
+  const left = Math.max(0, Math.min(r.left - pillsR.left, pillsR.width - 300));
+  pop.style.left = left + 'px';
+  pop.style.top  = (r.bottom - pillsR.top + 6) + 'px';
+  // prefill if a range was already chosen
+  if (customRange) {
+    document.getElementById('dpFrom').value = new Date(customRange.start).toISOString().slice(0,10);
+    document.getElementById('dpTo').value   = new Date(customRange.end).toISOString().slice(0,10);
+  }
+  pop.classList.add('show');
+  setTimeout(() => document.getElementById('dpFrom').focus(), 0);
+}
+function closeDatePopover() {
+  const pop = document.getElementById('datePop');
+  if (pop) pop.classList.remove('show');
+}
+function applyDatePopover() {
+  const from = document.getElementById('dpFrom').value;
+  const to   = document.getElementById('dpTo').value;
+  if (!from || !to) { toast('Pick both dates'); return; }
+  const s = new Date(from + 'T00:00:00').getTime();
+  const e = new Date(to   + 'T23:59:59').getTime();
+  if (!isFinite(s) || !isFinite(e) || s > e) { toast('Bad date range'); return; }
+  customRange = { start:s, end:e };
+  timeFrame = 'CUSTOM';
+  document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+  document.getElementById('pillCustom').classList.add('active');
+  closeDatePopover();
+  renderAll();
+  toast(`Custom: ${from} → ${to}`);
+}
+
+/* ============================================================
+   SUCCESS-CONFIRMATION CARD (replaces toast-only flow)
+   ============================================================ */
+let scTimer = null;
+function showSuccessCard({ title, meta, tier, kind }) {
+  const card  = document.getElementById('successCard');
+  const tEl   = document.getElementById('scTitle');
+  const mEl   = document.getElementById('scMeta');
+  const sEl   = document.getElementById('scStatus');
+  const iEl   = document.getElementById('scIcon');
+  if (!card) return;
+  card.classList.remove('tier-green','tier-yellow','tier-red','kind-info');
+  if (kind === 'info') card.classList.add('kind-info');
+  else if (tier && tier !== 'green') card.classList.add('tier-' + tier);
+  iEl.textContent = kind === 'info' ? '↻' : '✓';
+  tEl.textContent = title;
+  mEl.textContent = meta || '';
+  sEl.className = 'sc-status posting';
+  sEl.textContent = 'Posting to Margin IQ…';
+  card.classList.add('show');
+  clearTimeout(scTimer);
+  // Flip to "posted" after 1.2s
+  setTimeout(() => {
+    sEl.className = 'sc-status posted';
+    sEl.textContent = 'Posted · queued for production';
+  }, 1200);
+  // Auto-dismiss after 4.5s total
+  scTimer = setTimeout(hideSuccessCard, 4500);
+}
+function hideSuccessCard() {
+  const card = document.getElementById('successCard');
+  if (card) card.classList.remove('show');
+  clearTimeout(scTimer);
+}
+
+/* ============================================================
+   STICKY MOBILE CTA — jump to next open appt
+   ============================================================ */
+function goNextOpen() {
+  const cta = document.getElementById('stickyCta');
+  if (!cta || !cta.classList.contains('has-next')) return;
+  const id = cta.dataset.id;
+  const appt = APPTS.find(a => a.id === id);
+  if (appt) openDispo(appt);
+}
+
+/* ============================================================
+   KEYBOARD NAVIGATION
+   ============================================================ */
+let kbdIndex = -1;
+function applyKbdHighlight() {
+  const tbody = document.getElementById('apptBody');
+  if (!tbody) return;
+  [...tbody.querySelectorAll('tr')].forEach((tr, i) => tr.classList.toggle('row-kbd', i === kbdIndex));
+  const sel = tbody.querySelector('tr.row-kbd');
+  if (sel) sel.scrollIntoView({ block:'nearest' });
+}
+function onGlobalKey(e) {
+  const inField = /^(input|textarea|select)$/i.test(e.target.tagName);
+  const modalOpen = document.getElementById('dispoScrim').classList.contains('show');
+
+  // Modal: Esc closes, S/N/C/X picks, Enter submits when a form is showing
+  if (modalOpen) {
+    if (e.key === 'Escape') { e.preventDefault(); closeDispo(); return; }
+    if (!inField) {
+      const pickMap = { s:'sold', n:'nosale', c:'callback', x:'noshow' };
+      const k = e.key.toLowerCase();
+      if (pickMap[k]) { e.preventDefault(); pickDispo(pickMap[k]); return; }
+    }
+    if (e.key === 'Enter' && !inField) {
+      const visible = ['soldForm','nosaleForm','callbackForm','noshowForm']
+        .map(id => document.getElementById(id)).find(f => f && f.style.display !== 'none');
+      if (visible) { e.preventDefault(); visible.requestSubmit ? visible.requestSubmit() : visible.dispatchEvent(new Event('submit', {cancelable:true})); }
+    }
+    return;
+  }
+
+  // Date popover: Esc closes
+  const datePop = document.getElementById('datePop');
+  if (datePop && datePop.classList.contains('show') && e.key === 'Escape') {
+    e.preventDefault(); closeDatePopover(); return;
+  }
+
+  if (inField) return;
+  if (currentPage !== 'queue') return;
+  const tbody = document.getElementById('apptBody');
+  if (!tbody) return;
+  const rows = [...tbody.querySelectorAll('tr')];
+  if (!rows.length) return;
+  const k = e.key.toLowerCase();
+  if (k === 'j' || e.key === 'ArrowDown') { e.preventDefault(); kbdIndex = Math.min(rows.length - 1, kbdIndex + 1); applyKbdHighlight(); }
+  else if (k === 'k' || e.key === 'ArrowUp') { e.preventDefault(); kbdIndex = Math.max(0, kbdIndex - 1); applyKbdHighlight(); }
+  else if (e.key === 'Enter' && kbdIndex >= 0) {
+    e.preventDefault();
+    const tr = rows[kbdIndex];
+    const id = tr && tr.dataset.id;
+    const appt = APPTS.find(a => a.id === id);
+    if (appt && appt.status === 'open' && canDispo()) openDispo(appt);
+  }
 }
 
 /* ============================================================
@@ -2002,7 +2485,7 @@ function timeAgo(ts) {
   return Math.floor(h/24)+'d ago';
 }
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function gmColor(pct) { return pct>=42?'var(--good-text)':pct>=35?'var(--warn-text)':'var(--bad-text)'; }
+function gmColor(pct) { return gmTier(pct).color; }
 function labelStatus(s) { return { open:'Open', sold:'Sold', nosale:'Not Sold', callback:'Callback', noshow:'No Show' }[s] || s; }
 function toast(msg) {
   let el = document.getElementById('toastEl');
