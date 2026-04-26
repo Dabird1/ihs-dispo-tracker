@@ -1772,7 +1772,7 @@ const REGIONS = ["Canada","Mid-Atlantic","Midwest","Northeast","Northwest","Sout
 const DIVISIONS = ["Canada","United States"];
 const SERVICES = ["Roofing","Siding","Windows & Doors","Gutters","Solar","Repairs","Other"];
 const CUSTOMER_TYPES = ["Residential","Commercial","Managed Residential","Managed Commercial","Other"];
-const REPS = ["Doug M.","Karen P.","Miguel R.","Sarah L.","Tyrone W.","Aaron K.","Priya S.","Jamal B.","Rebecca H.","Luis G."];
+const REPS = ["Doug M.","Karen P.","Mike D.","Lisa H.","Miguel R.","Sarah L.","Tyrone W.","Aaron K.","Priya S.","Jamal B.","Rebecca H.","Luis G."];
 
 /* Market → region map (for RVP scope) */
 const MARKET_REGION_MAP = {
@@ -1833,6 +1833,14 @@ function makeAppts() {
     ['5:00p',"Infinity Exteriors","Martinez, L.","Kenosha, WI","Karen P."],
     ['5:30p',"Henderson Roofing","O'Brien, M.","Portland","Aaron K."],
     ['6:00p',"Exterior Medics","Singh, R.","Maryland","Priya S."],
+    // — Infinity Exteriors expansion: Mike D. (Madison), Lisa H. (Port Washington) —
+    ['8:00a',"Infinity Exteriors","Larsen, R.","Madison","Mike D."],            // 20 → sold
+    ['9:30a',"Infinity Exteriors","Greene, T.","Port Washington, WI","Lisa H."],// 21 → open (will read CRITICAL at 3pm demo)
+    ['10:30a',"Infinity Exteriors","Cooper, J.","Madison","Mike D."],           // 22 → sold
+    ['12:00p',"Infinity Exteriors","Bauer, A.","Port Washington, WI","Lisa H."],// 23 → callback
+    ['1:30p',"Infinity Exteriors","Adams, K.","Madison","Mike D."],             // 24 → sold
+    ['3:00p',"Infinity Exteriors","Holt, P.","Port Washington, WI","Lisa H."],  // 25 → nosale
+    ['4:30p',"Infinity Exteriors","Wallace, M.","Madison","Mike D."],           // 26 → open (future)
   ];
   return seed.map((s, i) => ({ id:'A-204'+(i+30), time:s[0], brand:s[1], customer:s[2], market:s[3], rep:s[4], status:'open', region: MARKET_REGION_MAP[s[3]] || '—' }));
 }
@@ -1859,7 +1867,7 @@ function primaryServiceFor(brand) { return BRAND_PRIMARY_SERVICE[brand] || 'Roof
    STATE
    ============================================================ */
 const LS_PERSONA = 'ihs_dispo_persona_v1';
-const LS_SUBS = 'ihs_dispo_subs_v2';
+const LS_SUBS = 'ihs_dispo_subs_v3';   // bumped for v18: triggers a fresh seed so new Mike D. / Lisa H. reps + their history populate
 let persona = PERSONAS.find(p => p.key === (localStorage.getItem(LS_PERSONA) || 'corporate')) || PERSONAS[2];
 let submissions = loadSubs();
 let queueFilter = 'all';
@@ -2982,7 +2990,9 @@ function seedDemoHistory() {
     'Ancaster, ON':{ close:+0.02, gm:+0.010 }
   };
   const REP_MOD = {
-    'Karen P.':   { close:+0.05, gm:+0.015 },
+    'Karen P.':   { close:+0.05, gm:+0.015 },   // top performer in Infinity
+    'Mike D.':    { close:+0.02, gm:+0.005 },   // solid mid-pack — Madison
+    'Lisa H.':    { close:-0.03, gm:-0.015 },   // weakest Infinity rep — Port Washington (triage card target)
     'Doug M.':    { close:-0.04, gm:-0.020 },
     'Sarah L.':   { close:+0.03, gm:+0.010 },
     'Tyrone W.':  { close:+0.02, gm:+0.015 },
@@ -3008,7 +3018,7 @@ function seedDemoHistory() {
     'G. Fedale':           ['Pilesgrove']
   };
   const BRAND_REPS = {
-    'Infinity Exteriors':  ['Karen P.'],
+    'Infinity Exteriors':  ['Karen P.', 'Mike D.', 'Lisa H.'],
     'Premier Roofing':     ['Doug M.'],
     "D'Angelo and Sons":   ['Sarah L.'],
     'GF Sprague':          ['Tyrone W.'],
@@ -3153,6 +3163,14 @@ function seedDemoSubs() {
     [8,  'sold',     { price:36500, cogs:19200, disc:500,  fin:'ccard', net:36000, feeCost:900, gm$:15900, gmPct:44.17, service:'Roofing', ctype:'Residential' }],
     [9,  'callback', { reason:'Comparing Quotes' }],
     [11, 'nosale',   { reason:'Competitor Quote', competitor:'Big-box install', compPrice:19500 }],
+    // — New Infinity reps: Mike D. (Madison) is solid; Lisa H. (Port Washington) is the slipping rep for the demo —
+    [20, 'sold',     { price:31600, cogs:17400, disc:0,    fin:'cash',  net:31600, feeCost:0,   gm$:14200, gmPct:44.94, service:'Roofing', ctype:'Residential' }],
+    // index 21 (Lisa · Greene) intentionally left OPEN → critical stuck demo
+    [22, 'sold',     { price:22800, cogs:13100, disc:200,  fin:'fin12', net:22600, feeCost:678, gm$:8822,  gmPct:39.04, service:'Siding',  ctype:'Residential' }],
+    [23, 'callback', { reason:'Other Decision Maker Required' }],
+    [24, 'sold',     { price:38400, cogs:21600, disc:1000, fin:'cash',  net:37400, feeCost:0,   gm$:15800, gmPct:42.25, service:'Roofing', ctype:'Residential' }],
+    [25, 'nosale',   { reason:'Price / Budget', competitor:'Local roofer', compPrice:29000, revisit:'Maybe' }],
+    // index 26 (Mike · Wallace 4:30p) left open — future appt
   ];
   seed.forEach(([i, outcome, extra], k) => {
     const a = APPTS[i]; if (!a) return;
