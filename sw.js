@@ -1,6 +1,6 @@
 // RTAT — Real Time Appointment Tracker — minimal service worker
 // Cache-first for shell, network-first for everything else. Bump CACHE_NAME to force refresh.
-const CACHE_NAME = 'rtat-v17a';
+const CACHE_NAME = 'rtat-v17b';
 const SHELL = [
   './',
   './index.html',
