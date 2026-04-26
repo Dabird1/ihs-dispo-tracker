@@ -393,6 +393,29 @@
   .appt-card .c-action { grid-column:1 / -1; margin-top:8px; }
   .appt-card .c-action .btn { width:100%; justify-content:center; padding:12px; font-size:14px; min-height:44px; }
 
+  /* "What RTAT captures vs what lives elsewhere" callout */
+  .captures-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .captures-col {
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:16px 18px;
+  }
+  .captures-col.here  { border-left:3px solid var(--good); }
+  .captures-col.there { border-left:3px solid var(--text-mute); opacity:.85; }
+  .captures-col .cap-head {
+    display:flex; align-items:center; gap:8px;
+    font-size:11px; letter-spacing:1.2px; text-transform:uppercase; font-weight:700;
+    color:var(--text-dim); margin-bottom:10px;
+  }
+  .captures-col.here  .cap-head { color:var(--good-text); }
+  .captures-col.there .cap-head { color:var(--text-mute); }
+  .captures-col .cap-dot { width:8px; height:8px; border-radius:50%; }
+  .captures-col.here  .cap-dot { background:var(--good); }
+  .captures-col.there .cap-dot { background:var(--text-mute); }
+  .captures-col ul { margin:0; padding:0 0 0 16px; font-size:12.5px; line-height:1.7; color:var(--text); }
+  .captures-col ul li { margin-bottom:4px; }
+  .captures-col em { color:var(--text-mute); font-style:normal; font-size:11.5px; }
+  @media (max-width:900px) { .captures-grid { grid-template-columns:1fr; } }
+
   /* Data contract panel on Enterprise */
   .data-contract { background:var(--panel-2); border:1px solid var(--border); border-radius:9px; padding:12px 14px; margin-top:12px; }
   .data-contract-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
@@ -744,27 +767,138 @@
     .roadmap-anchor { text-align:left; padding-left:6px; }
   }
 
+  /* Search trigger button (sidebar desktop) */
+  .search-trigger {
+    display:flex; align-items:center; gap:8px;
+    width:100%; margin:6px 0 14px; padding:9px 12px;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
+    color:var(--text-mute); font-size:12px; font-family:inherit; cursor:pointer;
+    text-align:left;
+  }
+  .search-trigger:hover { border-color:var(--primary); color:var(--text); }
+  .search-trigger .ico { font-size:14px; }
+  .search-trigger .lbl { flex:1; }
+  .search-trigger .kbd {
+    font-size:10px; padding:2px 6px; border-radius:4px;
+    background:var(--chip); color:var(--text-mute); font-family:ui-monospace,Menlo,monospace;
+  }
+
+  /* Search modal */
+  .search-scrim {
+    display:none; position:fixed; inset:0; z-index:35;
+    background:rgba(0,0,0,.62); backdrop-filter:blur(6px);
+    align-items:flex-start; justify-content:center; padding:80px 20px 20px;
+  }
+  .search-scrim.show { display:flex; }
+  .search-modal {
+    width:100%; max-width:640px; background:var(--panel);
+    border:1px solid var(--border); border-radius:12px;
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
+    overflow:hidden;
+  }
+  .search-input-wrap {
+    display:flex; align-items:center; gap:10px;
+    padding:14px 16px; border-bottom:1px solid var(--border-soft);
+    background:var(--panel-2);
+  }
+  .search-input-wrap .search-ico { font-size:18px; color:var(--text-mute); }
+  .search-input-wrap input {
+    flex:1; background:transparent; border:none; outline:none;
+    font-size:16px; color:var(--text); font-family:inherit;
+  }
+  .search-input-wrap .search-esc {
+    font-size:10px; padding:3px 7px; border-radius:4px;
+    background:var(--chip); color:var(--text-mute); font-family:ui-monospace,Menlo,monospace;
+  }
+  .search-results {
+    max-height:55vh; overflow-y:auto;
+  }
+  .search-results .sr-section {
+    padding:6px 16px; font-size:10px; letter-spacing:1.2px; text-transform:uppercase;
+    color:var(--text-mute); font-weight:700; background:var(--panel-2);
+    position:sticky; top:0;
+  }
+  .search-results .sr-row {
+    display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center;
+    padding:10px 16px; cursor:pointer; border-bottom:1px solid var(--border-soft);
+  }
+  .search-results .sr-row:hover, .search-results .sr-row.kbd-sel { background:var(--row-sel); }
+  .search-results .sr-row .sr-name { font-size:14px; font-weight:600; color:var(--text); }
+  .search-results .sr-row .sr-meta { font-size:11px; color:var(--text-mute); margin-top:2px; }
+  .search-results .sr-row .sr-right { text-align:right; }
+  .search-results .sr-row .sr-amount { font-size:13px; color:var(--text-dim); font-variant-numeric:tabular-nums; }
+  .search-results .sr-row .sr-tag { font-size:10px; padding:2px 6px; border-radius:8px; background:var(--chip); color:var(--text-mute); margin-top:3px; display:inline-block; }
+  .search-results .sr-empty { padding:30px 16px; text-align:center; color:var(--text-mute); font-size:13px; }
+  .search-foot {
+    padding:10px 16px; border-top:1px solid var(--border-soft);
+    background:var(--panel-2); font-size:11px; color:var(--text-mute);
+  }
+  .search-foot span span { color:var(--text-dim); }
+
+  /* Drill modal */
+  .modal-wide { max-width:900px; }
+
   /* Persona tour */
   .tour-scrim {
     display:none; position:fixed; inset:0; z-index:40;
-    background:rgba(0,0,0,.62); backdrop-filter:blur(6px);
+    background:rgba(0,0,0,.66); backdrop-filter:blur(8px);
     align-items:center; justify-content:center; padding:20px;
+    animation:tourFade .25s ease;
   }
+  @keyframes tourFade { from { opacity:0; } to { opacity:1; } }
   .tour-scrim.show { display:flex; }
   .tour-card {
-    width:100%; max-width:460px; background:var(--panel);
-    border:1px solid var(--border); border-left:4px solid var(--primary);
-    border-radius:12px; padding:22px 24px;
-    box-shadow:0 24px 60px rgba(0,0,0,.55);
+    width:100%; max-width:500px; background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px; padding:28px 28px 22px; position:relative;
+    box-shadow:0 28px 72px rgba(0,0,0,.6);
+    animation:tourSlide .35s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes tourSlide { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .tour-card::before {
+    content:''; position:absolute; inset:0; border-radius:14px; padding:1px;
+    background:linear-gradient(135deg, var(--primary), transparent 60%);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    pointer-events:none;
+  }
+  .tour-card .tour-icon {
+    font-size:36px; line-height:1; margin-bottom:14px;
+    display:inline-block; padding:10px; background:var(--panel-2);
+    border-radius:12px; border:1px solid var(--border);
   }
   .tour-card .tour-step {
-    font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
-    color:var(--primary); font-weight:700;
+    font-size:10px; letter-spacing:1.8px; text-transform:uppercase;
+    color:var(--primary); font-weight:700; margin-bottom:6px;
   }
-  .tour-card h3 { margin:8px 0 8px; font-family:'DM Serif Display',serif; font-weight:400; font-size:22px; line-height:1.2; }
-  .tour-card p  { margin:0; font-size:13px; line-height:1.55; color:var(--text-dim); }
-  .tour-card .tour-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:18px; flex-wrap:wrap; }
-  .tour-card .tour-actions .btn { min-height:38px; }
+  .tour-card h3 { margin:0 0 12px; font-family:'DM Serif Display',serif; font-weight:400; font-size:26px; line-height:1.15; color:var(--text); }
+  .tour-card .tour-body { margin:0 0 14px; font-size:14px; line-height:1.6; color:var(--text-dim); }
+  .tour-card .tour-look {
+    display:flex; gap:10px; align-items:flex-start;
+    background:var(--panel-2); border:1px dashed var(--border);
+    border-left:3px solid var(--primary); border-radius:8px;
+    padding:10px 12px; font-size:12.5px; line-height:1.5; color:var(--text-dim);
+  }
+  .tour-card .tour-look-lbl {
+    font-size:9.5px; letter-spacing:1.2px; text-transform:uppercase;
+    color:var(--primary); font-weight:700; flex-shrink:0; margin-top:2px;
+  }
+  .tour-card .tour-dots {
+    display:flex; gap:6px; justify-content:center; margin:18px 0 14px;
+  }
+  .tour-card .tour-dot {
+    width:8px; height:8px; border-radius:50%; background:var(--border);
+    transition:background .2s ease, transform .2s ease;
+  }
+  .tour-card .tour-dot.done   { background:var(--primary); opacity:.5; }
+  .tour-card .tour-dot.active { background:var(--primary); transform:scale(1.4); }
+  .tour-card .tour-actions { display:flex; gap:8px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+  .tour-card .tour-actions .btn { min-height:42px; padding:10px 16px; font-size:13px; }
+  .tour-card .tour-actions .btn.primary { padding-left:22px; padding-right:22px; }
+  @media (max-width:500px) {
+    .tour-card { padding:24px 20px 18px; }
+    .tour-card h3 { font-size:22px; }
+  }
 
   /* My-day-so-far collapsible (rep mobile only — others see it expanded inline) */
   .day-digest { border:none; padding:0; margin:0; }
@@ -859,6 +993,9 @@
     </div>
   </div>
   <div class="spacer"></div>
+  <button class="theme-toggle" id="searchOpenMobile" aria-label="Search" type="button" style="margin-right:6px;">
+    <span class="ico" aria-hidden="true">⌕</span>
+  </button>
   <button class="theme-toggle" id="themeToggleMobile" aria-label="Toggle theme">
     <span class="ico" id="themeIcoMobile">☾</span>
   </button>
@@ -875,6 +1012,11 @@
         <div class="sub">RTAT</div>
       </div>
     </div>
+    <button type="button" class="search-trigger" id="searchOpenDesktop" aria-label="Search (⌘K)">
+      <span class="ico" aria-hidden="true">⌕</span>
+      <span class="lbl">Search customers, brands, reps…</span>
+      <span class="kbd">⌘K</span>
+    </button>
     <div class="navlabel">Today</div>
     <div class="navitem active" data-page="queue"><span class="ico">●</span> Disposition Queue</div>
     <div class="navitem" data-page="myday"><span class="ico">◎</span> My Day</div>
@@ -1133,6 +1275,34 @@
         </div>
       </div>
 
+      <div class="section-title">What RTAT captures · what lives elsewhere</div>
+      <div class="captures-grid">
+        <div class="captures-col here">
+          <div class="cap-head"><span class="cap-dot"></span>Captured here</div>
+          <ul>
+            <li>Disposition outcome <em>(sold / not sold / callback / no show)</em></li>
+            <li>Sold price + Job Cost (all-in)</li>
+            <li>Gross margin — live, anchored to 42.5% AOP plan</li>
+            <li>Service offering + financing method</li>
+            <li>Time-to-disposition + stuck SLA tier</li>
+            <li>Reason codes (lost reason, callback reason, no-show reason)</li>
+            <li>Multi-service per appointment <em>(roof + gutters)</em></li>
+            <li>Escalation routing state <em>(rep → BL → corp)</em></li>
+          </ul>
+        </div>
+        <div class="captures-col there">
+          <div class="cap-head"><span class="cap-dot"></span>Lives elsewhere</div>
+          <ul>
+            <li>Customer details, address, phone <em>→ CRM (improveit360 / Acculynx / etc.)</em></li>
+            <li>Photos, signed contracts, financing apps <em>→ CRM</em></li>
+            <li>Production status, install dates, change orders <em>→ Margin IQ</em></li>
+            <li>Reviewed GM / Installed GM <em>→ Margin IQ (T+3–5 days post-disposition)</em></li>
+            <li>Cost actuals, AP, supplier invoices <em>→ ERP</em></li>
+            <li>Lead source, marketing attribution <em>→ marketing stack</em></li>
+            <li>Rep performance trends, quotas, comp <em>→ future digital sales tool</em></li>
+          </ul>
+        </div>
+      </div>
       <div class="section-title">Production Handoff · Data Contract</div>
       <div class="card">
         <div class="cardsub">Every disposition posts this JSON to job movement (Margin IQ). This is the canonical contract for the 6 CRM webhooks (Acculynx, DataForma, Gorilla Desk, Leap, Salesforce, Zoho/DF) and the manual streams (Sumo, custom quote, paper). Shown: last submission.</div>
@@ -1332,16 +1502,66 @@
   </main>
 </div>
 
-<!-- Persona tour (3 stops, shown once, replayable) -->
+<!-- Search modal (Cmd-K) -->
+<div class="search-scrim" id="searchScrim" role="dialog" aria-modal="true" aria-label="Search">
+  <div class="search-modal">
+    <div class="search-input-wrap">
+      <span class="search-ico" aria-hidden="true">⌕</span>
+      <input type="text" id="searchInput" placeholder="Search customers, brands, markets, reps…" autocomplete="off" />
+      <span class="search-esc">esc</span>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+    <div class="search-foot">
+      <span>↑↓ to navigate · Enter to open · scoped to <span id="searchScope">—</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- KPI drill-down modal -->
+<div class="scrim" id="drillScrim">
+  <div class="modal modal-wide">
+    <div class="modal-head">
+      <div>
+        <h3 id="drillTitle">Records</h3>
+        <div class="cardsub" id="drillSub">—</div>
+      </div>
+      <button class="close-x" id="closeDrill" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="tablewrap">
+        <table class="num hover">
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Customer</th>
+              <th>Brand</th>
+              <th>Market</th>
+              <th>Rep</th>
+              <th class="num">Sold $</th>
+              <th class="num">GM %</th>
+              <th>Outcome</th>
+            </tr>
+          </thead>
+          <tbody id="drillBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Persona tour (4 stops, shown once, replayable) -->
 <div class="tour-scrim" id="tourScrim" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
   <div class="tour-card">
-    <div class="tour-step"><span id="tourIdx">1</span> of <span id="tourTotal">3</span></div>
+    <div class="tour-icon" id="tourIcon" aria-hidden="true">🌉</div>
+    <div class="tour-step"><span id="tourIdx">1</span> of <span id="tourTotal">4</span> · A QUICK TOUR</div>
     <h3 id="tourTitle">—</h3>
-    <p id="tourBody">—</p>
+    <p class="tour-body" id="tourBody">—</p>
+    <div class="tour-look"><span class="tour-look-lbl">Try this</span><span id="tourLook">—</span></div>
+    <div class="tour-dots" id="tourDots"></div>
     <div class="tour-actions">
-      <button type="button" class="btn ghost" id="tourSkip">Skip</button>
-      <button type="button" class="btn ghost" id="tourBack" hidden>Back</button>
-      <button type="button" class="btn primary" id="tourNext">Next</button>
+      <button type="button" class="btn ghost" id="tourSkip">Skip tour</button>
+      <button type="button" class="btn ghost" id="tourBack" hidden>← Back</button>
+      <button type="button" class="btn primary" id="tourNext">Next →</button>
     </div>
   </div>
 </div>
@@ -1734,15 +1954,30 @@ function init() {
       renderQueue();
     }));
 
-  // KPI tile clicks — drill into the queue with the chosen filter
+  // KPI tile clicks — on TODAY scope, filter the live queue; otherwise open
+  // the drill modal showing the actual records behind the number.
   document.body.addEventListener('click', (e) => {
     const t = e.target.closest('[data-filter-key]');
     if (!t) return;
     const key = t.dataset.filterKey;
-    queueFilter = key;
-    goPage('queue');
-    [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === queueFilter));
+    if (timeFrame === 'TODAY' && currentPage === 'queue') {
+      queueFilter = key;
+      goPage('queue');
+      [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === queueFilter));
+    } else {
+      openDrill(key);
+    }
   });
+
+  // Search — desktop and mobile triggers, Cmd-K shortcut, modal close
+  const openSearchHandler = () => openSearch();
+  document.getElementById('searchOpenDesktop')?.addEventListener('click', openSearchHandler);
+  document.getElementById('searchOpenMobile')?.addEventListener('click', openSearchHandler);
+  document.getElementById('searchScrim').addEventListener('click', e => { if (e.target.id === 'searchScrim') closeSearch(); });
+  bindSearchKbd();
+  // Drill modal close
+  document.getElementById('closeDrill').addEventListener('click', closeDrill);
+  document.getElementById('drillScrim').addEventListener('click', e => { if (e.target.id === 'drillScrim') closeDrill(); });
 
   // Nav — Ask + Roadmap are accessory pages: clicking the active one again
   // toggles back to your last working page. Other pages just navigate.
@@ -3306,21 +3541,33 @@ function renderAskMarkup(s) {
 }
 
 /* ============================================================
-   PERSONA TOUR — 3 stops, shown once, replayable from sidebar
+   PERSONA TOUR — 4 stops, shown once, replayable from sidebar
    ============================================================ */
-const TOUR_KEY = 'ihs_dispo_tour_v1';
+const TOUR_KEY = 'ihs_dispo_tour_v2';
 const TOUR_STEPS = [
   {
-    title: 'Disposition. Done. Walk away.',
-    body:  'Tap any open appointment to record the outcome — Sold, Not Sold, Callback, or No Show. The Sold form computes GM live against the 42.5% AOP plan. There\'s a 5-second undo if you fat-finger a submit.'
+    icon:  '🌉',
+    title: 'RTAT is a bridge.',
+    body:  'Between the CRM saying "sold" and Margin IQ recording the job, there\'s a 24–72 hour gap where leadership runs on yesterday\'s truth. RTAT closes that gap by capturing every disposition the moment it happens and rolling it up cleanly across all 25 IHS brands.',
+    look:  'Look for: stuck appointments, GM% live against the 42.5% AOP plan, and the JSON contract that posts to production.'
   },
   {
+    icon:  '⚡',
+    title: 'Capture in seconds, not minutes.',
+    body:  'Reps tap any open appointment, pick one of four outcomes, fill two fields, submit. Service auto-defaults to the brand\'s primary, Customer Type defaults to Residential. The Sold form coaches GM live as you type — green at plan, yellow within 5 pts, red below. Five-second undo if you fat-finger.',
+    look:  'Try: tap an open Karen P. card on the queue → Sold → see the GM coaching and AOP anchor.'
+  },
+  {
+    icon:  '👥',
     title: 'Three roles, three views.',
-    body:  'Reps see only their own day. Brand Leadership sees their brand across markets. Corporate sees the enterprise read-only. Switch personas in the lower-left to see how the same data reframes — that switcher is a demo stand-in for Azure AD SSO.'
+    body:  'Reps see their own day, no filters, queue above the fold. Brand Leadership sees the brand across markets, plus three triage cards (weakest market, weakest rep, oldest stuck). Corporate sees the enterprise read-only. Same data, three frames. Switch personas in the lower-left to walk through each.',
+    look:  'Switch to Rex T. (Brand Leadership) and check My Day for the triage cards.'
   },
   {
-    title: 'Stuck appointments escalate.',
-    body:  'Open appointments slip past 90 min, become stuck at 2 hr, and go critical at 4 hr. The escalation chip on the banner shows where notifications would route in production: Rep → Brand Leadership @ 90 min → Corporate @ 4 hr. Routing rules and audit trail are TBD with IT.'
+    icon:  '🚨',
+    title: 'Trust the data, see the bridge.',
+    body:  'Open appointments slip past 90 min, become stuck at 2 hr, go critical at 4 hr — escalation chip shows where notifications would route (Rep → Brand Leadership → Corporate). On Enterprise, the JSON data contract panel shows exactly what posts to Margin IQ on every disposition. That contract is the bridge.',
+    look:  'On Enterprise, scroll to "Production Handoff · Data Contract" — that JSON is the production wire.'
   }
 ];
 let tourIdx = 0;
@@ -3335,12 +3582,21 @@ function startTour() {
 }
 function paintTour() {
   const s = TOUR_STEPS[tourIdx];
+  document.getElementById('tourIcon').textContent = s.icon;
   document.getElementById('tourIdx').textContent = String(tourIdx + 1);
   document.getElementById('tourTotal').textContent = String(TOUR_STEPS.length);
   document.getElementById('tourTitle').textContent = s.title;
   document.getElementById('tourBody').textContent = s.body;
+  document.getElementById('tourLook').textContent = s.look;
   document.getElementById('tourBack').hidden = tourIdx === 0;
-  document.getElementById('tourNext').textContent = tourIdx === TOUR_STEPS.length - 1 ? 'Done' : 'Next';
+  document.getElementById('tourNext').textContent = tourIdx === TOUR_STEPS.length - 1 ? 'Got it' : 'Next →';
+  // Progress dots
+  const dots = document.getElementById('tourDots');
+  if (dots) {
+    dots.innerHTML = TOUR_STEPS.map((_, i) =>
+      `<span class="tour-dot${i === tourIdx ? ' active' : ''}${i < tourIdx ? ' done' : ''}"></span>`
+    ).join('');
+  }
 }
 function endTour() {
   document.getElementById('tourScrim').classList.remove('show');
@@ -3372,6 +3628,18 @@ function applyKbdHighlight() {
 function onGlobalKey(e) {
   const inField = /^(input|textarea|select)$/i.test(e.target.tagName);
   const modalOpen = document.getElementById('dispoScrim').classList.contains('show');
+  const searchOpen = document.getElementById('searchScrim')?.classList.contains('show');
+  const drillOpen  = document.getElementById('drillScrim')?.classList.contains('show');
+
+  // Cmd-K / Ctrl-K opens search from anywhere (unless we're already typing in a field
+  // OR a different modal is open — search has its own keyboard handler when open)
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+    e.preventDefault();
+    if (searchOpen) closeSearch(); else openSearch();
+    return;
+  }
+  // Esc closes the drill modal
+  if (drillOpen && e.key === 'Escape') { e.preventDefault(); closeDrill(); return; }
 
   // Modal: Esc closes, S/N/C/X picks, Enter submits when a form is showing
   if (modalOpen) {
@@ -3412,6 +3680,149 @@ function onGlobalKey(e) {
     if (appt && appt.status === 'open' && canDispo()) openDispo(appt);
   }
 }
+
+/* ============================================================
+   SEARCH (Cmd-K) — scoped to persona, hits submissions + appts
+   ============================================================ */
+let searchKbdIdx = -1;
+function openSearch() {
+  document.getElementById('searchScrim').classList.add('show');
+  searchKbdIdx = -1;
+  setTimeout(() => {
+    const inp = document.getElementById('searchInput');
+    if (inp) { inp.value = ''; inp.focus(); }
+    renderSearchResults('');
+  }, 0);
+  document.getElementById('searchScope').textContent =
+    persona.role === 'Corporate' ? 'enterprise · all brands'
+    : persona.role === 'Brand Leadership' ? `brand · ${persona.scope.brand}`
+    : `rep · ${persona.name}`;
+}
+function closeSearch() {
+  document.getElementById('searchScrim').classList.remove('show');
+}
+function renderSearchResults(q) {
+  const out = document.getElementById('searchResults');
+  if (!out) return;
+  const norm = q.trim().toLowerCase();
+  // Pull all submissions in scope (no time-window filter — search is universal)
+  const submatch = (s) => {
+    if (persona.scope.brand && !canSeeAllBrands() && s.brand !== persona.scope.brand) return false;
+    if (persona.scope.market && s.market !== persona.scope.market) return false;
+    if (persona.role === 'Rep' && s.rep !== persona.name) return false;
+    if (!norm) return true;
+    return [s.customer, s.brand, s.market, s.rep, s.service||'']
+      .some(v => String(v||'').toLowerCase().includes(norm));
+  };
+  const apptMatch = (a) => {
+    if (persona.scope.brand && !canSeeAllBrands() && a.brand !== persona.scope.brand) return false;
+    if (persona.scope.market && a.market !== persona.scope.market) return false;
+    if (persona.role === 'Rep' && a.rep !== persona.name) return false;
+    if (!norm) return true;
+    return [a.customer, a.brand, a.market, a.rep]
+      .some(v => String(v||'').toLowerCase().includes(norm));
+  };
+  const subs = submissions.filter(submatch).sort((a,b) => b.ts - a.ts).slice(0, 30);
+  const appts = APPTS.filter(apptMatch).slice(0, 10);
+  if (!subs.length && !appts.length) {
+    out.innerHTML = `<div class="sr-empty">${norm ? `No matches for "${escapeHtml(q)}"` : 'Start typing to search.'}</div>`;
+    return;
+  }
+  let html = '';
+  if (appts.length) {
+    html += `<div class="sr-section">Open appointments today (${appts.length})</div>`;
+    html += appts.map((a, i) => `
+      <div class="sr-row" data-kind="appt" data-id="${a.id}" data-idx="${i}">
+        <div>
+          <div class="sr-name">${escapeHtml(a.customer)}</div>
+          <div class="sr-meta">${a.time} · ${escapeHtml(a.brand)} · ${escapeHtml(a.market)} · ${escapeHtml(a.rep)}</div>
+        </div>
+        <div class="sr-right"><span class="sr-tag">${labelStatus(a.status)}</span></div>
+      </div>`).join('');
+  }
+  if (subs.length) {
+    html += `<div class="sr-section">Submissions (${subs.length})</div>`;
+    html += subs.map((s, i) => `
+      <div class="sr-row" data-kind="sub" data-id="${s.submissionId}" data-idx="${i + appts.length}">
+        <div>
+          <div class="sr-name">${escapeHtml(s.customer)}</div>
+          <div class="sr-meta">${new Date(s.ts).toLocaleDateString()} · ${escapeHtml(s.brand)} · ${escapeHtml(s.market)} · ${escapeHtml(s.rep)}${s.service ? ' · '+escapeHtml(s.service) : ''}</div>
+        </div>
+        <div class="sr-right">
+          ${s.outcome === 'sold' ? `<div class="sr-amount">${fmt(s.net)} · ${s.gmPct.toFixed(1)}% GM</div>` : ''}
+          <span class="sr-tag">${labelStatus(s.outcome)}</span>
+        </div>
+      </div>`).join('');
+  }
+  out.innerHTML = html;
+  searchKbdIdx = -1;
+  [...out.querySelectorAll('.sr-row')].forEach(row => {
+    row.addEventListener('click', () => onSearchPick(row));
+  });
+}
+function onSearchPick(row) {
+  const kind = row.dataset.kind, id = row.dataset.id;
+  closeSearch();
+  if (kind === 'appt') {
+    const a = APPTS.find(x => x.id === id);
+    if (a && a.status === 'open' && canDispo()) { goPage('queue'); setTimeout(() => openDispo(a), 0); }
+    else if (a) { goPage('queue'); }
+  } else {
+    // For submissions we just go to My Day where the row appears
+    goPage('myday');
+  }
+}
+function bindSearchKbd() {
+  document.getElementById('searchInput').addEventListener('input', e => renderSearchResults(e.target.value));
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    const rows = [...document.querySelectorAll('#searchResults .sr-row')];
+    if (e.key === 'Escape') { e.preventDefault(); closeSearch(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); searchKbdIdx = Math.min(rows.length - 1, searchKbdIdx + 1); paintSearchKbd(rows); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); searchKbdIdx = Math.max(0, searchKbdIdx - 1); paintSearchKbd(rows); }
+    else if (e.key === 'Enter' && rows[searchKbdIdx]) { e.preventDefault(); onSearchPick(rows[searchKbdIdx]); }
+    else if (e.key === 'Enter' && rows[0]) { e.preventDefault(); onSearchPick(rows[0]); }
+  });
+}
+function paintSearchKbd(rows) {
+  rows.forEach((r, i) => r.classList.toggle('kbd-sel', i === searchKbdIdx));
+  const sel = rows[searchKbdIdx];
+  if (sel) sel.scrollIntoView({ block:'nearest' });
+}
+
+/* ============================================================
+   KPI DRILL — show actual records behind a number
+   ============================================================ */
+function openDrill(filterKey) {
+  const subs = scopedSubs();
+  const w = tfWindow();
+  let rows; let title;
+  if (filterKey === 'sold')      { rows = subs.filter(s => s.outcome === 'sold'); title = `Sold · ${w.label}`; }
+  else if (filterKey === 'nosale')   { rows = subs.filter(s => s.outcome === 'nosale'); title = `Not Sold · ${w.label}`; }
+  else if (filterKey === 'callback') { rows = subs.filter(s => s.outcome === 'callback'); title = `Callbacks · ${w.label}`; }
+  else if (filterKey === 'noshow')   { rows = subs.filter(s => s.outcome === 'noshow'); title = `No Shows · ${w.label}`; }
+  else { rows = subs; title = `All submissions · ${w.label}`; }
+  rows = rows.slice().sort((a,b) => b.ts - a.ts);
+  document.getElementById('drillTitle').textContent = `${rows.length} · ${title}`;
+  document.getElementById('drillSub').textContent = `${persona.role} scope · ${rows.length} record${rows.length===1?'':'s'} · click any row for details`;
+  const body = document.getElementById('drillBody');
+  if (rows.length === 0) {
+    body.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-mute);padding:24px">No records in scope for ${w.label}.</td></tr>`;
+  } else {
+    body.innerHTML = rows.map(s => `
+      <tr data-id="${s.submissionId}" style="cursor:pointer">
+        <td>${new Date(s.ts).toLocaleDateString()}<div style="font-size:10px;color:var(--text-mute)">${new Date(s.ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</div></td>
+        <td>${escapeHtml(s.customer)}</td>
+        <td><span class="brand-chip">${escapeHtml(s.brand)}</span></td>
+        <td>${escapeHtml(s.market)}</td>
+        <td><span class="rep-chip">${escapeHtml(s.rep)}</span></td>
+        <td class="num">${s.outcome==='sold' ? fmt(s.net) : '—'}</td>
+        <td class="num" style="color:${s.outcome==='sold'?gmColor(s.gmPct):'var(--text-mute)'}">${s.outcome==='sold' ? s.gmPct.toFixed(1)+'%' : '—'}</td>
+        <td><span class="status-chip ${s.outcome}">${labelStatus(s.outcome)}</span></td>
+      </tr>`).join('');
+  }
+  document.getElementById('drillScrim').classList.add('show');
+}
+function closeDrill() { document.getElementById('drillScrim').classList.remove('show'); }
 
 /* ============================================================
    ROLLUP MATH
