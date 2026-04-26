@@ -308,11 +308,12 @@
 
   /* Security banner */
   .scope-banner {
-    display:flex; align-items:center; gap:10px; padding:10px 14px; margin-bottom:14px;
+    display:flex; align-items:flex-start; gap:10px; padding:10px 14px; margin-bottom:14px;
     background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
-    color:var(--text-dim); font-size:12px;
+    color:var(--text-dim); font-size:12px; flex-wrap:wrap; line-height:1.5;
   }
-  .scope-banner .k { color:var(--text-mute); font-size:10px; letter-spacing:1px; text-transform:uppercase; margin-right:4px; }
+  .scope-banner .k { color:var(--text-mute); font-size:10px; letter-spacing:1px; text-transform:uppercase; margin-right:4px; flex-shrink:0; padding-top:2px; }
+  .scope-banner #scopeText { flex:1 1 auto; min-width:0; word-break:break-word; }
 
   /* Toast */
   #toastEl { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#102644; border:1px solid var(--primary); color:var(--text); padding:10px 16px; border-radius:8px; font-size:13px; z-index:30; box-shadow:0 6px 24px rgba(0,0,0,.4); opacity:0; transition:opacity .3s; }
@@ -996,6 +997,9 @@
   <button class="theme-toggle" id="searchOpenMobile" aria-label="Search" type="button" style="margin-right:6px;">
     <span class="ico" aria-hidden="true">⌕</span>
   </button>
+  <button class="theme-toggle" id="takeTourMobile" aria-label="Take the tour" type="button" style="margin-right:6px;">
+    <span class="ico" aria-hidden="true">↻</span>
+  </button>
   <button class="theme-toggle" id="themeToggleMobile" aria-label="Toggle theme">
     <span class="ico" id="themeIcoMobile">☾</span>
   </button>
@@ -1029,6 +1033,7 @@
     <div class="nav-foot">
       <div class="navitem" data-page="ask"><span class="ico">⌕</span> Ask RTAT</div>
       <div class="navitem" data-page="roadmap"><span class="ico">⚑</span> Roadmap</div>
+      <div class="navitem" id="takeTourDesktop"><span class="ico">↻</span> Take the tour</div>
       <div class="navitem"><span class="ico">?</span> Help &amp; Support</div>
       <div class="persona-block" id="personaBlockDesktop" style="padding:8px;">
         <div class="persona-label">Persona (demo)</div>
@@ -1036,10 +1041,6 @@
         <button class="theme-toggle" id="themeToggleDesktop" aria-label="Toggle theme" style="margin-top:8px;width:100%;justify-content:center;">
           <span class="ico" id="themeIcoDesktop" aria-hidden="true">☾</span>
           <span id="themeLblDesktop">Dark</span>
-        </button>
-        <button type="button" class="theme-toggle" id="replayTour" style="margin-top:8px;width:100%;justify-content:center;font-size:11px;">
-          <span class="ico" aria-hidden="true">↻</span>
-          <span>Replay tour</span>
         </button>
       </div>
       <div class="user">
@@ -2066,9 +2067,10 @@ function init() {
     if (tourIdx < TOUR_STEPS.length - 1) { tourIdx++; paintTour(); }
     else endTour();
   });
-  // Replay tour from the sidebar
-  const replayBtn = document.getElementById('replayTour');
-  if (replayBtn) replayBtn.addEventListener('click', () => { localStorage.removeItem(TOUR_KEY); startTour(); });
+  // Tour triggers — sidebar (desktop) and topbar (mobile). Always visible.
+  const tourFire = () => { localStorage.removeItem(TOUR_KEY); startTour(); };
+  document.getElementById('takeTourDesktop')?.addEventListener('click', tourFire);
+  document.getElementById('takeTourMobile')?.addEventListener('click', tourFire);
 
   applyPersona();
   renderAll();
@@ -3548,7 +3550,7 @@ const TOUR_STEPS = [
   {
     icon:  '🌉',
     title: 'RTAT is a bridge.',
-    body:  'Between the CRM saying "sold" and Margin IQ recording the job, there\'s a 24–72 hour gap where leadership runs on yesterday\'s truth. RTAT closes that gap by capturing every disposition the moment it happens and rolling it up cleanly across all 25 IHS brands.',
+    body:  'Between the CRM saying "sold" and Margin IQ recording the job, there\'s a lag that is wildly inconsistent — sometimes days, sometimes weeks. At the enterprise grain we often never see disposition-level truth at all. RTAT closes that gap by capturing every outcome the moment it happens and rolling it up cleanly across all 25 IHS brands.',
     look:  'Look for: stuck appointments, GM% live against the 42.5% AOP plan, and the JSON contract that posts to production.'
   },
   {
