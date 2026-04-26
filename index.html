@@ -308,12 +308,12 @@
 
   /* Security banner */
   .scope-banner {
-    display:flex; align-items:flex-start; gap:10px; padding:10px 14px; margin-bottom:14px;
+    padding:10px 14px; margin-bottom:14px;
     background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
-    color:var(--text-dim); font-size:12px; flex-wrap:wrap; line-height:1.5;
+    color:var(--text-dim); font-size:12px; line-height:1.5;
   }
-  .scope-banner .k { color:var(--text-mute); font-size:10px; letter-spacing:1px; text-transform:uppercase; margin-right:4px; flex-shrink:0; padding-top:2px; }
-  .scope-banner #scopeText { flex:1 1 auto; min-width:0; word-break:break-word; }
+  .scope-banner .k { display:none; }   /* "Scope" label is redundant — message already says "You are viewing as..." */
+  .scope-banner #scopeText { word-break:break-word; }
 
   /* Toast */
   #toastEl { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#102644; border:1px solid var(--primary); color:var(--text); padding:10px 16px; border-radius:8px; font-size:13px; z-index:30; box-shadow:0 6px 24px rgba(0,0,0,.4); opacity:0; transition:opacity .3s; }
@@ -1931,8 +1931,11 @@ function init() {
   // Demo Mode is always on in this prototype — production toggles it off so
   // the persona switcher hides for reps. See CSS rule body.role-rep:not(.demo-mode).
   document.body.classList.add('demo-mode');
-  // Seed demo data on first load, then replay persisted submissions
+  // Seed demo data on first load, then replay persisted submissions.
+  // Re-stamp today's seed submissions to "today" each load — otherwise a
+  // localStorage seeded yesterday looks like 0 sales on today's rollup.
   seedDemoSubs();
+  refreshSeedTimestampsToToday();
   replayStatus();
 
   // Persona selectors
@@ -3106,6 +3109,28 @@ function seedDemoHistory() {
       }
     });
   }
+}
+
+/* Re-stamp the today-seed submissions (RTAT-SEED-*) so their timestamps
+   land in today's window every page load. Without this, a localStorage
+   seeded yesterday produces "0 sold today" on the KPI rollup even though
+   the appointment cards still show their (correct) statuses. */
+function refreshSeedTimestampsToToday() {
+  const seeds = submissions.filter(s => typeof s.submissionId === 'string' && s.submissionId.startsWith('RTAT-SEED-'));
+  if (seeds.length === 0) return;
+  const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+  // If any seed is already dated today, assume they all are — nothing to do.
+  if (seeds.every(s => s.ts >= startOfToday.getTime())) return;
+  seeds.sort((a, b) => {
+    const ai = parseInt(a.submissionId.replace('RTAT-SEED-', ''), 10) || 0;
+    const bi = parseInt(b.submissionId.replace('RTAT-SEED-', ''), 10) || 0;
+    return ai - bi;
+  });
+  const now = Date.now();
+  seeds.forEach((s, i) => {
+    s.ts = now - (seeds.length - i) * 12 * 60 * 1000;  // 12-min stagger ending at now
+  });
+  saveSubs();
 }
 
 function seedDemoSubs() {
