@@ -1688,6 +1688,7 @@ function resetSoldFields() {
   recalcSold();
 }
 let currentPage = 'queue';
+let lastWorkingPage = 'queue'; // for Ask/Roadmap toggle return target
 let selectedAppt = null;
 let chosenDispo = null;
 
@@ -1743,11 +1744,21 @@ function init() {
     [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === queueFilter));
   });
 
-  // Nav
+  // Nav — Ask + Roadmap are accessory pages: clicking the active one again
+  // toggles back to your last working page. Other pages just navigate.
+  const ACCESSORY = new Set(['ask','roadmap']);
+  const navTo = (target) => {
+    if (target === currentPage && ACCESSORY.has(target)) {
+      goPage(lastWorkingPage || 'queue');
+    } else {
+      if (ACCESSORY.has(target) && !ACCESSORY.has(currentPage)) lastWorkingPage = currentPage;
+      goPage(target);
+    }
+  };
   [...document.querySelectorAll('.navitem[data-page]')].forEach(el =>
-    el.addEventListener('click', () => goPage(el.dataset.page)));
+    el.addEventListener('click', () => navTo(el.dataset.page)));
   [...document.querySelectorAll('.tab[data-page]')].forEach(el =>
-    el.addEventListener('click', () => goPage(el.dataset.page)));
+    el.addEventListener('click', () => navTo(el.dataset.page)));
 
   // Dispo modal
   [...document.querySelectorAll('.dispo-opt')].forEach(el =>
