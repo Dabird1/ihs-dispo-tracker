@@ -212,14 +212,23 @@
   .close-x { background:transparent; border:none; color:var(--text-dim); font-size:20px; cursor:pointer; }
   .close-x:hover { color:var(--text); }
 
-  .dispo-picker { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:16px; }
-  .dispo-opt { padding:14px 10px; border:1px solid var(--border); border-radius:9px; background:var(--panel-2); cursor:pointer; text-align:center; color:var(--text-dim); font-weight:600; font-size:13px; font-family:inherit; line-height:1.2; width:100%; }
-  .dispo-opt .emoji { font-size:20px; display:block; margin-bottom:4px; }
+  .dispo-picker { display:grid; gap:8px; margin-bottom:12px; }
+  .dispo-picker-tier1 { grid-template-columns:1fr 1fr; }
+  .dispo-opt { padding:18px 12px; border:1px solid var(--border); border-radius:11px; background:var(--panel-2); cursor:pointer; text-align:center; color:var(--text-dim); font-weight:600; font-size:14px; font-family:inherit; line-height:1.2; width:100%; min-height:90px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+  .dispo-opt .emoji { font-size:24px; display:block; margin-bottom:4px; }
+  .dispo-opt .opt-lbl { font-size:16px; font-weight:700; color:var(--text); }
+  .dispo-opt .opt-sub { font-size:11px; color:var(--text-mute); font-weight:500; margin-top:2px; }
   .dispo-opt:hover { border-color:var(--primary); color:var(--text); }
-  .dispo-opt.sel.sold { background:var(--good-soft); color:var(--good-text); border-color:var(--good); }
-  .dispo-opt.sel.nosale { background:var(--bad-soft); color:var(--bad-text); border-color:var(--bad); }
-  .dispo-opt.sel.callback { background:var(--callback-soft); color:var(--callback-text); border-color:var(--primary); }
-  .dispo-opt.sel.noshow { background:var(--warn-soft); color:var(--warn-text); border-color:var(--warn); }
+  .dispo-opt.sel.sold     { background:var(--good-soft); border-color:var(--good); }
+  .dispo-opt.sel.sold     .opt-lbl, .dispo-opt.sel.sold .opt-sub { color:var(--good-text); }
+  .dispo-opt.sel.not_sold { background:var(--bad-soft);  border-color:var(--bad); }
+  .dispo-opt.sel.not_sold .opt-lbl, .dispo-opt.sel.not_sold .opt-sub { color:var(--bad-text); }
+
+  /* Tier 2: sub-classification chips when Not Sold is picked */
+  .dispo-sub { margin-bottom:16px; padding:12px 14px; background:var(--panel-2); border:1px dashed var(--bad); border-radius:9px; animation:optFade .2s ease; }
+  .dispo-sub .sub-lbl { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--bad-text); font-weight:700; margin-bottom:8px; }
+  .dispo-sub .sub-chips { display:flex; gap:8px; flex-wrap:wrap; }
+  .dispo-sub .chip-opt { min-height:42px; font-size:13px; padding:10px 14px; }
 
   .entry-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .entry-grid .full { grid-column:1 / -1; }
@@ -476,7 +485,8 @@
     .gm-readout { grid-template-columns:1fr; }
     .gm-readout .cell { display:flex; justify-content:space-between; align-items:baseline; }
     .gm-readout .cell .v { margin-top:0; font-size:20px; }
-    .dispo-picker { grid-template-columns:1fr 1fr; }
+    .dispo-picker-tier1 { grid-template-columns:1fr 1fr; }
+    .dispo-sub .chip-opt { min-height:48px; flex:1 1 28%; }
     .modal-actions .btn { flex:1; justify-content:center; }
     .hero-score { padding:14px; }
     .hero-score .score { font-size:34px; }
@@ -499,8 +509,12 @@
 
   /* Rep never gets manual filter controls - scope is RLS-locked */
   body.role-rep #queueFilterBar .filtergrid { display:none; }
-  /* Rep only sees Today/Yesterday pills; hide rollup pills */
-  body.role-rep #tfPills .pill-rollup { display:none; }
+  /* Rep sees Today / Yesterday / WTD only — no longer-range rollup pills.
+     WTD is the rep's default per COO #8 (weekly cadence). */
+  body.role-rep #tfPills .pill[data-tf="LWK"],
+  body.role-rep #tfPills .pill[data-tf="MTD"],
+  body.role-rep #tfPills .pill[data-tf="QTD"],
+  body.role-rep #tfPills .pill[data-tf="CUSTOM"] { display:none; }
   /* Production: rep doesn't see persona switcher (it's a demo affordance for everyone else).
      Demo Mode keeps it visible so demo flow can switch back out of rep. */
   body.role-rep:not(.demo-mode) .persona-block,
@@ -849,6 +863,25 @@
 
   /* Drill modal */
   .modal-wide { max-width:900px; }
+
+  /* Corrections panel (COO #9) */
+  .correction-row { margin-top:10px; }
+  .correction-item {
+    background:var(--panel-2); border:1px solid var(--border); border-left:3px solid var(--warn);
+    border-radius:9px; padding:14px 16px; margin-bottom:10px;
+  }
+  .correction-item.reviewed { border-left-color:var(--text-mute); opacity:.7; }
+  .correction-item .ci-head {
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:11px; letter-spacing:.6px; text-transform:uppercase;
+    color:var(--warn-text); font-weight:700; margin-bottom:8px;
+  }
+  .correction-item.reviewed .ci-head { color:var(--text-mute); }
+  .correction-item .ci-when { color:var(--text-mute); font-weight:500; letter-spacing:0; text-transform:none; }
+  .correction-item .ci-row { display:flex; gap:10px; font-size:12.5px; line-height:1.5; }
+  .correction-item .ci-k { color:var(--text-mute); min-width:80px; flex-shrink:0; font-size:11px; padding-top:1px; text-transform:uppercase; letter-spacing:.5px; }
+  .correction-item .ci-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+  .ci-section { margin:18px 0 10px; font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--text-mute); font-weight:700; border-top:1px dashed var(--border); padding-top:14px; }
 
   /* Persona tour */
   .tour-scrim {
@@ -1529,6 +1562,22 @@
   </div>
 </div>
 
+<!-- Pending corrections modal (COO #9) -->
+<div class="scrim" id="correctionsScrim">
+  <div class="modal modal-wide">
+    <div class="modal-head">
+      <div>
+        <h3>Pending Corrections</h3>
+        <div class="cardsub">Rep-suggested edits awaiting your review. Approve to propagate to the CRM; reject to keep the existing record.</div>
+      </div>
+      <button class="close-x" id="closeCorrections" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="correctionsBody"></div>
+    </div>
+  </div>
+</div>
+
 <!-- KPI drill-down modal -->
 <div class="scrim" id="drillScrim">
   <div class="modal modal-wide">
@@ -1607,19 +1656,58 @@
     </div>
     <div class="modal-body">
       <div class="cardsub" id="dispoSub">—</div>
+      <!-- Per COO #9: rep can suggest a correction to lead source / customer info. Routes to manager review. -->
+      <div class="correction-row">
+        <button type="button" class="opt-toggle" id="suggestCorrectionBtn" data-toggle="correctionPanel" aria-expanded="false">
+          <span class="ico">!</span> Suggest correction to this appointment
+        </button>
+      </div>
+      <div class="opt-field" id="correctionPanel" hidden>
+        <div class="entry-grid">
+          <div class="field"><label>Field to correct</label><select id="corr-field">
+            <option value="">Select…</option>
+            <option>Lead source</option>
+            <option>Customer name</option>
+            <option>Address</option>
+            <option>Phone</option>
+            <option>Service type expected</option>
+            <option>Customer type</option>
+            <option>Other</option>
+          </select></div>
+          <div class="field"><label>Suggested value</label><input id="corr-value" type="text" placeholder="What it should be" /></div>
+          <div class="field full"><label>Why?</label><input id="corr-reason" type="text" placeholder="Brief context for the manager" /></div>
+        </div>
+        <div class="modal-actions" style="margin-top:8px">
+          <button type="button" class="btn ghost" onclick="document.getElementById('correctionPanel').hidden=true;document.getElementById('suggestCorrectionBtn').hidden=false;">Cancel</button>
+          <button type="button" class="btn primary" onclick="submitCorrection()">Submit for review</button>
+        </div>
+      </div>
 
-      <div class="dispo-picker" id="dispoPicker" role="radiogroup" aria-label="Disposition outcome">
-        <button type="button" class="dispo-opt" data-d="sold"     role="radio" aria-checked="false"><span class="emoji">✓</span>Sold <span class="sr-only">(press S)</span></button>
-        <button type="button" class="dispo-opt" data-d="nosale"   role="radio" aria-checked="false"><span class="emoji">✕</span>Not Sold <span class="sr-only">(press N)</span></button>
-        <button type="button" class="dispo-opt" data-d="callback" role="radio" aria-checked="false"><span class="emoji">↻</span>Callback <span class="sr-only">(press C)</span></button>
-        <button type="button" class="dispo-opt" data-d="noshow"   role="radio" aria-checked="false"><span class="emoji">∅</span>No Show <span class="sr-only">(press X)</span></button>
+      <!-- Two-tier disposition picker per COO funnel: Sold / Not Sold at top, sub-classifications under Not Sold. -->
+      <div class="dispo-picker dispo-picker-tier1" id="dispoPicker" role="radiogroup" aria-label="Disposition outcome">
+        <button type="button" class="dispo-opt" data-d="sold" role="radio" aria-checked="false">
+          <span class="emoji">✓</span><span class="opt-lbl">Sold</span><span class="opt-sub">Got the deal</span>
+          <span class="sr-only">(press S)</span>
+        </button>
+        <button type="button" class="dispo-opt" data-d="not_sold" role="radio" aria-checked="false">
+          <span class="emoji">✕</span><span class="opt-lbl">Not Sold</span><span class="opt-sub">Lost · Callback · No Show</span>
+          <span class="sr-only">(press N)</span>
+        </button>
+      </div>
+      <div class="dispo-sub" id="dispoSub2" hidden>
+        <div class="sub-lbl">What happened?</div>
+        <div class="sub-chips" role="radiogroup" aria-label="Not-sold sub-classification">
+          <button type="button" class="chip-opt" data-d="nosale">Lost <span class="sr-only">(press L)</span></button>
+          <button type="button" class="chip-opt" data-d="callback">Callback <span class="sr-only">(press C)</span></button>
+          <button type="button" class="chip-opt" data-d="noshow">No Show <span class="sr-only">(press X)</span></button>
+        </div>
       </div>
 
       <!-- SOLD branch -->
       <form id="soldForm" style="display:none;" onsubmit="return submitSold(event)">
         <div class="entry-grid">
           <div class="field req"><label>Sold Price</label><div class="money-input"><input id="s-price" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div></div>
-          <div class="field req"><label>Job Cost (all-in)</label><div class="money-input"><input id="s-cogs" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div><div class="hint">materials + labor + subs + permits + dump fees + financing fees</div></div>
+          <div class="field req"><label>Job Cost (all-in)</label><div class="money-input"><input id="s-cogs" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="recalcSold()" /></div><div class="hint" id="s-cogs-hint">materials + labor + subs + permits + dump fees + financing fees</div></div>
           <div class="field full">
             <label class="chip-label req">Service Offering</label>
             <div class="chip-row" id="s-service-chips" role="radiogroup" aria-label="Service offering"></div>
@@ -1643,6 +1731,35 @@
         <div class="multi-strip" id="multiStrip" style="display:none;">
           <div class="k">Services in this sale</div>
           <div class="chips" id="multiChips"></div>
+        </div>
+        <!-- Optional cost itemization (per COO #1). Reps who know the breakdown can capture it; the all-in field auto-sums. -->
+        <button type="button" class="opt-toggle" data-toggle="s-itemize-field" aria-expanded="false">
+          <span class="ico">+</span> Itemize cost (labor / material / dump / other)
+        </button>
+        <div class="opt-field" id="s-itemize-field" hidden>
+          <div class="entry-grid">
+            <div class="field"><label>Labor $</label><div class="money-input"><input id="s-cost-labor" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="sumItemizedCost()" /></div></div>
+            <div class="field"><label>Material $</label><div class="money-input"><input id="s-cost-material" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="sumItemizedCost()" /></div></div>
+            <div class="field"><label>Dump $</label><div class="money-input"><input id="s-cost-dump" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="sumItemizedCost()" /></div></div>
+            <div class="field"><label>Other $</label><div class="money-input"><input id="s-cost-other" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="sumItemizedCost()" /></div></div>
+          </div>
+          <div class="hint" style="margin-top:6px">Sums into Job Cost (all-in) above. Optional — leave blank if you don't have the breakdown on the porch.</div>
+        </div>
+        <!-- Price delivery method (per COO #10). Captures email-quote follow-up SLA. -->
+        <div class="field" style="margin-top:12px">
+          <label class="chip-label">How was the price delivered?</label>
+          <div class="chip-row" id="s-delivery-chips" role="radiogroup" aria-label="Price delivery method">
+            <button type="button" class="chip-opt" data-val="on_spot">On the spot</button>
+            <button type="button" class="chip-opt" data-val="email">Email follow-up</button>
+            <button type="button" class="chip-opt" data-val="phone">Phone follow-up</button>
+          </div>
+          <input type="hidden" id="s-delivery" value="on_spot" />
+        </div>
+        <div class="opt-field" id="s-deliveryDetail" hidden>
+          <div class="entry-grid" style="margin-top:8px">
+            <div class="field"><label>Why not on the spot?</label><input id="s-delivery-why" type="text" placeholder="e.g. needs revised scope, customer asked to think" /></div>
+            <div class="field"><label>Send-by date</label><input id="s-delivery-by" type="date" /></div>
+          </div>
         </div>
         <button type="button" class="opt-toggle" id="s-add-service" onclick="addAnotherService()" hidden>
           <span class="ico">+</span> Save &amp; add another service to this sale
@@ -1682,7 +1799,10 @@
           </div>
           <input type="hidden" id="n-reason" />
         </div>
+        <!-- Per COO #3: capture the rep's own quote so we can see loss-rate $ exposure, not just count. -->
         <div class="entry-grid" style="margin-top:14px;">
+          <div class="field"><label>Your Quote $</label><div class="money-input"><input id="n-quote" type="number" inputmode="decimal" step="0.01" placeholder="0.00" /></div><div class="hint">What you offered, even though it didn't close.</div></div>
+          <div class="field"><label>Est. Job Cost $</label><div class="money-input"><input id="n-quotecost" type="number" inputmode="decimal" step="0.01" placeholder="0.00" /></div><div class="hint">Optional — captures the GM that would have been.</div></div>
           <div class="field"><label>Competitor</label><input id="n-comp" type="text" placeholder="If applicable" /></div>
           <div class="field"><label>Their Price $</label><div class="money-input"><input id="n-compprice" type="number" inputmode="decimal" placeholder="0.00" /></div></div>
           <div class="field"><label>Revisit Likely?</label><select id="n-revisit"><option value="">—</option><option>Yes — warm</option><option>Maybe</option><option>No</option></select></div>
@@ -2006,6 +2126,9 @@ function init() {
   // Drill modal close
   document.getElementById('closeDrill').addEventListener('click', closeDrill);
   document.getElementById('drillScrim').addEventListener('click', e => { if (e.target.id === 'drillScrim') closeDrill(); });
+  // Corrections modal close
+  document.getElementById('closeCorrections').addEventListener('click', closeCorrections);
+  document.getElementById('correctionsScrim').addEventListener('click', e => { if (e.target.id === 'correctionsScrim') closeCorrections(); });
 
   // Nav — Ask + Roadmap are accessory pages: clicking the active one again
   // toggles back to your last working page. Other pages just navigate.
@@ -2025,6 +2148,9 @@ function init() {
 
   // Dispo modal
   [...document.querySelectorAll('.dispo-opt')].forEach(el =>
+    el.addEventListener('click', () => pickDispo(el.dataset.d)));
+  // Sub-classification chips (Not Sold → Lost/Callback/No Show)
+  [...document.querySelectorAll('#dispoSub2 .chip-opt')].forEach(el =>
     el.addEventListener('click', () => pickDispo(el.dataset.d)));
   document.getElementById('closeDispo').addEventListener('click', closeDispo);
   document.getElementById('dispoScrim').addEventListener('click', e => { if (e.target.id==='dispoScrim') closeDispo(); });
@@ -2149,12 +2275,14 @@ function applyPersona() {
   // Body class drives role-specific layout (mobile rep-first layout lives in CSS)
   document.body.classList.remove('role-rep','role-lead','role-corp');
   document.body.classList.add(persona.role === 'Rep' ? 'role-rep' : persona.role === 'Brand Leadership' ? 'role-lead' : 'role-corp');
-  timeFrame = 'TODAY';
+  // Per COO #8: reps land on weekly view (controls emotional whiplash; right
+  // cadence to spot trends without overreacting to a single hot/cold day).
+  timeFrame = persona.role === 'Rep' ? 'WTD' : 'TODAY';
   const pills = document.querySelectorAll('#tfPills .pill');
   if (pills && pills.length) {
     pills.forEach(x => x.classList.remove('active'));
-    const today = [...pills].find(x => x.dataset.tf === 'TODAY');
-    if (today) today.classList.add('active');
+    const target = [...pills].find(x => x.dataset.tf === timeFrame);
+    if (target) target.classList.add('active');
   }
   [...document.querySelectorAll('[data-filter]')].forEach(x => x.classList.toggle('ghost-active', x.dataset.filter === queueFilter));
   // User panel
@@ -2563,14 +2691,38 @@ function renderMyDay() {
   if (subsTitleEl) subsTitleEl.textContent = persona.role === 'Brand Leadership' ? 'Brand Activity' : 'My Submissions';
   // Triage cards (Brand Leadership only)
   renderTriageCards(appts, subs);
-  document.getElementById('mydayKpis').innerHTML = [
-    tile('My Appts', String(appts.length), '', null, 'all'),
-    tile('Dispositioned', String(appts.length - appts.filter(a=>a.status==='open').length), '', null, 'all'),
-    tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`, null, 'sold'),
-    tile('Sold $', fmt(m.sold$), '', null, 'sold'),
-    tile('GM %', m.gmPct.toFixed(1)+'%', '', gmColor(m.gmPct), 'sold'),
-    tile('Open', String(m.open), '', null, 'open'),
-  ].join('');
+  // Per COO #7: rep view tiles. The 6 they specifically asked for —
+  // scheduled / dispositioned / pending / quoted$ / sold$ / sold margin$.
+  // Brand Leadership and Corporate keep the existing tile set above the triage cards.
+  if (persona.role === 'Rep') {
+    const scheduled = appts.length;
+    const dispositioned = appts.filter(a => a.status !== 'open').length;
+    // Pending Disposition = appointment time has passed and no disposition (= our existing stuck-SLA logic relabeled)
+    const pending = appts.filter(a => a.status === 'open' && parseApptMin(a.time) != null && parseApptMin(a.time) <= DEMO_NOW_MIN).length;
+    // Quoted $ = sum across Sold (net) + Not-Sold-Lost (quoteAmount when captured)
+    const quoted$ = subs.reduce((acc, s) => {
+      if (s.outcome === 'sold')   return acc + (s.net || 0);
+      if (s.outcome === 'nosale') return acc + (s.quoteAmount || 0);
+      return acc;
+    }, 0);
+    document.getElementById('mydayKpis').innerHTML = [
+      tile('Scheduled',           String(scheduled),                    'leads in your week',           null, 'all'),
+      tile('Dispositioned',       String(dispositioned),                'closed in the system',         null, 'all'),
+      tile('Pending Disposition', String(pending),                      'past time · needs your input', pending > 0 ? 'var(--bad-text)' : null, 'open'),
+      tile('Quoted $',            fmt(quoted$),                         'sold + lost'),
+      tile('Sold $',              fmt(m.sold$),                         `${m.sold} sale${m.sold===1?'':'s'}`,  null, 'sold'),
+      tile('Sold Margin $',       fmt(m.gm$),                           `${m.gmPct.toFixed(1)}% GM`,    gmColor(m.gmPct), 'sold'),
+    ].join('');
+  } else {
+    document.getElementById('mydayKpis').innerHTML = [
+      tile('My Appts', String(appts.length), '', null, 'all'),
+      tile('Dispositioned', String(appts.length - appts.filter(a=>a.status==='open').length), '', null, 'all'),
+      tile('Sold', String(m.sold), `Close ${m.closePct.toFixed(1)}%`, null, 'sold'),
+      tile('Sold $', fmt(m.sold$), '', null, 'sold'),
+      tile('GM %', m.gmPct.toFixed(1)+'%', '', gmColor(m.gmPct), 'sold'),
+      tile('Open', String(m.open), '', null, 'open'),
+    ].join('');
+  }
   document.getElementById('mydayBody').innerHTML = subs.length === 0
     ? `<tr><td colspan="7" style="text-align:center;color:var(--text-mute);padding:24px">No submissions yet.</td></tr>`
     : subs.map(s => `
@@ -2634,6 +2786,14 @@ function renderTriageCards(appts, subs) {
   } else {
     cards.push(card('flat', 'Oldest stuck appointment', 'None', 'All open appts within SLA.', { label:'View queue', action:'goto-queue' }));
   }
+  // Per COO #9: Pending Corrections triage card. Counts only corrections in scope.
+  const pendingCount = pendingCorrectionCount();
+  if (pendingCount > 0) {
+    cards.push(card(pendingCount >= 3 ? 'bad' : 'warn',
+      'Pending corrections', `${pendingCount} awaiting review`,
+      `Reps suggested edits to lead source / customer info. Approve before they propagate to CRM.`,
+      { label:'Review corrections', action:'view-corrections' }));
+  }
   grid.innerHTML = cards.join('');
   [...grid.querySelectorAll('.triage-card')].forEach(c => {
     c.addEventListener('click', () => {
@@ -2644,6 +2804,7 @@ function renderTriageCards(appts, subs) {
       else if (action === 'goto-queue') goPage('queue');
       else if (action === 'goto-bybranch') goPage('bybranch');
       else if (action === 'goto-enterprise') goPage('enterprise');
+      else if (action === 'view-corrections') openCorrectionsModal();
     });
   });
 }
@@ -2804,9 +2965,18 @@ function openDispo(appt) {
   document.getElementById('dispoSub').innerHTML = appt
     ? `<strong>${escapeHtml(appt.customer)}</strong> · ${escapeHtml(appt.brand)} · ${escapeHtml(appt.market)} · ${escapeHtml(appt.rep)} · ${appt.time} · <span style="color:var(--text-mute)">Appt ${appt.id}</span>`
     : 'No CRM appointment linked — walk-in or offline capture.';
-  [...document.querySelectorAll('.dispo-opt')].forEach(el => { el.classList.remove('sel','sold','nosale','callback','noshow'); el.setAttribute('aria-checked','false'); });
+  [...document.querySelectorAll('.dispo-opt')].forEach(el => { el.classList.remove('sel','sold','not_sold','nosale','callback','noshow'); el.setAttribute('aria-checked','false'); });
+  document.querySelectorAll('.dispo-sub .chip-opt').forEach(c => c.classList.remove('sel'));
+  const subPanel = document.getElementById('dispoSub2');
+  if (subPanel) subPanel.hidden = true;
   ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
-  ['s-price','s-cogs','s-disc','s-notes','n-comp','n-compprice','n-notes','n-followup','c-notes','ns-notes','n-reason','c-reason','ns-reason'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  ['s-price','s-cogs','s-disc','s-notes','s-cost-labor','s-cost-material','s-cost-dump','s-cost-other','s-delivery-why','s-delivery-by','n-comp','n-compprice','n-notes','n-followup','n-quote','n-quotecost','c-notes','ns-notes','n-reason','c-reason','ns-reason'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  // Reset cost-itemize lock + delivery method default
+  const cogsEl = document.getElementById('s-cogs'); if (cogsEl) cogsEl.readOnly = false;
+  const cogsHint = document.getElementById('s-cogs-hint'); if (cogsHint) cogsHint.textContent = 'materials + labor + subs + permits + dump fees + financing fees';
+  const delivery = document.getElementById('s-delivery'); if (delivery) delivery.value = 'on_spot';
+  const detail = document.getElementById('s-deliveryDetail'); if (detail) detail.hidden = true;
+  document.querySelectorAll('#s-delivery-chips .chip-opt').forEach(c => c.classList.toggle('sel', c.dataset.val === 'on_spot'));
   // Reset chip selections + opt-field visibility
   document.querySelectorAll('.chip-row .chip-opt').forEach(c => c.classList.remove('sel'));
   document.querySelectorAll('.opt-field').forEach(f => f.hidden = true);
@@ -2858,7 +3028,7 @@ function bindOptToggles() {
 }
 
 /* Bind chip rows: click → pickChip; for service chips also surface the
-   "Add another" button and trigger recalc/storage */
+   "Add another" button; for delivery chips toggle the detail panel */
 function bindChipRows() {
   document.querySelectorAll('.chip-row').forEach(row => {
     if (row._bound) return; row._bound = true;
@@ -2869,6 +3039,10 @@ function bindChipRows() {
         const addBtn = document.getElementById('s-add-service');
         if (addBtn) addBtn.hidden = false;
       }
+      if (row.id === 's-delivery-chips') {
+        const detail = document.getElementById('s-deliveryDetail');
+        if (detail) detail.hidden = (c.dataset.val === 'on_spot');
+      }
     });
   });
 }
@@ -2878,28 +3052,62 @@ function closeDispo() {
   resetMultiBuffer();
 }
 function pickDispo(d) {
+  // Two-tier flow per COO funnel:
+  //   d === 'sold'      → mark Sold tile sel, show Sold form
+  //   d === 'not_sold'  → mark Not Sold tile sel, REVEAL sub-picker (no form yet)
+  //   d ∈ {'nosale','callback','noshow'} → sub-pick: keep Not Sold sel, show appropriate form
+  const isTopLevel = (d === 'sold' || d === 'not_sold');
+  const isSubPick  = (d === 'nosale' || d === 'callback' || d === 'noshow');
+
   chosenDispo = d;
-  [...document.querySelectorAll('.dispo-opt')].forEach(el => {
-    const sel = el.dataset.d === d;
-    el.classList.remove('sel','sold','nosale','callback','noshow');
-    if (sel) el.classList.add('sel', d);
-    el.setAttribute('aria-checked', sel ? 'true' : 'false');
-  });
-  ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
-  const showId = { sold:'soldForm', nosale:'nosaleForm', callback:'callbackForm', noshow:'noshowForm' }[d];
-  const form = document.getElementById(showId);
-  form.style.display = 'block';
-  // Sold: preselect the brand's primary service chip so reps don't tap unless overriding
-  if (d === 'sold') {
-    const brand = selectedAppt?.brand
-      || (document.getElementById('f-brand')?.value)
-      || persona.scope.brand
-      || 'Infinity Exteriors';
-    const primary = primaryServiceFor(brand);
-    const row = document.getElementById('s-service-chips');
-    if (row) pickChip(row, primary);
+
+  if (isTopLevel) {
+    [...document.querySelectorAll('.dispo-picker-tier1 .dispo-opt')].forEach(el => {
+      const sel = el.dataset.d === d;
+      el.classList.remove('sel','sold','not_sold');
+      if (sel) el.classList.add('sel', d);
+      el.setAttribute('aria-checked', sel ? 'true' : 'false');
+    });
+    // Reset sub-chips
+    document.querySelectorAll('.dispo-sub .chip-opt').forEach(c => c.classList.remove('sel'));
   }
-  // Focus the first interactive element in the chosen branch
+
+  // Hide all forms before deciding what to show
+  ['soldForm','nosaleForm','callbackForm','noshowForm'].forEach(id => document.getElementById(id).style.display = 'none');
+  const subPanel = document.getElementById('dispoSub2');
+
+  if (d === 'sold') {
+    if (subPanel) subPanel.hidden = true;
+    showSoldForm();
+    return;
+  }
+  if (d === 'not_sold') {
+    if (subPanel) subPanel.hidden = false;  // reveal sub-picker
+    return;
+  }
+  if (isSubPick) {
+    // Mark the chosen sub-chip
+    document.querySelectorAll('.dispo-sub .chip-opt').forEach(c => c.classList.toggle('sel', c.dataset.d === d));
+    const showId = { nosale:'nosaleForm', callback:'callbackForm', noshow:'noshowForm' }[d];
+    const form = document.getElementById(showId);
+    if (form) form.style.display = 'block';
+    setTimeout(() => {
+      const target = form?.querySelector('input:not([type="hidden"]):not([hidden]), select:not([hidden])');
+      if (target) target.focus();
+    }, 0);
+  }
+}
+function showSoldForm() {
+  const form = document.getElementById('soldForm');
+  form.style.display = 'block';
+  // Preselect brand's primary service so reps don't tap unless overriding
+  const brand = selectedAppt?.brand
+    || (document.getElementById('f-brand')?.value)
+    || persona.scope.brand
+    || 'Infinity Exteriors';
+  const primary = primaryServiceFor(brand);
+  const row = document.getElementById('s-service-chips');
+  if (row) pickChip(row, primary);
   setTimeout(() => {
     const target = form.querySelector('input:not([type="hidden"]), select:not([hidden])');
     if (target) target.focus();
@@ -3207,6 +3415,18 @@ function seedDemoSubs() {
   });
   seedDemoHistory();
   saveSubs();
+  // Per COO #9: seed 2 sample corrections so the Pending Corrections triage card has demo content
+  if (corrections.length === 0) {
+    corrections = [
+      { id:'CORR-DEMO1', apptId:'A-20432', customer:'Perez, M.', brand:'Infinity Exteriors', rep:'Karen P.',
+        field:'Lead source', value:'Referral (neighbor on Birch St)', reason:'Lead listed as Google but customer said neighbor referred them.',
+        submittedTs: Date.now() - 90*60*1000, submittedBy:'Karen P.', status:'pending' },
+      { id:'CORR-DEMO2', apptId:'A-20431', customer:'Okafor, C.', brand:'Premier Roofing', rep:'Doug M.',
+        field:'Service type expected', value:'Roofing + Gutters', reason:'CRM shows Roofing only; customer also wants gutter replacement quoted.',
+        submittedTs: Date.now() - 30*60*1000, submittedBy:'Doug M.', status:'pending' },
+    ];
+    saveCorrections();
+  }
 }
 
 function commonRec(outcome, extra) {
@@ -3234,7 +3454,37 @@ function buildSoldPayload() {
     service: document.getElementById('s-service').value,
     customerType: document.getElementById('s-ctype').value,
     notes: document.getElementById('s-notes').value,
+    // Per COO #1: optional cost decomposition. Captured if rep filled them; otherwise null.
+    costLabor:    +document.getElementById('s-cost-labor').value    || null,
+    costMaterial: +document.getElementById('s-cost-material').value || null,
+    costDump:     +document.getElementById('s-cost-dump').value     || null,
+    costOther:    +document.getElementById('s-cost-other').value    || null,
+    // Per COO #10: price delivery method + email follow-up SLA fields
+    priceDelivery: document.getElementById('s-delivery').value || 'on_spot',
+    deliveryWhy:   document.getElementById('s-delivery-why').value || '',
+    deliveryBy:    document.getElementById('s-delivery-by').value || '',
   };
+}
+/* COO #1 — Sum the optional itemized costs into the all-in field. Reps who don't
+   itemize keep manual control. As soon as ANY itemized field is non-zero, the
+   all-in field is owned by the sum and we add a hint to make that visible. */
+function sumItemizedCost() {
+  const labor    = +document.getElementById('s-cost-labor').value    || 0;
+  const material = +document.getElementById('s-cost-material').value || 0;
+  const dump     = +document.getElementById('s-cost-dump').value     || 0;
+  const other    = +document.getElementById('s-cost-other').value    || 0;
+  const sum = labor + material + dump + other;
+  const cogsEl = document.getElementById('s-cogs');
+  const hintEl = document.getElementById('s-cogs-hint');
+  if (sum > 0) {
+    cogsEl.value = sum.toFixed(2);
+    cogsEl.readOnly = true;
+    if (hintEl) hintEl.textContent = `Auto-summed from itemize · $${sum.toLocaleString()}`;
+  } else {
+    cogsEl.readOnly = false;
+    if (hintEl) hintEl.textContent = 'materials + labor + subs + permits + dump fees + financing fees';
+  }
+  recalcSold();
 }
 function addAnotherService() {
   const price = +document.getElementById('s-price').value || 0;
@@ -3314,12 +3564,19 @@ function submitNoSale(e) {
   e.preventDefault();
   const reason = document.getElementById('n-reason').value;
   if (!reason) { toast('Pick a reason.'); return false; }
+  const quote = +document.getElementById('n-quote').value || null;
+  const quoteCost = +document.getElementById('n-quotecost').value || null;
+  // Per COO #3: capture quoted amount + would-have-been GM
+  const quoteGm = (quote && quoteCost) ? +(((quote - quoteCost) / quote) * 100).toFixed(2) : null;
   const rec = commonRec('nosale', {
     reason, competitor: document.getElementById('n-comp').value,
     competitorPrice: +document.getElementById('n-compprice').value || null,
     revisit: document.getElementById('n-revisit').value,
     followup: document.getElementById('n-followup').value,
     notes: document.getElementById('n-notes').value,
+    quoteAmount: quote,
+    quoteCost: quoteCost,
+    quoteGmPct: quoteGm,
   });
   commit(rec, 'nosale');
   return false;
@@ -3712,7 +3969,8 @@ function onGlobalKey(e) {
   if (modalOpen) {
     if (e.key === 'Escape') { e.preventDefault(); closeDispo(); return; }
     if (!inField) {
-      const pickMap = { s:'sold', n:'nosale', c:'callback', x:'noshow' };
+      // S = Sold (direct); N = Not Sold (reveals sub-picker); L/C/X = sub-pick (Lost/Callback/No Show)
+      const pickMap = { s:'sold', n:'not_sold', l:'nosale', c:'callback', x:'noshow' };
       const k = e.key.toLowerCase();
       if (pickMap[k]) { e.preventDefault(); pickDispo(pickMap[k]); return; }
     }
@@ -3934,6 +4192,97 @@ function updateConn() {
 }
 function loadSubs() { try { return JSON.parse(localStorage.getItem(LS_SUBS) || '[]'); } catch { return []; } }
 function saveSubs() { localStorage.setItem(LS_SUBS, JSON.stringify(submissions)); }
+/* Per COO #9 — attribution corrections: rep-submitted, manager-reviewed before propagating to CRM */
+const LS_CORRECTIONS = 'ihs_dispo_corrections_v1';
+let corrections = loadCorrections();
+function loadCorrections() { try { return JSON.parse(localStorage.getItem(LS_CORRECTIONS) || '[]'); } catch { return []; } }
+function saveCorrections() { localStorage.setItem(LS_CORRECTIONS, JSON.stringify(corrections)); }
+function submitCorrection() {
+  const field = document.getElementById('corr-field').value;
+  const value = document.getElementById('corr-value').value;
+  const reason = document.getElementById('corr-reason').value;
+  if (!field || !value) { toast('Pick a field and provide the suggested value.'); return; }
+  corrections.push({
+    id: 'CORR-' + Date.now().toString(36).toUpperCase(),
+    apptId: selectedAppt?.id || null,
+    customer: selectedAppt?.customer || '(walk-in)',
+    brand: selectedAppt?.brand || (persona.scope.brand || '—'),
+    rep: selectedAppt?.rep || persona.name,
+    field, value, reason,
+    submittedTs: Date.now(),
+    submittedBy: persona.name,
+    status: 'pending',
+  });
+  saveCorrections();
+  document.getElementById('correctionPanel').hidden = true;
+  document.getElementById('suggestCorrectionBtn').hidden = false;
+  ['corr-field','corr-value','corr-reason'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  toast('Correction submitted · routed to manager review');
+}
+function pendingCorrectionCount() {
+  return corrections.filter(c => {
+    if (c.status !== 'pending') return false;
+    if (persona.scope.brand && !canSeeAllBrands() && c.brand !== persona.scope.brand) return false;
+    return true;
+  }).length;
+}
+function openCorrectionsModal() {
+  const inScope = corrections.filter(c => {
+    if (persona.scope.brand && !canSeeAllBrands() && c.brand !== persona.scope.brand) return false;
+    return true;
+  });
+  const pending = inScope.filter(c => c.status === 'pending');
+  const reviewed = inScope.filter(c => c.status !== 'pending').slice(-5).reverse();
+  const body = document.getElementById('correctionsBody');
+  let html = '';
+  if (!pending.length) {
+    html += `<div class="empty-state"><div class="es-emoji">✓</div><div class="es-title">No pending corrections.</div><div class="es-sub">When reps suggest edits, they'll show here for your review.</div></div>`;
+  } else {
+    html += pending.map(c => `
+      <div class="correction-item" data-id="${c.id}">
+        <div class="ci-head">
+          <span class="ci-field">${escapeHtml(c.field)}</span>
+          <span class="ci-when">${timeAgo(c.submittedTs)}</span>
+        </div>
+        <div class="ci-row"><span class="ci-k">Customer</span><span>${escapeHtml(c.customer)} · ${escapeHtml(c.brand)}</span></div>
+        <div class="ci-row"><span class="ci-k">Suggested</span><span>${escapeHtml(c.value)}</span></div>
+        ${c.reason ? `<div class="ci-row"><span class="ci-k">Why</span><span>${escapeHtml(c.reason)}</span></div>` : ''}
+        <div class="ci-row"><span class="ci-k">From</span><span>${escapeHtml(c.submittedBy || c.rep)}</span></div>
+        <div class="ci-actions">
+          <button type="button" class="btn ghost" data-act="reject" data-id="${c.id}">Reject</button>
+          <button type="button" class="btn good" data-act="approve" data-id="${c.id}">Approve · push to CRM</button>
+        </div>
+      </div>`).join('');
+  }
+  if (reviewed.length) {
+    html += `<div class="ci-section">Recently reviewed</div>`;
+    html += reviewed.map(c => `
+      <div class="correction-item reviewed">
+        <div class="ci-head">
+          <span class="ci-field">${escapeHtml(c.field)} · ${c.status}</span>
+          <span class="ci-when">${timeAgo(c.reviewedTs || c.submittedTs)}</span>
+        </div>
+        <div class="ci-row"><span class="ci-k">Customer</span><span>${escapeHtml(c.customer)} · ${escapeHtml(c.brand)}</span></div>
+        <div class="ci-row"><span class="ci-k">Suggested</span><span>${escapeHtml(c.value)}</span></div>
+      </div>`).join('');
+  }
+  body.innerHTML = html;
+  [...body.querySelectorAll('button[data-act]')].forEach(b => {
+    b.addEventListener('click', () => {
+      const c = corrections.find(x => x.id === b.dataset.id);
+      if (!c) return;
+      c.status = b.dataset.act === 'approve' ? 'approved' : 'rejected';
+      c.reviewedTs = Date.now();
+      c.reviewedBy = persona.name;
+      saveCorrections();
+      openCorrectionsModal(); // re-render
+      renderAll();
+      toast(b.dataset.act === 'approve' ? 'Approved · queued for CRM update' : 'Rejected · CRM unchanged');
+    });
+  });
+  document.getElementById('correctionsScrim').classList.add('show');
+}
+function closeCorrections() { document.getElementById('correctionsScrim').classList.remove('show'); }
 function registerSW() { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 
 /* ============================================================
@@ -4034,6 +4383,23 @@ function timeAgo(ts) {
 }
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function gmColor(pct) { return gmTier(pct).color; }
+/* ============================================================
+   CRM DISPOSITION VOCABULARY — REMAP POINT (per COO #2)
+   --------------------------------------------------------------
+   Today RTAT uses 4 internal outcome codes: 'sold', 'nosale',
+   'callback', 'noshow'. These are placeholders chosen for the
+   wireframe. Production must map these 1:1 to the canonical
+   disposition picklist used in improveit360 (and the other CRM
+   sources: Acculynx, DataForma, Gorilla Desk, Leap, Salesforce,
+   Zoho/DF) so historical data can roll up cleanly.
+
+   Action: Mike Wood (or whoever owns improveit360 config) needs
+   to provide the canonical disposition list. When that arrives,
+   replace the labels below with the canonical strings AND update
+   the JSON contract on Enterprise so Margin IQ receives the
+   matching values. Internal codes stay; only the human labels
+   and the wire format change.
+   ============================================================ */
 function labelStatus(s) { return { open:'Open', sold:'Sold', nosale:'Not Sold', callback:'Callback', noshow:'No Show' }[s] || s; }
 function toast(msg) {
   let el = document.getElementById('toastEl');
